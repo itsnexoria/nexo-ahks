@@ -1,0 +1,51 @@
+{
+  "name": "ahk-blocks",
+  "version": "7.2.0",
+  "description": "Block-based AutoHotkey v2 script builder",
+  "main": "main.js",
+  "author": "Nexoria",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --publish never",
+    "dist:linux": "electron-builder --linux --publish never",
+    "test": "node scripts/selftest.js"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "jsdom": "^25.0.1"
+  },
+  "build": {
+    "appId": "org.nexoria.ahkblocks",
+    "productName": "AHK Blocks",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "node_modules/monaco-editor/min/**",
+      "!**/node_modules/monaco-editor/{dev,esm,min-maps}/**"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "fileAssociations": [
+      {
+        "ext": "ahkb",
+        "name": "AHK Blocks project"
+      }
+    ]
+  },
+  "dependencies": {
+    "monaco-editor": "^0.52.0"
+  }
+}

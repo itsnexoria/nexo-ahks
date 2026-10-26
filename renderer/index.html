@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; worker-src 'self' blob:">
+<title>AHK Blocks</title>
+<style>
+:root{--bg:#0d0f15;--side:#11141c;--panel:#161a24;--raise:#1e2331;--ink:#e7eaf3;--mut:#8b92a6;--line:#262c3c;--acc:#6f8dff;--code:#0a0c11;--codeink:#d6dae8;--event:#e89a2b;--ctrl:#4a86f0;--key:#2fae78;--mouse:#a173ee;--misc:#79829a;--ui:#e05c97;--on:#fff;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef0f5;--side:#f7f8fb;--panel:#fff;--raise:#f0f2f7;--ink:#1b1e29;--mut:#6a7185;--line:#d9dce6;--acc:#4668e8;--event:#d98a1f;--ctrl:#3a74e0;--key:#239a68;--mouse:#8a5cd6;--misc:#6b7385;--ui:#d14a86;color-scheme:light}}
+:root[data-theme="light"]{--bg:#eef0f5;--side:#f7f8fb;--panel:#fff;--raise:#f0f2f7;--ink:#1b1e29;--mut:#6a7185;--line:#d9dce6;--acc:#4668e8;--event:#d98a1f;--ctrl:#3a74e0;--key:#239a68;--mouse:#8a5cd6;--misc:#6b7385;--ui:#d14a86;color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:13.5px/1.45 "Segoe UI",Inter,system-ui,sans-serif;overflow:hidden}
+[hidden]{display:none!important}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+#app{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;height:100vh}
+button{font:inherit;color:var(--ink);background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.pri{background:linear-gradient(135deg,var(--acc),#8a6cf0);border-color:transparent;color:#fff;font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 7px;min-width:0}
+.sp{flex:1}
+#top{display:flex;align-items:flex-end;gap:14px;padding:8px 12px 0;background:var(--side);border-bottom:1px solid var(--line)}
+#brand{font-weight:700;display:flex;gap:8px;align-items:center;padding-bottom:8px;white-space:nowrap}
+.logo{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--acc),#a173ee);color:#fff;font-size:14px}
+#tabs{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;align-items:flex-end}
+.tab{display:flex;align-items:center;gap:6px;padding:7px 6px 7px 14px;border-radius:8px 8px 0 0;color:var(--mut);cursor:pointer;white-space:nowrap;border:1px solid transparent;border-bottom:0}
+.tab.on{background:var(--bg);color:var(--ink);border-color:var(--line)}
+.tab button,#newtab{background:none;border:0;color:inherit;padding:0 6px;font-size:15px;line-height:20px;border-radius:5px}
+.tab button:hover,#newtab:hover{background:var(--raise)}
+.tab input{width:110px}
+#views{display:flex;gap:3px;padding-bottom:6px}
+#views button{border-color:transparent;background:none;color:var(--mut)}
+#views button.on{background:var(--acc);color:#fff}
+#bar{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.g2{display:flex;gap:4px;padding-right:10px;border-right:1px solid var(--line)}.g2:last-child{border:0;padding:0}
+#main{display:grid;grid-template-columns:250px minmax(0,1fr) 330px;min-height:0}
+@media(max-width:1200px){#main{grid-template-columns:210px minmax(0,1fr) 270px}}
+#main[data-v=ui]{grid-template-columns:minmax(0,1fr) 300px}#main[data-v=ui] #side{display:none}
+#main[data-v=code]{grid-template-columns:1fr}#main[data-v=code] #side,#main[data-v=code] #right{display:none}
+#side,#right{overflow:auto;background:var(--side);padding:12px}
+#side{border-right:1px solid var(--line)}#right{border-left:1px solid var(--line)}
+#center{position:relative;min-height:0;overflow:hidden}
+.view{position:absolute;inset:0;overflow:auto;padding:18px}
+h2,h3{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin:0 0 8px;font-weight:600}
+.grp{margin-bottom:14px}.pal{display:flex;flex-wrap:wrap;gap:6px}
+.tip{color:var(--mut);font-size:12px;margin:8px 0 0}
+#ps{width:100%;margin-bottom:12px;padding:7px 10px;border-radius:8px}
+.event{--bc:var(--event)}.ctrl{--bc:var(--ctrl)}.key{--bc:var(--key)}.mouse{--bc:var(--mouse)}.misc{--bc:var(--misc)}.ui{--bc:var(--ui)}
+.pb,.blk{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 60%),var(--bc);color:var(--on)}
+.pb{border:0;border-radius:8px;padding:5px 10px;font-size:12.5px;font-weight:500;cursor:grab;box-shadow:0 1px 0 rgba(255,255,255,.2) inset,0 3px 8px -4px rgba(0,0,0,.6)}
+.pb:hover{filter:brightness(1.12);transform:translateY(-1px)}
+#canvas{min-height:100%}
+.blk{position:relative;border-radius:10px;padding:7px 10px;border-left:5px solid rgba(0,0,0,.3);box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 5px 12px -6px rgba(0,0,0,.6)}
+.blk::before{content:"";position:absolute;top:-5px;left:16px;width:20px;height:6px;border-radius:4px 4px 0 0;background:var(--bc)}
+.blk.sel{outline:2px dashed var(--ink);outline-offset:3px}
+.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.row input,.row select{color:#1a1d27;background:rgba(255,255,255,.94);border:0;padding:2px 7px;border-radius:6px}
+.h{cursor:grab;opacity:.75;padding:0 4px;user-select:none;letter-spacing:-2px}
+.x{background:rgba(0,0,0,.22);border:0;color:var(--on);padding:0 8px;border-radius:6px;line-height:22px;font-size:12px}.x:hover{background:rgba(0,0,0,.4)}
+.kids{margin:8px 0 3px 12px;padding:6px 6px 6px 10px;border-radius:8px;background:rgba(0,0,0,.2)}
+.gap{height:8px;border-radius:5px;transition:height .08s}.gap.over{height:26px;background:var(--acc);opacity:.35}
+.gap.empty{height:32px;border:1.5px dashed rgba(255,255,255,.5);color:rgba(255,255,255,.8);font-size:12px;display:flex;align-items:center;justify-content:center}
+#canvas>.gap.empty{border-color:var(--line);color:var(--mut);height:120px;font-size:13px}
+pre{margin:0;background:var(--code);color:var(--codeink);border-radius:10px;padding:12px;overflow:auto;max-height:52vh;font:12.5px/1.55 Consolas,ui-monospace,monospace;white-space:pre;border:1px solid var(--line)}
+.bar2{display:flex;gap:6px;margin-bottom:10px}
+.opt{display:flex;flex-direction:column;gap:6px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+#lint{list-style:none;margin:8px 0 0;padding:0;font-size:12.5px;color:var(--mut)}#lint li{padding:2px 0}
+#sb{display:flex;gap:12px;padding:4px 12px;background:var(--side);border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;max-width:560px;width:calc(100% - 32px);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.tpl{display:block;width:100%;text-align:left;margin-bottom:8px;padding:10px 12px}.tpl small{display:block;color:var(--mut)}
+#v-code{display:flex;flex-direction:column;padding:0}
+#codebar{padding:8px 14px;color:var(--mut);font-size:12.5px;border-bottom:1px solid var(--line);background:var(--panel)}
+#mon{flex:1;min-height:0;position:relative}
+#fb{position:absolute;inset:0;width:100%;height:100%;border:0;resize:none;padding:12px;background:var(--code);color:var(--codeink);font:13px/1.55 Consolas,monospace}
+#v-ui{display:flex;padding:0}
+#ui-tools{width:190px;padding:14px;border-right:1px solid var(--line);overflow:auto;flex:none}
+#ui-add{display:grid;gap:6px;margin-bottom:12px}
+#ui-stage{flex:1;overflow:auto;padding:28px;background:radial-gradient(var(--line) 1px,transparent 1px) 0 0/20px 20px}
+#ui-win-box{position:relative;background:var(--panel);border:1px solid var(--acc);border-radius:6px;box-shadow:0 20px 40px -20px rgba(0,0,0,.7);margin:0 auto}
+#ui-props{width:230px;padding:14px;border-left:1px solid var(--line);overflow:auto;flex:none}
+.fld{display:grid;grid-template-columns:72px 1fr;gap:6px;margin-bottom:7px;align-items:center;font-size:12.5px;color:var(--mut)}
+.uc{position:absolute;display:flex;align-items:center;padding:0 8px;font-size:13px;cursor:move;user-select:none;overflow:hidden;color:var(--ink)}
+.uc.sel{outline:2px solid var(--acc);overflow:visible}
+.uc .rs{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;cursor:nwse-resize;background:var(--acc);display:none}.uc.sel .rs{display:block}
+.c-Button{background:var(--raise);border:1px solid var(--line);border-radius:5px;justify-content:center}
+.c-Edit,.c-DropDownList{background:#fff;color:#111;border:1px solid #8a8fa0}
+.c-DropDownList::after{content:"▾";margin-left:auto}
+.c-Checkbox::before{content:"";width:13px;height:13px;border:1px solid var(--mut);border-radius:3px;margin-right:7px;flex:none}
+.c-Other{border:1px dashed var(--mut)}
+.blk.warn{box-shadow:0 0 0 2px #f5c542,0 5px 12px -6px rgba(0,0,0,.6)}
+.c-Radio::before{content:"";width:13px;height:13px;border:1px solid var(--mut);border-radius:50%;margin-right:7px;flex:none}
+.c-ComboBox{background:#fff;color:#111;border:1px solid #8a8fa0}.c-ComboBox::after{content:"▾";margin-left:auto}
+.c-ListBox{background:#fff;color:#111;border:1px solid #8a8fa0;align-items:flex-start;padding-top:4px}
+.c-Progress{background:var(--raise);border:1px solid var(--line)}.c-Progress::before{content:"";width:45%;height:100%;background:var(--acc);margin-left:-8px}
+.c-GroupBox{border:1px solid var(--mut);border-radius:4px;align-items:flex-start}
+#ui-bar{display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:14px}
+#ui-bar button.on{background:var(--acc);color:#fff;border-color:transparent}
+#ui-bar span{color:var(--mut);font-size:12px;margin-left:8px}
+#ui-wrap{width:max-content;margin:0 auto;box-shadow:0 20px 40px -20px rgba(0,0,0,.7)}
+#ui-chrome{display:none;align-items:center;height:31px;background:#fff;color:#000;font:12px "Segoe UI",system-ui,sans-serif;border:1px solid #888;border-bottom:0;user-select:none}
+#ui-wrap.prev #ui-win-box{border:1px solid #888;border-radius:0;box-shadow:none;margin:0}
+.uc .pv{position:absolute;inset:0;display:flex;align-items:center;padding:0 8px;overflow:hidden;pointer-events:none}
+.c-Checkbox .pv,.c-Radio .pv{padding-left:24px}
+.srow{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+#sset{max-width:560px;max-height:88vh;overflow:auto}#sset h3{margin-top:16px}
+body[data-v=home] #bar{display:none}
+body[data-v=home] #app{grid-template-rows:auto minmax(0,1fr) auto}
+body[data-v=home] #views{visibility:hidden}
+#main[data-v=home]{grid-template-columns:1fr}#main[data-v=home] #side,#main[data-v=home] #right{display:none}
+#th{margin-bottom:7px}
+.tab.home{font-weight:600}
+.tab.run::before{content:"";width:7px;height:7px;border-radius:50%;background:#2fae78;display:inline-block;margin-right:2px}
+#hm-top{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+#hm-top h1{font-size:22px;margin:0}
+#hm-bar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
+#hm-q{min-width:300px;padding:7px 10px;border-radius:8px}.chk{display:flex;gap:6px;align-items:center}
+#hm-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;align-items:start}
+.hc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.hc.on{border-color:#2fae78;box-shadow:0 0 0 1px #2fae78 inset}
+.hc-top{display:flex;align-items:center;gap:8px}.hc-name{flex:1;font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--raise);border:1px solid var(--line);color:var(--mut)}
+.chip.ok{color:#2fae78;border-color:#2fae78}.chip.bad{color:#ff6b6b;border-color:#ff6b6b}
+.hc-path{font-size:11.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hc-meta{font-size:12px;color:var(--mut)}
+.hc-acts{display:flex;gap:6px;align-items:center;margin-top:4px}.hc-more{margin-left:auto;display:flex;gap:4px}
+button.ic{padding:3px 8px;background:transparent}button.ic.on{border-color:#2fae78;color:#2fae78}
+.hm-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--mut)}.hm-empty h2{font-size:20px;text-transform:none;letter-spacing:0;color:var(--ink)}
+#qk{max-width:520px;padding:10px}#qk-in{width:100%;padding:10px 12px;font-size:15px;border-radius:10px}
+#qk-list{margin-top:8px}.qi{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer}.qi.on{background:var(--acc);color:#fff}.qi small{opacity:.8}
+.blk.err{box-shadow:0 0 0 2px #ff4d4f,0 0 18px rgba(255,77,79,.4)}
+.blk.inf{box-shadow:0 0 0 1px #4a86f0}
+.blk.flash{animation:fl 1.2s ease 2}
+@keyframes fl{50%{filter:brightness(1.7)}}
+.issues{margin-top:6px}.isl{background:rgba(0,0,0,.5);border-radius:6px;padding:5px 9px;margin-top:4px;font-size:12px;line-height:1.4}
+.isl.error{border-left:3px solid #ff6b6b}.isl.warn{border-left:3px solid #f5c542}.isl.info{border-left:3px solid #6fb1ff}
+.isl b{display:block;color:#fff}.isl span{opacity:.85}
+#lint li.iss{cursor:pointer;padding:7px 9px;border-radius:8px;margin:5px 0;background:var(--raise);border-left:3px solid var(--mut)}
+#lint li.iss.error{border-color:#ff4d4f}#lint li.iss.warn{border-color:#f5c542}#lint li.iss.info{border-color:#4a86f0}
+#lint li.iss b{display:block;color:var(--ink);font-weight:600}#lint li.iss small{display:block;color:var(--mut);margin-top:2px}#lint li.ok{color:#2fae78}
+#info b.e{color:#ff6b6b}#info b.w{color:#f5c542}
+.gap.over.bad{height:auto;min-height:26px;background:#ff4d4f;opacity:.95;color:#fff;font-size:12px;padding:5px 10px;display:flex;align-items:center}
+#ui-tools{width:236px}#ui-add{grid-template-columns:1fr 1fr}#ui-add button{padding:5px 6px;font-size:12.5px}
+#ui-props{width:270px}#ui-props h3{margin-top:14px}#ui-props textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 7px;width:100%;resize:vertical}
+.fld input[type=color]{width:38px;height:24px;padding:0;border:1px solid var(--line);border-radius:5px;background:none}
+.vmenu{position:fixed;z-index:99;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px;max-height:320px;overflow:auto;width:290px;box-shadow:0 18px 40px -12px rgba(0,0,0,.7)}
+.vmenu h4{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:10px 6px 3px}
+.vi{padding:6px 9px;border-radius:7px;cursor:pointer}.vi:hover{background:var(--acc);color:#fff}
+#ui-help{margin-top:12px;font-size:12.5px;color:var(--mut)}#ui-help summary{cursor:pointer;color:var(--ink);font-weight:600}#ui-help ol{padding-left:18px;margin:6px 0}
+#hlp h3{margin-top:14px}#hlp td{padding:2px 14px 2px 0;vertical-align:top}#hlp kbd{background:var(--raise);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:12px}
+.c-Slider::before{content:"";flex:1;height:4px;border-radius:3px;background:var(--acc)}
+</style>
+</head>
+<body data-v="home">
+<div id="app">
+<header id="top">
+  <div id="brand"><span class="logo">◈</span> AHK Blocks</div>
+  <div id="tabs" role="tablist"></div>
+  <div id="views"><button data-v="blocks" class="on">Blocks</button><button data-v="ui">UI Designer</button><button data-v="code">Code</button></div><button id="th" title="Switch light / dark">Theme</button>
+</header>
+<div id="bar">
+  <div class="g2"><button id="tp">Templates</button><button id="imp" title="Open an existing .ahk script as a new tab">Import .ahk</button><button id="rec" title="Record your real clicks and keys">⏺ Record</button></div>
+  <div class="g2"><button id="op" title="Ctrl+O">Open</button><button id="sv" title="Ctrl+S">Save</button><button id="un" title="Ctrl+Z">↶ Undo</button><button id="re" title="Ctrl+Y">↷ Redo</button><button id="clr">Clear</button><button id="sbtn" title="Settings for this script only">⚙ Script settings</button></div>
+  <span class="sp"></span>
+  <div class="g2"><button class="pri" id="run" title="F5">▶ Run</button><button id="stp">■ Stop</button><button id="cmp">Compile to EXE</button><button id="help" title="Help (F1)">?</button></div>
+</div>
+<main id="main" data-v="home">
+  <aside id="side"><input id="ps" placeholder="Search blocks…  (Ctrl+F)" aria-label="Search blocks"><div id="pal"></div>
+    <p class="tip">Click a block to add it. It lands inside the block you selected (hotkey, loop, if…) or right after it. Click empty space to go back to the end of the script. Type in the search box and press <b>Enter</b> to add the first match. <b>Delete</b> removes, <b>Ctrl+D</b> duplicates, <b>Ctrl+C / Ctrl+V</b> copies between tabs, <b>Alt+↑/↓</b> moves the selected block.</p></aside>
+  <section id="center">
+    <div id="v-home" class="view">
+  <div id="hm-top"><div><h1>Your scripts</h1><p class="tip" id="hm-sub"></p></div><span class="sp"></span>
+    <button class="pri" id="hm-new">＋ New script</button><button id="hm-tpl">Templates</button><button id="hm-imp">Import .ahk</button><button id="hm-fold">Add folder…</button><button id="hm-stop">■ Stop all</button></div>
+  <div id="hm-bar"><input id="hm-q" placeholder="Search scripts…   (Ctrl+K quick launch from anywhere)"><select id="hm-sort"><option value="edit">Recently edited</option><option value="run">Recently run</option><option value="name">Name</option></select>
+    <label class="chk"><input type="checkbox" id="hm-tray"> Close button hides to the tray</label><label class="chk"><input type="checkbox" id="hm-keep"> Keep scripts running when I quit</label></div>
+  <div id="hm-list"></div>
+</div>
+<div id="v-blocks" class="view" hidden><div id="canvas"></div></div>
+    <div id="v-ui" class="view" hidden>
+      <div id="ui-tools"><h3>Add control</h3><div id="ui-add"></div><p class="tip">Click an item to add it. Drag controls around, drag the corner to resize.</p><details id="ui-help" open><summary>How do I use what people type?</summary><ol><li>Add controls, like an Edit box and a Button.</li><li>Select the Button and press <b>✨ Make it do something</b>.</li><li>Inside the block it makes, add actions. On any text box, press <b>{}</b> and pick “Text typed in ed1”.</li></ol><p>Example: a message of <code>Hello {ed1}!</code> shows what was typed. Try the “Form” template.</p></details></div>
+      <div id="ui-stage"><div id="ui-bar"><button id="ui-d" class="on">Design</button><button id="ui-p">Preview</button><label class="chk" title="Controls jump to this grid while you drag. Pink guide lines show when edges line up with other controls. Hold Alt to drag freely.">Snap <select id="ui-snap"><option value="0">off</option><option value="5">5 px</option><option value="10">10 px</option></select></label><span>Pink lines = lined up with another control. Hold Alt to move freely.</span></div><div id="ui-wrap"><div id="ui-chrome"></div><div id="ui-win-box"></div></div></div>
+      <div id="ui-props"></div>
+    </div>
+    <div id="v-code" class="view" hidden><div id="codebar">Edit the script freely. Switching back to Blocks turns your code into blocks, and anything it can’t map becomes a Raw line block.</div><div id="mon"></div></div>
+  </section>
+  <aside id="right">
+    <div class="bar2"><button class="pri" id="dl">Export .ahk</button><button id="cp">Copy</button></div>
+    <pre id="code"></pre><ul id="lint"></ul>
+    
+    <p class="tip">Keys: ^ Ctrl, + Shift, ! Alt, # Win. Example: ^j is Ctrl+J. Needs AutoHotkey v2.</p>
+  </aside>
+</main>
+<footer id="sb"><span id="st"></span><span class="sp"></span><span id="info"></span></footer>
+</div>
+<dialog id="tpl"><h2>Templates</h2><div id="tl"></div><button id="tc">Close</button></dialog>
+<dialog id="qk"><input id="qk-in" placeholder="Type a script name…" autocomplete="off"><div id="qk-list"></div><p class="tip">↑ ↓ choose · Enter runs or stops · Ctrl+Enter edits · Esc closes</p></dialog>
+<dialog id="scan"><h2>Add scripts from a folder</h2><p class="tip" id="scan-dir"></p><div id="scan-list"></div><p style="margin-top:14px"><button class="pri" id="scan-go">Add selected</button> <button id="scan-x">Cancel</button></p></dialog>
+<dialog id="sset"><h2>Script settings</h2><p class="tip">These belong to this script only. Every tab has its own.</p><div id="sf"></div><p style="margin-top:14px"><button id="sr">Reset to defaults</button> <button class="pri" id="sx">Done</button></p></dialog>
+<dialog id="hlp"><h2>Help</h2>
+<h3>Shortcuts</h3><table><tr><td><kbd>Ctrl+S</kbd> / <kbd>Ctrl+Shift+S</kbd></td><td>Save / Save as</td></tr><tr><td><kbd>Ctrl+O</kbd></td><td>Open a project</td></tr><tr><td><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></td><td>Undo / redo (blocks and UI)</td></tr><tr><td><kbd>Ctrl+F</kbd></td><td>Search blocks</td></tr><tr><td><kbd>F5</kbd></td><td>Run the script</td></tr><tr><td><kbd>F8</kbd></td><td>Confirm a 🎯 screen pick, <kbd>Esc</kbd> cancels</td></tr><tr><td><kbd>F10</kbd></td><td>Stop recording</td></tr><tr><td><kbd>Delete</kbd></td><td>Delete the selected control in the UI Designer</td></tr></table>
+<h3>Key symbols</h3><table><tr><td><kbd>^</kbd> Ctrl</td><td><kbd>+</kbd> Shift</td><td><kbd>!</kbd> Alt</td><td><kbd>#</kbd> Win</td></tr><tr><td colspan="4">Example: <kbd>^!j</kbd> is Ctrl+Alt+J. Use the ⌨ button next to a key field and just press the keys.</td></tr></table>
+<h3>Getting what the user typed in your window</h3><ul><li>Every control has a <b>name</b> (like ed1). Select a control to see or change it.</li><li>Put actions in a <b>“When control event happens”</b> block. The UI Designer’s <b>✨ Make it do something</b> button creates one for you.</li><li>On blocks with a <b>{}</b> button, click it to insert the text typed in a box, the picked dropdown item, a checkbox, or a variable. In text it shows as <code>{ed1}</code>.</li></ul><h3>Good to know</h3><ul><li>Yellow outline on a block means the Problems panel found something.</li><li>Use <b>Hotkeys can interrupt themselves</b> (on by default) so pressing a toggle hotkey a second time can switch a loop off.</li><li>Drop an .ahk or .ahkb file on the window to open it in a new tab.</li><li>The Code view is the best place for big hand-written scripts. Switch back to Blocks any time.</li></ul>
+<button id="hc">Close</button></dialog>
+<dialog id="recd"><h2>Record actions</h2>
+  <p>Press Start and do your thing. The window minimizes while recording. Press <b>F10</b> to stop and your clicks and keys turn into blocks.</p>
+  <p><label><input type="checkbox" id="rc-d" checked> Include pauses between actions</label><br><label><input type="checkbox" id="rc-w" checked> Wrap in a hotkey block (F1)</label></p>
+  <button class="pri" id="rc-go">Start recording</button> <button id="rc-x">Cancel</button></dialog>
+<script>
+const $=s=>document.querySelector(s);
+const q=s=>'"'+String(s).replace(/`/g,'``').replace(/"/g,'`"')+'"';
+const vn=s=>String(s).replace(/\W/g,'_')||'x';
+const MB=['Left','Right','Middle'];
+const T={
+hotkey:{c:'event',g:'Event',box:1,glob:1,t:'When I press {key}',f:{key:{d:'F1',w:90,r:'hot'}},gen:v=>`${v.key}::{`},
+loop:{c:'ctrl',g:'Control',box:1,t:'Repeat {n} times',f:{n:{d:'10',w:60}},gen:v=>`Loop ${v.n||1} {`},
+forever:{c:'ctrl',g:'Control',box:1,t:'Repeat forever',f:{},gen:()=>'Loop {'},
+while:{c:'ctrl',g:'Control',box:1,t:'While {c}',f:{c:{d:'on',w:140,p:'a variable or condition'}},gen:v=>`while (${v.c}) {`},
+if:{c:'ctrl',g:'Control',box:1,t:'If {c}',f:{c:{d:'on',w:150,p:'GetKeyState("LButton","P")'}},gen:v=>`if (${v.c}) {`},
+else:{c:'ctrl',g:'Control',box:1,t:'Else',f:{},gen:()=>'else {'},
+brk:{c:'ctrl',g:'Control',t:'Stop repeating',f:{},gen:()=>'break'},
+send:{c:'key',g:'Keyboard',t:'Press keys {k}',f:{k:{d:'{Enter}',w:120,p:'e.g. e or {Enter}',r:'send'}},gen:v=>`Send ${q(v.k)}`},
+text:{c:'key',g:'Keyboard',t:'Type text {s}',f:{s:{d:'Hello!',w:150}},gen:v=>`SendText ${qi(v.s)}`},
+hold:{c:'key',g:'Keyboard',t:'{m} key {k}',f:{m:{d:'down',o:['down','up']},k:{d:'w',w:70,r:'name'}},gen:v=>`Send ${q(`{${v.k} ${v.m}}`)}`},
+click:{c:'mouse',g:'Mouse',t:'Click {b} at x {x} y {y}',f:{b:{d:'Left',o:MB},x:{d:'',w:55,p:'here'},y:{d:'',w:55,p:'here'}},gen:v=>`Click ${q([v.x!==''&&v.y!==''?v.x+' '+v.y:'',v.b].filter(Boolean).join(' '))}`},
+move:{c:'mouse',g:'Mouse',t:'Move mouse to x {x} y {y}',f:{x:{d:'500',w:55},y:{d:'500',w:55}},gen:v=>`MouseMove ${v.x||0}, ${v.y||0}`},
+wait:{c:'misc',g:'Other',t:'Wait {ms} ms',f:{ms:{d:'100',w:70}},gen:v=>`Sleep ${v.ms||0}`},
+msg:{c:'misc',g:'Other',t:'Show message {s}',f:{s:{d:'Hi!',w:150}},gen:v=>`MsgBox ${qi(v.s)}`},
+tip:{c:'misc',g:'Other',t:'Show tooltip {s}',f:{s:{d:'Running',w:130}},gen:v=>`ToolTip ${qi(v.s)}`},
+run:{c:'misc',g:'Other',t:'Open {p}',f:{p:{d:'notepad.exe',w:170,p:'program, file or website'}},gen:v=>`Run ${q(v.p)}`},
+win:{c:'misc',g:'Other',t:'Focus window {s}',f:{s:{d:'ahk_exe notepad.exe',w:170}},gen:v=>`WinActivate ${q(v.s)}`},
+set:{c:'misc',g:'Variables',t:'Set {n} to {v}',f:{n:{d:'count',w:70},v:{d:'0',w:70}},gen:v=>`${vn(v.n)} := ${v.v}`},
+tog:{c:'misc',g:'Variables',t:'Flip on/off {n}',f:{n:{d:'on',w:70}},gen:v=>`${vn(v.n)} := !${vn(v.n)}`},
+hotstr:{c:'event',g:'Event',box:1,glob:1,t:'When I type {s}',f:{s:{d:'btw',w:90}},gen:v=>`:*:${v.s}::{`},
+abbr:{c:'event',g:'Event',t:'Auto-replace {a} with {b}',f:{a:{d:'btw',w:70},b:{d:'by the way',w:130}},gen:v=>`:*:${v.a}::${v.b}`},
+hotif:{c:'event',g:'Event',t:'Only when window {s} is active',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`#HotIf WinActive(${q(v.s)})`},
+hotall:{c:'event',g:'Event',t:'Everywhere (end window limit)',f:{},gen:()=>'#HotIf'},
+func:{c:'ctrl',g:'Control',box:1,glob:1,t:'Define function {n}',f:{n:{d:'MyFunc',w:90}},gen:v=>`${vn(v.n)}() {`},
+call:{c:'ctrl',g:'Control',t:'Run function {n}',f:{n:{d:'MyFunc',w:90}},gen:v=>`${vn(v.n)}()`},
+kwait:{c:'key',g:'Keyboard',t:'Wait until key {k} is released',f:{k:{d:'F1',w:70,r:'name'}},gen:v=>`KeyWait ${q(v.k)}`},
+paste:{c:'key',g:'Keyboard',t:'Paste clipboard',f:{},gen:()=>'Send "^v"'},
+csend:{c:'key',g:'Keyboard',t:'Send {k} to window {w} (background)',f:{k:{d:'a',w:60,r:'send'},w:{d:'ahk_exe notepad.exe',w:140}},gen:v=>`ControlSend ${q(v.k)}, , ${q(v.w)}`},
+drag:{c:'mouse',g:'Mouse',t:'Drag {b} from x {x1} y {y1} to x {x2} y {y2}',f:{b:{d:'Left',o:MB},x1:{d:'100',w:50},y1:{d:'100',w:50},x2:{d:'300',w:50},y2:{d:'300',w:50}},gen:v=>`MouseClickDrag ${q(v.b)}, ${v.x1}, ${v.y1}, ${v.x2}, ${v.y2}`},
+scroll:{c:'mouse',g:'Mouse',t:'Scroll {d} {n} times',f:{d:{d:'Up',o:['Up','Down']},n:{d:'3',w:45}},gen:v=>`Send ${q(`{Wheel${v.d} ${v.n}}`)}`},
+ifpix:{c:'mouse',g:'Screen',box:1,t:'If pixel x {x} y {y} is color {c}',f:{x:{d:'100',w:50},y:{d:'100',w:50},c:{d:'0xFFFFFF',w:80}},gen:v=>`if (PixelGetColor(${v.x}, ${v.y}) = ${q(v.c)}) {`},
+ifimg:{c:'mouse',g:'Screen',box:1,t:'If image {p} is on screen',f:{p:{d:'button.png',w:130}},gen:v=>`if ImageSearch(&FoundX, &FoundY, 0, 0, A_ScreenWidth, A_ScreenHeight, ${q(v.p)}) {`},
+clkimg:{c:'mouse',g:'Screen',t:'Click the found image',f:{},gen:()=>'Click FoundX, FoundY'},
+rwait:{c:'misc',g:'Other',t:'Wait random {a} to {b} ms',f:{a:{d:'80',w:55},b:{d:'200',w:55}},gen:v=>`Sleep Random(${v.a}, ${v.b})`},
+wwait:{c:'misc',g:'Window',t:'Wait for window {s}',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`WinWait ${q(v.s)}`},
+wctl:{c:'misc',g:'Window',t:'{m} window {s}',f:{m:{d:'Minimize',o:['Minimize','Maximize','Restore','Close']},s:{d:'A',w:130}},gen:v=>`Win${v.m} ${q(v.s)}`},
+clip:{c:'misc',g:'Other',t:'Copy to clipboard {s}',f:{s:{d:'text',w:130}},gen:v=>`A_Clipboard := ${qi(v.s)}`},
+beep:{c:'misc',g:'Other',t:'Beep {f} Hz for {ms} ms',f:{f:{d:'750',w:55},ms:{d:'200',w:55}},gen:v=>`SoundBeep ${v.f}, ${v.ms}`},
+fapp:{c:'misc',g:'Other',t:'Add line {s} to file {f}',f:{s:{d:'log',w:100},f:{d:'log.txt',w:100}},gen:v=>'FileAppend '+qi(v.s)+' . "`n", '+q(v.f)},
+susp:{c:'misc',g:'Other',t:'Pause / resume hotkeys',f:{},gen:()=>'Suspend'},
+rld:{c:'misc',g:'Other',t:'Reload script',f:{},gen:()=>'Reload'},
+rawl:{c:'misc',g:'Other',t:'Raw AHK line {s}',f:{s:{d:'; your code',w:200}},gen:v=>v.s},
+elif:{c:'ctrl',g:'Control',box:1,t:'Else if {c}',f:{c:{d:'on',w:150}},gen:v=>`else if (${v.c}) {`},
+ifkey:{c:'ctrl',g:'Control',box:1,t:'If key {k} is {m}',f:{k:{d:'w',w:60,r:'name'},m:{d:'held',o:['held','not held']}},gen:v=>`if ${v.m==='held'?'':'!'}GetKeyState(${q(v.k)}, "P") {`},
+ifwin:{c:'ctrl',g:'Control',box:1,t:'If window {s} is active',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`if WinActive(${q(v.s)}) {`},
+timer:{c:'ctrl',g:'Control',t:'Every {ms} ms run function {n}',f:{ms:{d:'1000',w:60},n:{d:'MyFunc',w:90}},gen:v=>`SetTimer ${vn(v.n)}, ${v.ms}`},
+timeroff:{c:'ctrl',g:'Control',t:'Stop timer for function {n}',f:{n:{d:'MyFunc',w:90}},gen:v=>`SetTimer ${vn(v.n)}, 0`},
+mhold:{c:'mouse',g:'Mouse',t:'Mouse {b} button {m}',f:{b:{d:'Left',o:MB},m:{d:'down',o:['down','up']}},gen:v=>`Click ${q(v.b+' '+v.m)}`},
+getpos:{c:'mouse',g:'Mouse',t:'Save mouse position in {vx} and {vy}',f:{vx:{d:'mx',w:45},vy:{d:'my',w:45}},gen:v=>`MouseGetPos &${vn(v.vx)}, &${vn(v.vy)}`},
+incr:{c:'misc',g:'Variables',t:'Add {v} to {n}',f:{v:{d:'1',w:50},n:{d:'count',w:70}},gen:v=>`${vn(v.n)} += ${v.v}`},
+rnd:{c:'misc',g:'Variables',t:'Set {n} to random {a} to {b}',f:{n:{d:'roll',w:70},a:{d:'1',w:45},b:{d:'10',w:45}},gen:v=>`${vn(v.n)} := Random(${v.a}, ${v.b})`},
+inbox:{c:'misc',g:'Variables',t:'Ask me {p} and save in {n}',f:{p:{d:'Name?',w:100},n:{d:'answer',w:70}},gen:v=>`${vn(v.n)} := InputBox(${q(v.p)}).Value`},
+tray:{c:'misc',g:'Other',t:'Show notification {s}',f:{s:{d:'Done!',w:130}},gen:v=>`TrayTip ${qi(v.s)}, "AHK Blocks"`},
+sound:{c:'misc',g:'Other',t:'Play sound file {f}',f:{f:{d:'C:\\Windows\\Media\\tada.wav',w:200}},gen:v=>`SoundPlay ${q(v.f)}`},
+guishow:{c:'ui',g:'Window UI',t:'Show my window',f:{},gen:()=>(GUI.v||'myGui')+'.Show()'},
+guihide:{c:'ui',g:'Window UI',t:'Hide my window',f:{},gen:()=>(GUI.v||'myGui')+'.Hide()'},
+setctl:{c:'ui',g:'Window UI',t:'Set control {c} value to {v}',f:{c:{d:'ed1',w:70,ctl:1},v:{d:'Hello',w:110}},gen:v=>`${vn(v.c)}.Value := ${qi(v.v)}`},
+settxt:{c:'ui',g:'Window UI',t:'Set control {c} text to {v}',f:{c:{d:'btn1',w:70,ctl:1},v:{d:'Done',w:110}},gen:v=>`${vn(v.c)}.Text := ${qi(v.v)}`},
+getctl:{c:'ui',g:'Window UI',t:'Save {p} of control {c} in {n}',f:{p:{d:'Value',o:['Value','Text']},c:{d:'ed1',w:70,ctl:1},n:{d:'answer',w:70}},gen:v=>`${vn(v.n)} := ${vn(v.c)}.${v.p||'Value'}`},
+hkpass:{c:'event',g:'Event',box:1,glob:1,t:'When I press {key} (let it through)',f:{key:{d:'F1',w:90,r:'hot'}},gen:v=>`~${v.key}::{`},
+hkup:{c:'event',g:'Event',box:1,glob:1,t:'When I release {key}',f:{key:{d:'F1',w:90,r:'hot'}},gen:v=>`${v.key} up::{`},
+remap:{c:'event',g:'Event',t:'Remap key {a} to {b}',f:{a:{d:'CapsLock',w:80,r:'name'},b:{d:'Ctrl',w:80,r:'name'}},gen:v=>`${v.a}::${v.b}`},
+try:{c:'ctrl',g:'Control',box:1,t:'Try',f:{},gen:()=>'try {'},
+catch:{c:'ctrl',g:'Control',box:1,t:'If that fails',f:{},gen:()=>'catch {'},
+finally:{c:'ctrl',g:'Control',box:1,t:'Always do this after',f:{},gen:()=>'finally {'},
+ret:{c:'ctrl',g:'Control',t:'Stop this hotkey or function',f:{},gen:()=>'return'},
+retv:{c:'ctrl',g:'Control',t:'Give back value {v}',f:{v:{d:'true',w:80}},gen:v=>`return ${v.v}`},
+funcp:{c:'ctrl',g:'Control',box:1,glob:1,t:'Define function {n} taking {p}',f:{n:{d:'MyFunc',w:90},p:{d:'x',w:70}},gen:v=>`${vn(v.n)}(${v.p}) {`},
+callp:{c:'ctrl',g:'Control',t:'Run function {n} with {a}',f:{n:{d:'MyFunc',w:90},a:{d:'1',w:70}},gen:v=>`${vn(v.n)}(${v.a})`},
+brkif:{c:'ctrl',g:'Control',t:'Stop repeating if {c}',f:{c:{d:'count >= 10',w:140}},gen:v=>`if (${v.c}) {\n  break\n}`},
+waitc:{c:'ctrl',g:'Control',t:'Wait until {c}',f:{c:{d:'done',w:140}},gen:v=>`while !(${v.c}) {\n  Sleep 25\n}`},
+ifyes:{c:'ctrl',g:'Control',box:1,t:'If I click Yes on {s}',f:{s:{d:'Continue?',w:130}},gen:v=>`if MsgBox(${qi(v.s)}, "AHK Blocks", "YesNo") = "Yes" {`},
+ifclip:{c:'ctrl',g:'Control',box:1,t:'If clipboard contains {s}',f:{s:{d:'text',w:120}},gen:v=>`if InStr(A_Clipboard, ${q(v.s)}) {`},
+foreach:{c:'ctrl',g:'Control',box:1,t:'For each file matching {p}',f:{p:{d:'C:\\Users\\*.txt',w:180}},gen:v=>`Loop Files ${q(v.p)} {`},
+sendn:{c:'key',g:'Keyboard',t:'Press {k} {n} times',f:{k:{d:'Enter',w:70,r:'name'},n:{d:'3',w:45}},gen:v=>`Send ${q(`{${v.k} ${v.n}}`)}`},
+holdms:{c:'key',g:'Keyboard',t:'Hold {k} for {ms} ms',f:{k:{d:'w',w:60,r:'name'},ms:{d:'500',w:60}},gen:v=>`Send ${q(`{${v.k} down}`)}\nSleep ${v.ms||0}\nSend ${q(`{${v.k} up}`)}`},
+pastet:{c:'key',g:'Keyboard',t:'Paste text {s}',f:{s:{d:'Hello!',w:150}},gen:v=>`A_Clipboard := ${qi(v.s)}\nSend "^v"`},
+typev:{c:'key',g:'Keyboard',t:'Type value of {v}',f:{v:{d:'name',w:90}},gen:v=>`SendText ${v.v}`},
+blockin:{c:'key',g:'Keyboard',t:'Block keyboard and mouse {m}',f:{m:{d:'On',o:['On','Off']}},gen:v=>`BlockInput ${q(v.m)}`},
+caps:{c:'key',g:'Keyboard',t:'Set Caps Lock {m}',f:{m:{d:'AlwaysOff',o:['AlwaysOff','AlwaysOn','On','Off']}},gen:v=>`SetCapsLockState ${q(v.m)}`},
+speed:{c:'key',g:'Keyboard',t:'Set key delay {k} ms and mouse delay {m} ms',f:{k:{d:'10',w:45},m:{d:'10',w:45}},gen:v=>`SetKeyDelay ${v.k}\nSetMouseDelay ${v.m}`},
+mclick:{c:'mouse',g:'Mouse',t:'Click {b} {n} times',f:{b:{d:'Left',o:MB},n:{d:'2',w:40}},gen:v=>`Click ${q(v.b+' '+v.n)}`},
+mrel:{c:'mouse',g:'Mouse',t:'Move mouse by x {dx} y {dy}',f:{dx:{d:'10',w:50},dy:{d:'0',w:50}},gen:v=>`MouseMove ${v.dx||0}, ${v.dy||0}, 0, "R"`},
+mglide:{c:'mouse',g:'Mouse',t:'Glide mouse to x {x} y {y} speed {s}',f:{x:{d:'500',w:50},y:{d:'500',w:50},s:{d:'20',w:40}},gen:v=>`MouseMove ${v.x||0}, ${v.y||0}, ${v.s||0}`},
+clkhold:{c:'mouse',g:'Mouse',t:'Hold {b} click for {ms} ms',f:{b:{d:'Left',o:MB},ms:{d:'500',w:60}},gen:v=>`Click ${q(v.b+' Down')}\nSleep ${v.ms||0}\nClick ${q(v.b+' Up')}`},
+getpix:{c:'mouse',g:'Screen',t:'Save color at x {x} y {y} in {n}',f:{x:{d:'100',w:50},y:{d:'100',w:50},n:{d:'color',w:60}},gen:v=>`${vn(v.n)} := PixelGetColor(${v.x||0}, ${v.y||0})`},
+waitpix:{c:'mouse',g:'Screen',t:'Wait until pixel x {x} y {y} is {c}',f:{x:{d:'100',w:50},y:{d:'100',w:50},c:{d:'0xFFFFFF',w:80}},gen:v=>`while (PixelGetColor(${v.x||0}, ${v.y||0}) != ${q(v.c)}) {\n  Sleep 20\n}`},
+ifpixn:{c:'mouse',g:'Screen',box:1,t:'If pixel x {x} y {y} is NOT {c}',f:{x:{d:'100',w:50},y:{d:'100',w:50},c:{d:'0xFFFFFF',w:80}},gen:v=>`if (PixelGetColor(${v.x||0}, ${v.y||0}) != ${q(v.c)}) {`},
+ifcolor:{c:'mouse',g:'Screen',box:1,t:'If color {c} is in area x1 {x1} y1 {y1} to x2 {x2} y2 {y2}',f:{c:{d:'0xFF0000',w:80},x1:{d:'0',w:45},y1:{d:'0',w:45},x2:{d:'800',w:45},y2:{d:'600',w:45}},gen:v=>`if PixelSearch(&FoundX, &FoundY, ${v.x1}, ${v.y1}, ${v.x2}, ${v.y2}, ${v.c}, 10) {`},
+ifwex:{c:'misc',g:'Window',box:1,t:'If window {s} exists',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`if WinExist(${q(v.s)}) {`},
+ifproc:{c:'misc',g:'Window',box:1,t:'If program {s} is running',f:{s:{d:'notepad.exe',w:120}},gen:v=>`if ProcessExist(${q(v.s)}) {`},
+wmove:{c:'misc',g:'Window',t:'Move window {s} to x {x} y {y} size {w} by {h}',f:{s:{d:'A',w:90},x:{d:'0',w:45},y:{d:'0',w:45},w:{d:'800',w:50},h:{d:'600',w:50}},gen:v=>`WinMove ${v.x}, ${v.y}, ${v.w}, ${v.h}, ${q(v.s)}`},
+wtop:{c:'misc',g:'Window',t:'Toggle always-on-top for {s}',f:{s:{d:'A',w:100}},gen:v=>`WinSetAlwaysOnTop -1, ${q(v.s)}`},
+wclosew:{c:'misc',g:'Window',t:'Wait for window {s} to close',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`WinWaitClose ${q(v.s)}`},
+pkill:{c:'misc',g:'Window',t:'Close program {s}',f:{s:{d:'notepad.exe',w:120}},gen:v=>`ProcessClose ${q(v.s)}`},
+pwait:{c:'misc',g:'Window',t:'Wait for program {s}',f:{s:{d:'notepad.exe',w:120}},gen:v=>`ProcessWait ${q(v.s)}`},
+runw:{c:'misc',g:'Window',t:'Run {p} and wait for it to finish',f:{p:{d:'notepad.exe',w:150}},gen:v=>`RunWait ${q(v.p)}`},
+runh:{c:'misc',g:'Window',t:'Run command {c} (hidden)',f:{c:{d:'echo hi',w:150}},gen:v=>`Run A_ComSpec ${q(' /c '+v.c)}, , "Hide"`},
+rclip:{c:'misc',g:'Variables',t:'Read clipboard into {n}',f:{n:{d:'clip',w:70}},gen:v=>`${vn(v.n)} := A_Clipboard`},
+time:{c:'misc',g:'Variables',t:'Get time into {n} as {f}',f:{n:{d:'now',w:60},f:{d:'yyyy-MM-dd HH:mm:ss',w:140}},gen:v=>`${vn(v.n)} := FormatTime(, ${q(v.f)})`},
+fread:{c:'misc',g:'Variables',t:'Read file {f} into {n}',f:{f:{d:'log.txt',w:110},n:{d:'text',w:60}},gen:v=>`${vn(v.n)} := FileRead(${q(v.f)})`},
+iniload:{c:'misc',g:'Variables',t:'Load setting {k} from {f} into {n}',f:{k:{d:'name',w:70},f:{d:'settings.ini',w:100},n:{d:'saved',w:60}},gen:v=>`${vn(v.n)} := IniRead(${q(v.f)}, "Settings", ${q(v.k)}, "")`},
+math:{c:'misc',g:'Variables',t:'Set {n} to {a} {op} {b}',f:{n:{d:'total',w:60},a:{d:'1',w:50},op:{d:'+',o:['+','-','*','/','//']},b:{d:'1',w:50}},gen:v=>`${vn(v.n)} := ${v.a} ${v.op} ${v.b}`},
+sett:{c:'misc',g:'Variables',t:'Set {n} to text {s}',f:{n:{d:'name',w:70},s:{d:'hello',w:110}},gen:v=>`${vn(v.n)} := ${qi(v.s)}`},
+inputkey:{c:'misc',g:'Variables',t:'Wait for a key press and save it in {n}',f:{n:{d:'key',w:60}},gen:v=>`ih := InputHook("L1 V")\nih.Start()\nih.Wait()\n${vn(v.n)} := ih.Input`},
+showv:{c:'misc',g:'Variables',t:'Show value of {v}',f:{v:{d:'count',w:90}},gen:v=>`MsgBox ${v.v}`},
+fdel:{c:'misc',g:'Other',t:'Delete file {f}',f:{f:{d:'old.txt',w:120}},gen:v=>`FileDelete ${q(v.f)}`},
+dl:{c:'misc',g:'Other',t:'Download {u} to {f}',f:{u:{d:'https://example.com/file.zip',w:200},f:{d:'file.zip',w:90}},gen:v=>`Download ${q(v.u)}, ${q(v.f)}`},
+inisave:{c:'misc',g:'Other',t:'Save setting {k} = {v} to {f}',f:{k:{d:'name',w:70},v:{d:'value',w:70},f:{d:'settings.ini',w:100}},gen:v=>`IniWrite ${q(v.v)}, ${q(v.f)}, "Settings", ${q(v.k)}`},
+vol:{c:'misc',g:'Other',t:'Change volume by {n}',f:{n:{d:'+5',w:50}},gen:v=>`SoundSetVolume ${q(v.n)}`},
+mute:{c:'misc',g:'Other',t:'Toggle mute',f:{},gen:()=>'SoundSetMute -1'},
+ttip2:{c:'misc',g:'Other',t:'Tooltip {s} for {ms} ms',f:{s:{d:'Hi',w:100},ms:{d:'1500',w:60}},gen:v=>`ToolTip ${qi(v.s)}\nSetTimer () => ToolTip(), -${v.ms||0}`},
+tiptray:{c:'misc',g:'Other',t:'Set tray tooltip {s}',f:{s:{d:'My script',w:120}},gen:v=>`A_IconTip := ${q(v.s)}`},
+hkon:{c:'misc',g:'Other',t:'Turn hotkey {k} {m}',f:{k:{d:'F1',w:60,r:'hot'},m:{d:'Off',o:['On','Off','Toggle']}},gen:v=>`Hotkey ${q(v.k)}, ${q(v.m)}`},
+stopin:{c:'misc',g:'Other',t:'Stop script after {ms} ms',f:{ms:{d:'60000',w:70}},gen:v=>`SetTimer () => ExitApp(), -${v.ms||0}`},
+settxtx:{c:'ui',g:'Window UI',t:'Set control {c} text to value of {e}',f:{c:{d:'txt1',w:60,ctl:1},e:{d:'"Count: " count',w:150}},gen:v=>`${vn(v.c)}.Text := ${v.e}`},
+guiend:{c:'ui',g:'Window UI',t:'Close my window',f:{},gen:()=>(GUI.v||'myGui')+'.Destroy()'},
+guien:{c:'ui',g:'Window UI',t:'Control {c} {m}',f:{c:{d:'btn1',w:60,ctl:1},m:{d:'enabled',o:['enabled','disabled']}},gen:v=>`${vn(v.c)}.Enabled := ${v.m==='enabled'?'true':'false'}`},
+onctl:{c:'ui',g:'Window UI',box:1,glob:1,t:'When control {c} event {ev} happens',f:{c:{d:'btn1',w:70,ctl:1},ev:{d:'Click',o:['Click','Change','DoubleClick','Focus','LoseFocus','ContextMenu']}},gen:v=>`${vn(v.c)}_${v.ev}(*) {`},
+onwin:{c:'ui',g:'Window UI',box:1,glob:1,t:'When my window event {ev} happens',f:{ev:{d:'Close',o:['Close','Escape','Size','ContextMenu']}},gen:v=>`${GUI.v||'myGui'}_${v.ev}(*) {`},
+guifocus:{c:'ui',g:'Window UI',t:'Focus control {c}',f:{c:{d:'ed1',w:70,ctl:1}},gen:v=>`${vn(v.c)}.Focus()`},
+guivis:{c:'ui',g:'Window UI',t:'Control {c} {m}',f:{c:{d:'btn1',w:70,ctl:1},m:{d:'visible',o:['visible','hidden']}},gen:v=>`${vn(v.c)}.Visible := ${v.m==='visible'?'true':'false'}`},
+guilist:{c:'ui',g:'Window UI',t:'Add {t} to list {c}',f:{t:{d:'Item',w:90},c:{d:'lb1',w:60,ctl:1}},gen:v=>`${vn(v.c)}.Add([${q(v.t)}])`},
+guichoose:{c:'ui',g:'Window UI',t:'Choose item number {n} in {c}',f:{n:{d:'1',w:40},c:{d:'dd1',w:60,ctl:1}},gen:v=>`${vn(v.c)}.Choose(${v.n})`},
+guititle:{c:'ui',g:'Window UI',t:'Set window title to {s}',f:{s:{d:'My app',w:120}},gen:v=>`${GUI.v||'myGui'}.Title := ${qi(v.s)}`},
+guimin:{c:'ui',g:'Window UI',t:'{m} my window',f:{m:{d:'Minimize',o:['Minimize','Maximize','Restore']}},gen:v=>`${GUI.v||'myGui'}.${v.m}()`},
+fsel:{c:'misc',g:'Variables',t:'Ask me to pick a file and save it in {n}',f:{n:{d:'file',w:60}},gen:v=>`${vn(v.n)} := FileSelect()`},
+dsel:{c:'misc',g:'Variables',t:'Ask me to pick a folder and save it in {n}',f:{n:{d:'folder',w:60}},gen:v=>`${vn(v.n)} := DirSelect()`},
+trayitem:{c:'misc',g:'Tray',box:1,glob:1,t:'Tray menu item {t}',f:{t:{d:'Open window',w:130}},gen:v=>`A_TrayMenu.Add(${q(v.t)}, Tray_${vn(v.t)})\nTray_${vn(v.t)}(*) {`},
+traysep:{c:'misc',g:'Tray',t:'Tray menu separator line',f:{},gen:()=>'A_TrayMenu.Add()'},
+trayclear:{c:'misc',g:'Tray',t:'Remove the standard tray menu items',f:{},gen:()=>'A_TrayMenu.Delete()'},
+traydef:{c:'misc',g:'Tray',t:'Double-clicking the tray icon runs item {t}',f:{t:{d:'Open window',w:130}},gen:v=>`A_TrayMenu.Default := ${q(v.t)}`},
+traycheck:{c:'misc',g:'Tray',t:'{m} tray item {t}',f:{m:{d:'Check',o:['Check','Uncheck','ToggleCheck','Enable','Disable']},t:{d:'Open window',w:130}},gen:v=>`A_TrayMenu.${v.m}(${q(v.t)})`},
+trayicon:{c:'misc',g:'Tray',t:'Set tray icon to {f}',f:{f:{d:'icon.ico',w:130}},gen:v=>`TraySetIcon(${q(v.f)})`},
+trayhide:{c:'misc',g:'Tray',t:'{m} the tray icon',f:{m:{d:'Hide',o:['Hide','Show']}},gen:v=>`A_IconHidden := ${v.m==='Hide'?'true':'false'}`},
+trayshow:{c:'misc',g:'Tray',t:'Pop up the tray menu',f:{},gen:()=>'A_TrayMenu.Show()'},
+numstate:{c:'key',g:'System',t:'Set {k} {m}',f:{k:{d:'NumLock',o:['NumLock','ScrollLock']},m:{d:'AlwaysOn',o:['AlwaysOn','AlwaysOff','On','Off']}},gen:v=>`Set${v.k}State ${q(v.m)}`},
+kwaitd:{c:'key',g:'Keyboard',t:'Wait until key {k} is pressed',f:{k:{d:'F1',w:70,r:'name'}},gen:v=>`KeyWait ${q(v.k)}, "D"`},
+relmod:{c:'key',g:'Keyboard',t:'Release stuck modifier keys',f:{},gen:()=>'Send "{Ctrl up}{Shift up}{Alt up}{LWin up}{RWin up}"'},
+bgclick:{c:'mouse',g:'Mouse',t:'Click inside window {w} at x {cx} y {cy} (background)',f:{w:{d:'ahk_exe notepad.exe',w:140},cx:{d:'50',w:45},cy:{d:'50',w:45}},gen:v=>`ControlClick ${q('x'+v.cx+' y'+v.cy)}, ${q(v.w)}`},
+mwin:{c:'mouse',g:'Mouse',t:'Move mouse to the center of window {s}',f:{s:{d:'A',w:100}},gen:v=>`WinGetPos(&_wx, &_wy, &_ww, &_wh, ${q(v.s)})\nMouseMove _wx + _ww / 2, _wy + _wh / 2`},
+imgclick:{c:'mouse',g:'Screen',t:'Wait for image {p} then click it',f:{p:{d:'button.png',w:120}},gen:v=>`while !ImageSearch(&FoundX, &FoundY, 0, 0, A_ScreenWidth, A_ScreenHeight, ${q(v.p)}) {\n  Sleep 100\n}\nClick FoundX, FoundY`},
+colorclick:{c:'mouse',g:'Screen',t:'Click color {c} if found in area x1 {x1} y1 {y1} to x2 {x2} y2 {y2}',f:{c:{d:'0xFF0000',w:80},x1:{d:'0',w:45},y1:{d:'0',w:45},x2:{d:'800',w:45},y2:{d:'600',w:45}},gen:v=>`if PixelSearch(&FoundX, &FoundY, ${v.x1}, ${v.y1}, ${v.x2}, ${v.y2}, ${v.c}, 10) {\n  Click FoundX, FoundY\n}`},
+wintitle:{c:'misc',g:'Window',t:'Get the active window title into {n}',f:{n:{d:'title',w:70}},gen:v=>`${vn(v.n)} := WinGetTitle("A")`},
+wtrans:{c:'misc',g:'Window',t:'Make window {s} see-through level {n} (0 invisible, 255 solid)',f:{s:{d:'A',w:90},n:{d:'200',w:45}},gen:v=>`WinSetTransparent ${v.n}, ${q(v.s)}`},
+whide:{c:'misc',g:'Window',t:'{m} window {s}',f:{m:{d:'Hide',o:['Hide','Show']},s:{d:'ahk_exe notepad.exe',w:140}},gen:v=>`Win${v.m} ${q(v.s)}`},
+wcenter:{c:'misc',g:'Window',t:'Center window {s} on the screen',f:{s:{d:'A',w:100}},gen:v=>`WinGetPos(, , &_ww, &_wh, ${q(v.s)})\nWinMove((A_ScreenWidth - _ww) / 2, (A_ScreenHeight - _wh) / 2, , , ${q(v.s)})`},
+join:{c:'misc',g:'Text',t:'Set {n} to {a} joined with {b}',f:{n:{d:'text',w:60},a:{d:'"Hello, "',w:90},b:{d:'name',w:70}},gen:v=>`${vn(v.n)} := ${v.a} ${v.b}`},
+strlen:{c:'misc',g:'Text',t:'Set {n} to the length of {v}',f:{n:{d:'len',w:60},v:{d:'text',w:80}},gen:v=>`${vn(v.n)} := StrLen(${v.v})`},
+strcase:{c:'misc',g:'Text',t:'Set {n} to {v} in {m} case',f:{n:{d:'text',w:60},v:{d:'text',w:80},m:{d:'Upper',o:['Upper','Lower']}},gen:v=>`${vn(v.n)} := Str${v.m}(${v.v})`},
+strrep:{c:'misc',g:'Text',t:'Set {n} to {v} with {a} replaced by {b}',f:{n:{d:'text',w:60},v:{d:'text',w:80},a:{d:'old',w:60},b:{d:'new',w:60}},gen:v=>`${vn(v.n)} := StrReplace(${v.v}, ${q(v.a)}, ${q(v.b)})`},
+strsplit:{c:'misc',g:'Text',t:'Split {v} at {d} into list {n}',f:{v:{d:'text',w:80},d:{d:',',w:40},n:{d:'parts',w:60}},gen:v=>`${vn(v.n)} := StrSplit(${v.v}, ${q(v.d)})`},
+copysel:{c:'misc',g:'Text',t:'Copy the selected text into {n}',f:{n:{d:'picked',w:70}},gen:v=>`A_Clipboard := ""\nSend "^c"\nClipWait 1\n${vn(v.n)} := A_Clipboard`},
+clrclip:{c:'misc',g:'Text',t:'Clear the clipboard',f:{},gen:()=>'A_Clipboard := ""'},
+ifcmp:{c:'ctrl',g:'Control',box:1,t:'If {a} {op} {b}',f:{a:{d:'count',w:80},op:{d:'=',o:['=','!=','>','<','>=','<=']},b:{d:'5',w:70}},gen:v=>`if (${v.a} ${v.op} ${v.b}) {`},
+iftext:{c:'ctrl',g:'Control',box:1,t:'If {v} contains {s}',f:{v:{d:'text',w:80},s:{d:'hello',w:90}},gen:v=>`if InStr(${v.v}, ${q(v.s)}) {`},
+forlist:{c:'ctrl',g:'Control',box:1,t:'For each {i} in list {v}',f:{i:{d:'item',w:60},v:{d:'parts',w:80}},gen:v=>`for ${vn(v.i)} in ${v.v} {`},
+whiletime:{c:'ctrl',g:'Control',box:1,t:'Repeat for {ms} ms (timer {n})',f:{ms:{d:'3000',w:60},n:{d:'started',w:70}},gen:v=>`${vn(v.n)} := A_TickCount\nwhile (A_TickCount - ${vn(v.n)} < ${v.ms||0}) {`},
+pausesc:{c:'ctrl',g:'System',t:'Pause the script {m}',f:{m:{d:'Toggle',o:['On','Off','Toggle']}},gen:v=>`Pause ${v.m==='On'?1:v.m==='Off'?0:-1}`},
+ifexist:{c:'ctrl',g:'Files',box:1,t:'If file or folder {p} exists',f:{p:{d:'C:\\Users\\me\\file.txt',w:190}},gen:v=>`if FileExist(${q(v.p)}) {`},
+fcopy:{c:'misc',g:'Files',t:'Copy file {a} to {b}',f:{a:{d:'a.txt',w:100},b:{d:'b.txt',w:100}},gen:v=>`FileCopy ${q(v.a)}, ${q(v.b)}, 1`},
+fmove:{c:'misc',g:'Files',t:'Move file {a} to {b}',f:{a:{d:'a.txt',w:100},b:{d:'folder\\a.txt',w:100}},gen:v=>`FileMove ${q(v.a)}, ${q(v.b)}, 1`},
+dircreate:{c:'misc',g:'Files',t:'Make folder {p}',f:{p:{d:'backup',w:130}},gen:v=>`DirCreate ${q(v.p)}`},
+power:{c:'misc',g:'System',t:'Computer: {m}',f:{m:{d:'Lock',o:['Lock','Log off','Restart','Shut down','Sleep']}},gen:v=>({'Lock':'DllCall("LockWorkStation")','Log off':'Shutdown 0','Restart':'Shutdown 2','Shut down':'Shutdown 1','Sleep':'DllCall("PowrProf\\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)'})[v.m]||'DllCall("LockWorkStation")'},
+runadmin:{c:'misc',g:'System',t:'Run {p} as administrator',f:{p:{d:'notepad.exe',w:140}},gen:v=>`Run ${q('*RunAs '+v.p)}`},
+speak:{c:'misc',g:'System',t:'Say out loud {s}',f:{s:{d:'Hello there',w:140}},gen:v=>`ComObject("SAPI.SpVoice").Speak(${qi(v.s)})`},
+shot:{c:'misc',g:'System',t:'Copy a screenshot of the {m}',f:{m:{d:'whole screen',o:['whole screen','active window']}},gen:v=>v.m==='whole screen'?'Send "{PrintScreen}"':'Send "!{PrintScreen}"'},
+media:{c:'key',g:'System',t:'Press media key {m}',f:{m:{d:'Media_Play_Pause',o:['Media_Play_Pause','Media_Next','Media_Prev','Media_Stop','Volume_Up','Volume_Down','Volume_Mute']}},gen:v=>`Send ${q('{'+v.m+'}')}`},
+guicolor:{c:'ui',g:'Window UI',t:'Color control {c}: background {b} text {t} (hex like FF0000)',f:{c:{d:'btn1',w:60,ctl:1},b:{d:'1A1A2E',w:70},t:{d:'FFFFFF',w:70}},gen:v=>`${vn(v.c)}.Opt(${q('+Background'+v.b)})\n${vn(v.c)}.SetFont(${q('c'+v.t)})`},
+slowtype:{c:'key',g:'Keyboard',t:'Type {s} slowly, {ms} ms per key',f:{s:{d:'Hello',w:120},ms:{d:'60',w:45}},gen:v=>`SetKeyDelay ${v.ms||0}\nSendEvent ${q('{Raw}'+v.s)}`},
+typeline:{c:'key',g:'Keyboard',t:'Type {s} and press Enter',f:{s:{d:'Hello',w:140}},gen:v=>`SendText ${qi(v.s)}\nSend "{Enter}"`},
+holdwhile:{c:'key',g:'Keyboard',box:1,t:'While holding key {k}, do',f:{k:{d:'Shift',w:70,r:'name'}},gen:v=>`Send ${q('{'+v.k+' down}')}\ntry {`,tail:v=>['finally {','  Send '+q('{'+v.k+' up}'),'}']},
+multiclick:{c:'mouse',g:'Mouse',t:'Click {n} times with {ms} ms between',f:{n:{d:'10',w:45},ms:{d:'50',w:45}},gen:v=>`Loop ${v.n||1} {\n  Click\n  Sleep ${v.ms||0}\n}`},
+jiggle:{c:'mouse',g:'Mouse',t:'Wiggle the mouse {px} pixels left and right',f:{px:{d:'5',w:45}},gen:v=>`MouseMove ${v.px}, 0, 0, "R"\nMouseMove -${v.px}, 0, 0, "R"`},
+ifimgv:{c:'mouse',g:'Screen',box:1,t:'If image {p} (tolerance {t}) is in area x1 {x1} y1 {y1} to x2 {x2} y2 {y2}',f:{p:{d:'button.png',w:100},t:{d:'30',w:40},x1:{d:'0',w:45},y1:{d:'0',w:45},x2:{d:'1920',w:50},y2:{d:'1080',w:50}},gen:v=>`if ImageSearch(&FoundX, &FoundY, ${v.x1}, ${v.y1}, ${v.x2}, ${v.y2}, ${q('*'+v.t+' '+v.p)}) {`},
+minall:{c:'misc',g:'Window',t:'Minimize all windows (show the desktop)',f:{},gen:()=>'WinMinimizeAll()'},
+actrun:{c:'misc',g:'Window',t:'Activate window {s}, or run {p} if it is not open',f:{s:{d:'ahk_exe notepad.exe',w:140},p:{d:'notepad.exe',w:110}},gen:v=>`if WinExist(${q(v.s)}) {\n  WinActivate ${q(v.s)}\n} else {\n  Run ${q(v.p)}\n}`},
+runmode:{c:'misc',g:'Window',t:'Run {p} {m}',f:{p:{d:'notepad.exe',w:120},m:{d:'Min',o:['Min','Max','Hide']}},gen:v=>`Run ${q(v.p)}, , ${q(v.m)}`},
+waitact:{c:'misc',g:'Window',t:'Wait until window {s} is active',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`WinWaitActive ${q(v.s)}`},
+wsize:{c:'misc',g:'Window',t:'Resize window {s} to {w} by {h}',f:{s:{d:'A',w:90},w:{d:'800',w:50},h:{d:'600',w:50}},gen:v=>`WinMove(, , ${v.w}, ${v.h}, ${q(v.s)})`},
+closeall:{c:'misc',g:'Window',t:'Close every window matching {s}',f:{s:{d:'ahk_exe notepad.exe',w:150}},gen:v=>`while WinExist(${q(v.s)}) {\n  WinClose(${q(v.s)})\n  Sleep 100\n}`},
+round:{c:'misc',g:'Variables',t:'Set {n} to {v} rounded to {d} decimals',f:{n:{d:'result',w:60},v:{d:'3.14159',w:70},d:{d:'2',w:35}},gen:v=>`${vn(v.n)} := Round(${v.v}, ${v.d})`},
+absv:{c:'misc',g:'Variables',t:'Set {n} to the absolute value of {v}',f:{n:{d:'result',w:60},v:{d:'-5',w:60}},gen:v=>`${vn(v.n)} := Abs(${v.v})`},
+minmax:{c:'misc',g:'Variables',t:'Set {n} to the {m} of {a} and {b}',f:{n:{d:'result',w:60},m:{d:'Max',o:['Max','Min']},a:{d:'1',w:50},b:{d:'2',w:50}},gen:v=>`${vn(v.n)} := ${v.m}(${v.a}, ${v.b})`},
+modv:{c:'misc',g:'Variables',t:'Set {n} to the remainder of {a} divided by {b}',f:{n:{d:'result',w:60},a:{d:'10',w:50},b:{d:'3',w:50}},gen:v=>`${vn(v.n)} := Mod(${v.a}, ${v.b})`},
+pickrnd:{c:'misc',g:'Variables',t:'Set {n} to a random choice from {l} (separate with |)',f:{n:{d:'choice',w:60},l:{d:'red|green|blue',w:130}},gen:v=>`_p := StrSplit(${q(v.l)}, "|")\n${vn(v.n)} := _p[Random(1, _p.Length)]`},
+pad:{c:'misc',g:'Variables',t:'Set {n} to {v} padded with zeros to {w} digits',f:{n:{d:'padded',w:60},v:{d:'7',w:50},w:{d:'3',w:35}},gen:v=>`${vn(v.n)} := Format(${q('{:0'+v.w+'}')}, ${v.v})`},
+setbool:{c:'misc',g:'Variables',t:'Set {n} to {m}',f:{n:{d:'enabled',w:70},m:{d:'true',o:['true','false']}},gen:v=>`${vn(v.n)} := ${v.m}`},
+trimv:{c:'misc',g:'Text',t:'Set {n} to {v} without spaces at the ends',f:{n:{d:'text',w:60},v:{d:'text',w:80}},gen:v=>`${vn(v.n)} := Trim(${v.v})`},
+substr:{c:'misc',g:'Text',t:'Set {n} to {len} characters of {v} starting at {s}',f:{n:{d:'part',w:60},len:{d:'3',w:35},v:{d:'text',w:70},s:{d:'1',w:35}},gen:v=>`${vn(v.n)} := SubStr(${v.v}, ${v.s}, ${v.len})`},
+instrv:{c:'misc',g:'Text',t:'Set {n} to the position of {s} inside {v} (0 = not found)',f:{n:{d:'pos',w:50},s:{d:'a',w:60},v:{d:'text',w:70}},gen:v=>`${vn(v.n)} := InStr(${v.v}, ${q(v.s)})`},
+repeat:{c:'misc',g:'Text',t:'Set {n} to {s} repeated {k} times',f:{n:{d:'line',w:60},s:{d:'-',w:50},k:{d:'20',w:40}},gen:v=>`${vn(v.n)} := StrReplace(Format("{:" ${v.k} "}", ""), " ", ${q(v.s)})`},
+ifstarts:{c:'ctrl',g:'Text',box:1,t:'If {v} starts with {s}',f:{v:{d:'text',w:80},s:{d:'http',w:70}},gen:v=>`if (InStr(${v.v}, ${q(v.s)}) = 1) {`},
+plainclip:{c:'misc',g:'Text',t:'Make the clipboard plain text',f:{},gen:()=>'A_Clipboard := A_Clipboard'},
+dateadd:{c:'misc',g:'Time',t:'Set {n} to the date {d} {u} from now',f:{n:{d:'when',w:60},d:{d:'7',w:40},u:{d:'Days',o:['Days','Hours','Minutes','Seconds']}},gen:v=>`${vn(v.n)} := DateAdd(A_Now, ${v.d}, ${q(v.u)})`},
+waittime:{c:'misc',g:'Time',t:'Wait until it is {t} (24 hour, like 18:30)',f:{t:{d:'18:30',w:60}},gen:v=>`while (FormatTime(, "HH:mm") != ${q(v.t)}) {\n  Sleep 1000\n}`},
+ifhour:{c:'ctrl',g:'Time',box:1,t:'If the hour is from {a} up to {b}',f:{a:{d:'9',w:40},b:{d:'17',w:40}},gen:v=>`if (A_Hour >= ${v.a} && A_Hour < ${v.b}) {`},
+ifday:{c:'ctrl',g:'Time',box:1,t:'If today is {d}',f:{d:{d:'Monday',o:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']}},gen:v=>`if (A_WDay = ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].indexOf(v.d)+1}) {`},
+fwrite:{c:'misc',g:'Files',t:'Save text {s} into file {f} (replaces it)',f:{s:{d:'Hello',w:110},f:{d:'note.txt',w:100}},gen:v=>`_f := FileOpen(${q(v.f)}, "w")\n_f.Write(${qi(v.s)})\n_f.Close()`},
+forlines:{c:'ctrl',g:'Files',box:1,t:'For each line of file {f}',f:{f:{d:'list.txt',w:120}},gen:v=>`Loop Read ${q(v.f)} {`},
+dirdel:{c:'misc',g:'Files',t:'Delete folder {p} and everything in it',f:{p:{d:'old',w:120}},gen:v=>`DirDelete ${q(v.p)}, 1`},
+httpget:{c:'misc',g:'System',t:'Read the web page {u} into {n}',f:{u:{d:'https://example.com',w:170},n:{d:'page',w:60}},gen:v=>`_h := ComObject("WinHttp.WinHttpRequest.5.1")\n_h.Open("GET", ${q(v.u)})\n_h.Send()\n${vn(v.n)} := _h.ResponseText`},
+volset:{c:'misc',g:'System',t:'Set the volume to {n} percent',f:{n:{d:'50',w:45}},gen:v=>`SoundSetVolume ${v.n}`},
+muteset:{c:'misc',g:'System',t:'Mute the sound {m}',f:{m:{d:'On',o:['On','Off']}},gen:v=>`SoundSetMute ${v.m==='On'?1:0}`},
+recempty:{c:'misc',g:'System',t:'Empty the recycle bin',f:{},gen:()=>'FileRecycleEmpty()'},
+monoff:{c:'misc',g:'System',t:'Turn the monitor off',f:{},gen:()=>'PostMessage(0x112, 0xF170, 2, , "Program Manager")'},
+soundwait:{c:'misc',g:'System',t:'Play sound {f} and wait until it ends',f:{f:{d:'C:\\Windows\\Media\\tada.wav',w:190}},gen:v=>`SoundPlay ${q(v.f)}, "Wait"`},
+ask3:{c:'misc',g:'Variables',t:'Ask {s} with Yes / No / Cancel and save the answer in {n}',f:{s:{d:'Continue?',w:110},n:{d:'answer',w:60}},gen:v=>`${vn(v.n)} := MsgBox(${qi(v.s)}, "AHK Blocks", "YesNoCancel")`},
+askpw:{c:'misc',g:'Variables',t:'Ask {s} (typing hidden) and save it in {n}',f:{s:{d:'Password?',w:100},n:{d:'secret',w:60}},gen:v=>`${vn(v.n)} := InputBox(${q(v.s)}, "AHK Blocks", "Password").Value`},
+every:{c:'ctrl',g:'Event',box:1,glob:1,t:'Every {ms} ms, do (name {n})',f:{ms:{d:'5000',w:60},n:{d:'check',w:70}},gen:v=>`SetTimer(Timer_${vn(v.n)}, ${v.ms||1000})\nTimer_${vn(v.n)}() {`},
+after:{c:'ctrl',g:'Event',box:1,glob:1,t:'After {ms} ms, do once (name {n})',f:{ms:{d:'3000',w:60},n:{d:'later',w:70}},gen:v=>`SetTimer(Timer_${vn(v.n)}, -${v.ms||1000})\nTimer_${vn(v.n)}() {`},
+include:{c:'misc',g:'Other',t:'Include script file {f}',f:{f:{d:'helpers.ahk',w:140}},gen:v=>`#Include ${q(v.f)}`},
+setctlv:{c:'ui',g:'Window UI',t:'Set control {c} to the value of {v}',f:{c:{d:'ed1',w:60,ctl:1},v:{d:'count',w:90}},gen:v=>`${vn(v.c)}.Value := ${v.v}`},
+guiclear:{c:'ui',g:'Window UI',t:'Clear control {c}',f:{c:{d:'ed1',w:60,ctl:1}},gen:v=>`${vn(v.c)}.Value := ""`},
+guicheck:{c:'ui',g:'Window UI',t:'Set checkbox {c} to {m}',f:{c:{d:'chk1',w:60,ctl:1},m:{d:'ticked',o:['ticked','not ticked']}},gen:v=>`${vn(v.c)}.Value := ${v.m==='ticked'?1:0}`},
+guilistset:{c:'ui',g:'Window UI',t:'Replace the items of {c} with {l} (separate with |)',f:{c:{d:'lb1',w:60,ctl:1},l:{d:'One|Two|Three',w:130}},gen:v=>`${vn(v.c)}.Delete()\n${vn(v.c)}.Add(${ARR(v.l)})`},
+guimove:{c:'ui',g:'Window UI',t:'Move control {c} to x {cx} y {cy}',f:{c:{d:'btn1',w:60,ctl:1},cx:{d:'20',w:45},cy:{d:'20',w:45}},gen:v=>`${vn(v.c)}.Move(${v.cx}, ${v.cy})`},
+guibg:{c:'ui',g:'Window UI',t:'Set the window background to {b} (hex like 1A1A2E)',f:{b:{d:'1A1A2E',w:70}},gen:v=>`${GUI.v||'myGui'}.BackColor := ${q(v.b)}`},
+lvadd:{c:'ui',g:'Window UI',t:'Add row {a} | {b} to list view {c}',f:{a:{d:'one',w:70},b:{d:'two',w:70},c:{d:'lv1',w:60,ctl:1}},gen:v=>`${vn(v.c)}.Add("", ${qi(v.a)}, ${qi(v.b)})`},
+lvclear:{c:'ui',g:'Window UI',t:'Clear list view {c}',f:{c:{d:'lv1',w:60,ctl:1}},gen:v=>`${vn(v.c)}.Delete()`},
+lvsel:{c:'ui',g:'Window UI',t:'Save the selected row number of {c} in {n}',f:{c:{d:'lv1',w:60,ctl:1},n:{d:'row',w:50}},gen:v=>`${vn(v.n)} := ${vn(v.c)}.GetNext()`},
+lvtext:{c:'ui',g:'Window UI',t:'Save the text in column {k} of the selected row of {c} into {n}',f:{k:{d:'1',w:35},c:{d:'lv1',w:60,ctl:1},n:{d:'cell',w:50}},gen:v=>`${vn(v.n)} := ${vn(v.c)}.GetText(${vn(v.c)}.GetNext(), ${v.k})`},
+sbtext:{c:'ui',g:'Window UI',t:'Set status bar {c} text to {s}',f:{c:{d:'sb1',w:60,ctl:1},s:{d:'Ready',w:110}},gen:v=>`${vn(v.c)}.SetText(${qi(v.s)})`},
+guislot:{c:'ui',g:'Window UI',t:'UI window goes here (edit in UI Designer)',f:{},gen:()=>''},
+note:{c:'misc',g:'Other',t:'Note {s}',f:{s:{d:'my note',w:170}},gen:v=>`; ${v.s}`},
+exit:{c:'misc',g:'Other',t:'Stop script',f:{},gen:()=>'ExitApp'},
+};
+const LBL={hotkey:'When key pressed',loop:'Repeat N',forever:'Repeat forever',while:'While',if:'If',else:'Else',brk:'Break',send:'Press keys',text:'Type text',hold:'Hold / release',click:'Click',move:'Move mouse',wait:'Wait',msg:'Message box',tip:'Tooltip',run:'Open / run',win:'Focus window',set:'Set variable',tog:'Flip variable',note:'Note',exit:'Stop script',hotstr:'When I type',abbr:'Auto-replace',hotif:'Only in window',hotall:'Everywhere',func:'Function',call:'Run function',kwait:'Wait for key up',paste:'Paste',csend:'Send to window',drag:'Drag mouse',scroll:'Scroll',ifpix:'If pixel color',ifimg:'If image found',clkimg:'Click found image',rwait:'Random wait',wwait:'Wait for window',wctl:'Window action',clip:'Set clipboard',beep:'Beep',fapp:'Add to file',susp:'Suspend hotkeys',rld:'Reload',rawl:'Raw line',elif:'Else if',ifkey:'If key held',ifwin:'If window active',timer:'Run every N ms',timeroff:'Stop timer',mhold:'Mouse down / up',getpos:'Save mouse pos',incr:'Add to variable',rnd:'Random number',inbox:'Ask me',tray:'Notification',sound:'Play sound',guishow:'Show my window',guislot:'UI window here',hkpass:'Key (let it through)',hkup:'When key released',remap:'Remap key',try:'Try',catch:'If that fails',finally:'Always after',ret:'Stop here',retv:'Return value',funcp:'Function (with input)',callp:'Run function with',brkif:'Stop repeating if',waitc:'Wait until',ifyes:'If I click Yes',ifwex:'If window exists',ifproc:'If program running',ifclip:'If clipboard has',foreach:'For each file',sendn:'Press N times',holdms:'Hold key for time',pastet:'Paste text',typev:'Type a value',blockin:'Block input',caps:'Caps Lock',speed:'Key / mouse speed',mclick:'Click N times',mrel:'Move mouse by',mglide:'Glide mouse',clkhold:'Hold click',getpix:'Save pixel color',waitpix:'Wait for pixel',ifpixn:'If pixel is not',ifcolor:'If color in area',wmove:'Move window',wtop:'Always on top',wclosew:'Wait window closes',pkill:'Close program',pwait:'Wait for program',runw:'Run and wait',runh:'Run command (hidden)',rclip:'Read clipboard',time:'Get time',fread:'Read file',iniload:'Load setting',math:'Math',sett:'Set to text',inputkey:'Wait for key press',showv:'Show value',settxtx:'Set text to value',guiend:'Close my window',guien:'Enable / disable control',fdel:'Delete file',dl:'Download file',inisave:'Save setting',vol:'Volume',mute:'Toggle mute',ttip2:'Timed tooltip',tiptray:'Tray tooltip',hkon:'Hotkey on / off',stopin:'Stop after N ms',onctl:'When control event',onwin:'When window event',guifocus:'Focus control',guivis:'Show / hide control',guilist:'Add to list',guichoose:'Choose list item',guititle:'Window title',guimin:'Minimize window',fsel:'Pick a file',dsel:'Pick a folder',trayitem:'Tray menu item',traysep:'Tray separator',trayclear:'Remove standard tray items',traydef:'Default tray item',traycheck:'Tray item state',trayicon:'Tray icon',trayhide:'Hide / show tray icon',trayshow:'Show tray menu',numstate:'Num / Scroll Lock',kwaitd:'Wait for key down',relmod:'Release modifier keys',bgclick:'Background click',mwin:'Mouse to window center',imgclick:'Wait for image, click',colorclick:'Click found color',wintitle:'Active window title',wtrans:'Window transparency',whide:'Hide / show window',wcenter:'Center window',join:'Join text',strlen:'Text length',strcase:'Upper / lower case',strrep:'Replace text',strsplit:'Split text',copysel:'Copy selected text',clrclip:'Clear clipboard',ifcmp:'If compare',iftext:'If text contains',forlist:'For each in list',whiletime:'Repeat for time',pausesc:'Pause script',ifexist:'If file exists',fcopy:'Copy file',fmove:'Move file',dircreate:'Make folder',power:'Computer power',runadmin:'Run as admin',speak:'Say out loud',shot:'Screenshot',media:'Media key',guicolor:'Color control',slowtype:'Type slowly',typeline:'Type + Enter',holdwhile:'While holding key',multiclick:'Click N times (delay)',jiggle:'Wiggle mouse',ifimgv:'If image in area',minall:'Show desktop',actrun:'Activate or run',runmode:'Run minimized / hidden',waitact:'Wait until active',wsize:'Resize window',closeall:'Close all matching',round:'Round number',absv:'Absolute value',minmax:'Min / Max',modv:'Remainder',pickrnd:'Random choice',pad:'Pad with zeros',setbool:'Set true / false',trimv:'Trim spaces',substr:'Part of text',instrv:'Find in text',repeat:'Repeat text',ifstarts:'If starts with',plainclip:'Plain text clipboard',dateadd:'Date from now',waittime:'Wait until time',ifhour:'If hour between',ifday:'If today is',fwrite:'Save text to file',forlines:'For each file line',dirdel:'Delete folder',httpget:'Read web page',volset:'Set volume',muteset:'Mute sound',recempty:'Empty recycle bin',monoff:'Monitor off',soundwait:'Play sound and wait',ask3:'Ask Yes / No / Cancel',askpw:'Ask password',every:'Every N ms',after:'After N ms',include:'Include file',setctlv:'Set control to value',guiclear:'Clear control',guicheck:'Tick checkbox',guilistset:'Replace list items',guimove:'Move control',guibg:'Window background',lvadd:'Add list row',lvclear:'Clear list view',lvsel:'Selected row',lvtext:'Selected row text',sbtext:'Status bar text',guihide:'Hide my window',setctl:'Set control value',settxt:'Set control text',getctl:'Read control value',};
+let id=1,root={id:'root',t:'root',kids:[]},sel='root',H=[],R=[],last='[]';
+const snapS=()=>JSON.stringify([root.kids,GUI,SET]);
+const snap=()=>{const s=snapS();if(s!==last){if(TABS[cur])TABS[cur].edited=Date.now();H.push(last);if(H.length>100)H.shift();R=[];last=s}};
+const cl=b=>{const c=JSON.parse(JSON.stringify(b));(function f(n){n.id='b'+id++;n.kids.forEach(f)})(c);return c};
+const fix=n=>n.kids.forEach(c=>{id=Math.max(id,+c.id.slice(1)+1);fix(c)});
+addEventListener('change',snap);
+const mb=(t,tip,fn)=>{const e=document.createElement('button');e.className='x';e.style.marginLeft='0';e.textContent=t;e.title=tip;e.setAttribute('aria-label',tip);e.onclick=v=>{v.stopPropagation();fn()};return e};
+const KN={' ':'Space',Enter:'Enter',Escape:'Esc',ArrowUp:'Up',ArrowDown:'Down',ArrowLeft:'Left',ArrowRight:'Right',PageUp:'PgUp',PageDown:'PgDn'};
+function rec(b,k,mode,el){st('Press the key or combo now…');const h=e=>{if(['Control','Shift','Alt','Meta'].includes(e.key))return;e.preventDefault();e.stopPropagation();removeEventListener('keydown',h,true);
+  const n=KN[e.key]||(e.key.length===1?e.key.toLowerCase():e.key),m=(e.ctrlKey?'^':'')+(e.altKey?'!':'')+(e.shiftKey?'+':'')+(e.metaKey?'#':'');
+  const v=mode==='name'?n:mode==='hot'?m+n:m+(n.length===1?n:'{'+n+'}');b.v[k]=v;el.value=v;code();snap();st('Set to '+v)};addEventListener('keydown',h,true)}
+async function pick(b,n){if(!A)return st('Picking works in the desktop app');st('Move the mouse to the spot, then press F8 (Esc cancels)');
+  const r=await A.pick();if(!r)return st('Pick cancelled');b.v['x'+n]=String(r.x);b.v['y'+n]=String(r.y);if(n===''&&T[b.t].f.c)b.v.c=r.c;render();st('Picked '+r.x+', '+r.y)}
+function parseAhk(txt){
+  const genMatch=(L,li,gv,mode)=>{const r=genFind(L,li,gv,mode);if(!r)return 0;add(r.t,r.v,r.box);return r.n};
+  const top={kids:[]},stk=[top];let raw=0,hdr=true,adm=false,skip=0,n=0,rawN=0,inui=0,gui=null,ps={};
+  const U=x=>{const m=String(x).trim().match(/^"((?:[^"`]|`.)*)"$/);return!m||/`[^"`]/.test(m[1])?null:m[1].replace(/`(["`])/g,'$1')};
+  const bal=x=>{let d=0;for(const c of x){if(c==='(')d++;if(c===')'&&--d<0)return false}return d===0};
+  const un=c=>{c=c.trim();return c[0]==='('&&c.endsWith(')')&&bal(c.slice(1,-1))?c.slice(1,-1):c};
+  const add=(t,v,box)=>{const b=mk(t,v);stk[stk.length-1].kids.push(b);if(box)stk.push(b);n++;return b};
+  const M={SendText:['text','s'],MsgBox:['msg','s'],ToolTip:['tip','s'],Run:['run','p'],WinActivate:['win','s'],WinWait:['wwait','s'],KeyWait:['kwait','k'],SoundPlay:['sound','f']};
+  const one={ExitApp:'exit',break:'brk',return:'ret',Reload:'rld',Suspend:'susp','myGui.Show()':'guishow','myGui.Hide()':'guihide','A_TrayMenu.Add()':'traysep','A_TrayMenu.Delete()':'trayclear','A_TrayMenu.Show()':'trayshow'};
+  function stmt(l){let m,u;
+    const pm=l.match(/^(Send|SendText|Sleep|MsgBox|ToolTip|Run|Click|MouseMove|WinActivate|WinWait|KeyWait|SoundPlay|WinMinimize|WinMaximize|WinRestore|WinClose|SoundBeep)\((.*)\)$/);if(pm&&bal(pm[2]))l=pm[1]+(pm[2].trim()?' '+pm[2].trim():'');
+    if(gui&&l===gui.v+'.Show()'){add('guishow');return 1}if(gui&&l===gui.v+'.Hide()'){add('guihide');return 1}
+    if(one[l]){add(one[l]);return 1}
+    if(m=l.match(/^Send\s+(".*")$/)){u=U(m[1]);if(u===null)return 0;const h=u.match(/^\{(\S+) (down|up)\}$/i),w=u.match(/^\{Wheel(Up|Down) (\d+)\}$/);
+      h?add('hold',{k:h[1],m:h[2].toLowerCase()}):w?add('scroll',{d:w[1],n:w[2]}):add('send',{k:u});return 1}
+    if(m=l.match(/^(\w+)\s+(".*")$/)){u=U(m[2]);if(u!==null){
+      if(M[m[1]]){add(M[m[1]][0],{[M[m[1]][1]]:u});return 1}
+      const w=m[1].match(/^Win(Minimize|Maximize|Restore|Close)$/);if(w){add('wctl',{m:w[1],s:u});return 1}}}
+    if(m=l.match(/^Sleep\s+Random\((\d+),\s*(\d+)\)$/)){add('rwait',{a:m[1],b:m[2]});return 1}
+    if(m=l.match(/^Sleep\s+([^,;"]+)$/)){add('wait',{ms:m[1].trim()});return 1}
+    if(m=l.match(/^MouseMove\s+([^,]+),\s*([^,]+)$/)){add('move',{x:m[1].trim(),y:m[2].trim()});return 1}
+    if(l==='Click FoundX, FoundY'){add('clkimg');return 1}
+    if(m=l.match(/^Click(?:\s+(.+))?$/)){if(!m[1]){add('click');return 1}
+      u=U(m[1]);if(u===null){const c2=m[1].match(/^(\d+),\s*(\d+)$/);if(c2){add('click',{x:c2[1],y:c2[2]});return 1}return 0}
+      const md=u.match(/^(Left|Right|Middle) (down|up)$/i);if(md){add('mhold',{b:md[1],m:md[2].toLowerCase()});return 1}
+      const t=u.split(/\s+/).filter(Boolean),bt=t.filter(z=>MB.includes(z)),nm=t.filter(z=>/^\d+$/.test(z));
+      if(nm.length===1&&bt.length<=1&&t.length===bt.length+1){add('mclick',{b:bt[0]||'Left',n:nm[0]});return 1}
+      if(t.length!==bt.length+nm.length||bt.length>1||(nm.length&&nm.length!==2))return 0;
+      add('click',{b:bt[0]||'Left',x:nm[0]||'',y:nm[1]||''});return 1}
+    if(m=l.match(/^A_TrayMenu\.Default := (".*")$/)){u=U(m[1]);if(u!==null){add('traydef',{t:u});return 1}}
+    if(m=l.match(/^A_TrayMenu\.(Check|Uncheck|ToggleCheck|Enable|Disable)\((".*")\)$/)){u=U(m[2]);if(u!==null){add('traycheck',{m:m[1],t:u});return 1}}
+    if(m=l.match(/^TraySetIcon\((".*")\)$/)){u=U(m[1]);if(u!==null){add('trayicon',{f:u});return 1}}
+    if(m=l.match(/^A_IconHidden := (true|false)$/)){add('trayhide',{m:m[1]==='true'?'Hide':'Show'});return 1}
+    if(m=l.match(/^(\w+) := !\1$/)){add('tog',{n:m[1]});return 1}
+    if(m=l.match(/^(\w+) := Random\((\d+), (\d+)\)$/)){add('rnd',{n:m[1],a:m[2],b:m[3]});return 1}
+    if((m=l.match(/^(\w+) \+= (.+)$/))&&!/^A_/i.test(m[1])){add('incr',{n:m[1],v:m[2]});return 1}
+    if((m=l.match(/^(\w+) := (.+)$/))&&!/^A_/i.test(m[1])){add('set',{n:m[1],v:m[2]});return 1}
+    if(m=l.match(/^SetTimer (\w+), (\d+)$/)){m[2]==='0'?add('timeroff',{n:m[1]}):add('timer',{ms:m[2],n:m[1]});return 1}
+    if(m=l.match(/^MouseGetPos &(\w+), &(\w+)$/)){add('getpos',{vx:m[1],vy:m[2]});return 1}
+    if(m=l.match(/^(\w+)\(\)$/)){add('call',{n:m[1]});return 1}
+    if(m=l.match(/^; ?(.*)$/)){add('note',{s:m[1]});return 1}
+    return 0}
+  const L=prep(txt);for(let li=0;li<L.length;li++){const l=L[li].trim();let m;
+    if(/^; --- UI/.test(l)){const r=grabGui(L,li,1);li+=r.used-1;if(!gui){gui=r.g;if(!hdr)add('guislot',{})}continue}
+    if(hdr){if(adm){if(l==='}')adm=false;continue}
+      let hm;
+      if(l===''||/^#Requires\b/i.test(l)||/^\w+ := 0$/.test(l))continue;
+      if(hm=l.match(/^#SingleInstance(?:\s+(Force|Ignore|Prompt|Off))?$/i)){ps.si=hm[1]?hm[1][0].toUpperCase()+hm[1].slice(1).toLowerCase():'Force';continue}
+      if(hm=l.match(/^#MaxThreadsPerHotkey\s+(\d+)$/i)){ps.mt=+hm[1];continue}
+      if(hm=l.match(/^SendMode\s+"(Input|Event|Play)"$/i)){ps.sm=hm[1];continue}
+      if(l==='SetWorkingDir A_ScriptDir'){ps.wd=true;continue}
+      if(hm=l.match(/^CoordMode\s+"(Mouse|Pixel)",\s*"Screen"$/i)){ps[hm[1][0].toLowerCase()==='m'?'cm':'cp']=true;continue}
+      if(/^DetectHiddenWindows\s+(true|1)$/i.test(l)){ps.dh=true;continue}
+      if(hm=l.match(/^SetKeyDelay\s+(-?\d+)$/i)){ps.kd=hm[1];continue}
+      if(hm=l.match(/^SetMouseDelay\s+(-?\d+)$/i)){ps.md=hm[1];continue}
+      if(l==='Persistent true'){ps.pers=true;continue}
+      if(l==='if !A_IsAdmin {'){adm=true;ps.admin=true;continue}
+      hdr=false}
+    if(!l)continue;
+    if(l==='#HotIf'&&/^; Emergency stop:/.test((L[li+1]||'').trim()))continue;
+    if(skip){skip=0;continue}
+    if(raw<=0){const gm=genMatch(L,li,gui?gui.v:'myGui',1);if(gm){li+=gm-1;continue}}
+    if(raw>0){const dd=/^\}/.test(l)?raw-1:raw;add('rawl',{s:'  '.repeat(dd)+l});rawN++;if(/\{$/.test(l))raw++;if(/^\}/.test(l))raw--;continue}
+    if(!gui&&stk.length===1&&/^\w+\s*:=\s*Gui\(.*\)$/.test(l)){const r=grabGui(L,li,0);li+=r.used-1;gui=r.g;add('guislot',{});continue}
+    if(/^global\b/.test(l)&&stk.length>1)continue;
+    if(/^; Emergency stop:/.test(l)){ps.panic=true;const ek=l.match(/^; Emergency stop:\s*(.*)$/);if(ek&&ek[1])ps.pk=ek[1].trim();skip=1;continue}
+    if(l==='}'){if(stk.length>1)stk.pop();continue}
+    if(/^\}\s*else\s*\{$/.test(l)||l==='else {'){if(l[0]==='}'&&stk.length>1)stk.pop();add('else',{},1);continue}
+    if(m=l.match(/^else if\s*(.*?)\s*\{$/)){add('elif',{c:un(m[1])},1);continue}
+    if(l[0]===':'){
+      if(m=l.match(/^:[^:]*:(.+?)::\s*\{$/)){add('hotstr',{s:m[1]},1);continue}
+      if(m=l.match(/^:[^:]*:(.+?)::(.+)$/)){add('abbr',{a:m[1],b:m[2]});continue}}
+    else if(m=l.match(/^(\S+?(?: up)?)::\s*\{$/)){add('hotkey',{key:m[1]},1);continue}
+    else if((m=l.match(/^(\S+?)::([A-Za-z][A-Za-z0-9_]*|[^\s\w])$/))&&!/^(exitapp|reload|suspend|pause|return|break|continue)$/i.test(m[2])){add('remap',{a:m[1],b:m[2]});continue}
+    else if(m=l.match(/^(\S+?)::(.+)$/)){add('hotkey',{key:m[1]},1);if(!stmt(m[2].trim())){add('rawl',{s:m[2].trim()});rawN++}stk.pop();continue}
+    if(l==='#HotIf'){add('hotall');continue}
+    if(m=l.match(/^#HotIf\s+WinActive\((".*")\)$/)){const u=U(m[1]);if(u!==null){add('hotif',{s:u});continue}}
+    if(m=l.match(/^A_TrayMenu\.Add\((".*"),\s*(Tray_\w+)\)$/)){const tt=U(m[1]);if(tt!==null&&m[2]==='Tray_'+vn(tt)&&(L[li+1]||'').trim()===m[2]+'(*) {'){add('trayitem',{t:tt},1);li++;continue}}
+    if(m=l.match(/^SetTimer\(Timer_(\w+), (-?\d+)\)$/)){if((L[li+1]||'').trim()==='Timer_'+m[1]+'() {'){const neg=m[2][0]==='-';add(neg?'after':'every',{ms:neg?m[2].slice(1):m[2],n:m[1]},1);li++;continue}}
+    if(l==='try {'){add('try',{},1);continue}if(l==='catch {'){add('catch',{},1);continue}if(l==='finally {'){add('finally',{},1);continue}
+    if(m=l.match(/^Loop\s*\{$/)){add('forever',{},1);continue}
+    if(m=l.match(/^Loop\s+(.+?)\s*\{$/)){add('loop',{n:m[1]},1);continue}
+    if(m=l.match(/^while\s*(.+?)\s*\{$/)){add('while',{c:un(m[1])},1);continue}
+    if(m=l.match(/^if ImageSearch\(&FoundX, &FoundY, 0, 0, A_ScreenWidth, A_ScreenHeight, (".*")\) \{$/)){const u=U(m[1]);if(u!==null){add('ifimg',{p:u},1);continue}}
+    if(m=l.match(/^if \(PixelGetColor\((\d+), (\d+)\) = (".*")\) \{$/)){const u=U(m[3]);if(u!==null){add('ifpix',{x:m[1],y:m[2],c:u},1);continue}}
+    if(m=l.match(/^if\s*(.+?)\s*\{$/)){add('if',{c:un(m[1])},1);continue}
+    if(gui&&(m=l.match(/^(\w+?)_(Click|Change|DoubleClick|Focus|LoseFocus|ContextMenu)\(\*\)\s*\{$/))&&gui.ctl.some(c=>!c.k&&c.n===m[1])){const c=gui.ctl.find(x=>!x.k&&x.n===m[1]);c.evs=(c.evs||[]).filter(e=>!e.includes(m[1]+'_'+m[2]));add('onctl',{c:m[1],ev:m[2]},1);continue}
+    if(gui&&(m=l.match(new RegExp('^'+gui.v+'_(Close|Escape|Size|ContextMenu)\\(\\*\\)\\s*\\{$')))){gui.ctl=gui.ctl.filter(x=>!(x.k&&x.s.includes('"'+m[1]+'", '+gui.v+'_'+m[1]+')')));add('onwin',{ev:m[1]},1);continue}
+    if(m=l.match(/^(\w+)\(\)\s*\{$/)){add('func',{n:m[1]},1);continue}
+    if((m=l.match(/^(\w+)\((.+)\)\s*\{$/))&&!/^(if|while|for|loop|switch|catch|try|else)$/i.test(m[1])&&bal(m[2])){add('funcp',{n:m[1],p:m[2]},1);continue}
+    if(!stmt(l)){const gm=genMatch(L,li,gui?gui.v:'myGui',2);if(gm){li+=gm-1;continue}
+      if((m=l.match(/^(\w+)\((.+)\)$/))&&bal(m[2])&&!/^(if|while|for|loop|switch|catch|return)$/i.test(m[1])&&!/^A_/.test(m[1])){add('callp',{n:m[1],a:m[2]});continue}
+      add('rawl',{s:l});rawN++;if(/\{$/.test(l))raw=1}}
+  const hasTr=k=>k.some(b=>b.t==='trayitem'||hasTr(b.kids));if(ps.pers&&hasTr(top.kids))delete ps.pers;
+  return{kids:top.kids,n,rawN,gui,set:ps}}
+let TABS=[],cur=0,GUI={title:'My Window',w:420,h:300,top:false,close:true,ctl:[]};
+function stripC(l){let qc='';for(let i=0;i<l.length;i++){const c=l[i];if(qc){if(c==='`')i++;else if(c===qc)qc='';continue}if(c==='"'||c==="'"){qc=c;continue}if(c===';'&&i>0&&/\s/.test(l[i-1]))return[l.slice(0,i).trimEnd(),l.slice(i+1).trim()]}return[l,'']}
+const HDRX=/^(loop|while|if|else|try|catch|finally|for|switch|class)\b|::$|^[\w.]+\(.*\)$/i;
+function prep(txt){const out=[];
+  for(const rl of txt.split(/\r?\n/)){let t=rl.trim();
+    if(t==='{'){let j=out.length-1;while(j>=0&&!out[j].trim())j--;if(j>=0&&HDRX.test(out[j].trim())&&!/\{$/.test(out[j].trim())){out[j]=out[j].replace(/\s+$/,'')+' {';out.length=j+1;continue}}
+    let cm='';if(t&&t[0]!==';'&&t[0]!==':'){const r=stripC(t);if(r[1]&&r[0]){t=r[0];cm='; '+r[1]}}
+    const m=t.match(/^\}\s*(else|catch|finally)\b(.*)$/i);if(m)out.push('}',m[1]+m[2]);else out.push(t);
+    if(cm)out.push(cm)}
+  return out}
+const UQ=x=>{const m=String(x).trim().match(/^"((?:[^"`]|`.)*)"$/);return!m||/`[^"`]/.test(m[1])?null:m[1].replace(/`(["`])/g,'$1')};
+function splitArgs(t){const a=[];let d=0,qq=false,cur='';for(let i=0;i<t.length;i++){const c=t[i];if(qq){cur+=c;if(c==='`')cur+=t[++i]||'';else if(c==='"')qq=false;continue}
+  if(c==='"'){qq=true;cur+=c;continue}if('([{'.includes(c))d++;if(')]}'.includes(c))d--;if(c===','&&d===0){a.push(cur.trim());cur='';continue}cur+=c}if(cur.trim()||a.length)a.push(cur.trim());return a}
+function grabGui(L,s,mark){const g=newGui();Object.assign(g,{imp:1,font:false,show:false,close:false,ctl:[]});const names=new Map();let i=s,gv=null,fnt=null,curTab=null;
+  const rx=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const fmerge=(b,a)=>{if(!a.length)return null;const o=a[0]?UQ(a[0]):null;if(o===null&&a[0])return b;const n={...(b||{})};
+    (o||'').split(/\s+/).filter(Boolean).forEach(z=>{let m;if(m=z.match(/^s(\d+(?:\.\d+)?)$/i))n.fs=+m[1];else if(/^bold$/i.test(z))n.b=true;else if(/^italic$/i.test(z))n.i=true;else if(/^underline$/i.test(z))n.u=true;else if(/^strike$/i.test(z))n.st=true;else if(/^norm$/i.test(z)){n.b=n.i=n.u=n.st=false}else if(/^cDefault$/i.test(z))n.c=null;else if(m=z.match(/^c([0-9a-f]{6})$/i))n.c=m[1];else if(m=z.match(/^w(\d+)$/i))n.b=+m[1]>=600});
+    if(a[1]){const fn=UQ(a[1]);if(fn)n.face=fn}return n};
+  for(;i<L.length;i++){const l=L[i].trim();let m;
+    if(mark){if(i===s)continue;if(/^; --- end UI/.test(l)){i++;break}}
+    if(!l)continue;
+    if(!gv){if(m=l.match(/^(\w+)\s*:=\s*Gui\((.*)\)$/)){gv=m[1];g.v=gv;g.ctor=m[2];const a=splitArgs(m[2]),o=a[0]?UQ(a[0]):'',t=a[1]?UQ(a[1]):null;g.opts=o===null?'':o;g.title=t===null?'My Window':t;continue}
+      if(!mark)break;gv='myGui';g.v=gv}
+    const R=rx(gv);
+    if(m=l.match(new RegExp('^'+R+'\\.SetFont\\((.*)\\)$'))){fnt=fmerge(fnt,splitArgs(m[1]));g.ctl.push({k:'line',s:l});continue}
+    if(m=l.match(new RegExp('^'+R+'\\.BackColor\\s*:=\\s*"([0-9a-fA-F]{6})"$'))){g.bg=m[1];g.ctl.push({k:'line',s:l});continue}
+    if(m=l.match(new RegExp('^(?:(\\w+)\\s*:=\\s*)?'+R+'\\.Add\\((.*)\\)$'))){const a=splitArgs(m[2]),ty=a[0]?UQ(a[0]):null,ou=a[1]===undefined||a[1]===''?'':UQ(a[1]);
+      if(ty!==null&&ou!==null){const tk=ou.split(/\s+/).filter(Boolean),f=r=>tk.find(z=>r.test(z)),X=f(/^x-?\d+$/),Y=f(/^y-?\d+$/),W=f(/^w\d+$/),H=f(/^h\d+$/);
+        if((X&&Y)||ty==='StatusBar'){const rest=tk.filter(z=>![X,Y,W,H].includes(z)),a2=a[2];
+          let txt='';if(a2){const u=UQ(a2),ar=a2.match(/^\[(.*)\]$/);const it=ar?splitArgs(ar[1]).map(UQ):null;txt=u!==null?u:it&&it.every(z=>z!==null)?it.join('|'):a2}
+          const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:ty,n:m[1]||'',anon:!m[1],x:X?+X.slice(1):0,y:Y?+Y.slice(1):0,w:W?+W.slice(1):CT[ty]?CT[ty].w:100,h:H?+H.slice(1):CT[ty]?CT[ty].h:24,hw:W?1:0,hh:H?1:0,opt:rest.join(' '),arg:a2,text:txt,fn:'',evs:[],imp:1,fp:fnt?{...fnt}:null};
+          if(curTab&&!isTab(ty)){c.tabOf=curTab.id;c.pg=curTab.pg}
+          g.ctl.push(c);if(m[1])names.set(m[1],c);continue}}
+      g.ctl.push({k:'line',s:l});continue}
+    if((m=l.match(/^(\w+)\.UseTab\((.*)\)$/))&&names.has(m[1])&&isTab(names.get(m[1]).t)){const tc=names.get(m[1]),a=m[2].trim();
+      if(a===''){curTab=null;continue}
+      let pg=/^\d+$/.test(a)?+a:null;if(pg===null){const nm=UQ(a);if(nm!==null){const ix=String(tc.text).split('|').findIndex(z=>z.toLowerCase()===nm.toLowerCase());if(ix>=0)pg=ix+1}}
+      if(pg){curTab={id:tc.id,pg};continue}
+      g.ctl.push({k:'line',s:l});curTab=null;continue}
+    if((m=l.match(/^(\w+)\.SetFont\((.*)\)$/))&&names.has(m[1])){const c=names.get(m[1]);c.fp=fmerge(c.fp,splitArgs(m[2]));g.ctl.push({k:'line',s:l});continue}
+    if((m=l.match(/^(\w+)\.OnEvent\("(\w+)",\s*(.+)\)$/))&&names.has(m[1])){const c=names.get(m[1]),lm=m[3].trim().match(/^\(\*\)\s*=>\s*(\w+)\(\)$/);
+      if(lm&&m[2]===evOf(c)&&!c.fn)c.fn=lm[1];else c.evs.push(l);continue}
+    if(new RegExp('^'+R+'\\.OnEvent\\("Close",\\s*\\(\\*\\)\\s*=>\\s*ExitApp\\(\\)\\)$').test(l)){g.close=true;continue}
+    if(m=l.match(new RegExp('^'+R+'\\.Show\\((.*)\\)$'))){g.show=true;g.showr=m[1].trim();const u=UQ(m[1]);if(u){const w=u.match(/\bw(\d+)/),h=u.match(/\bh(\d+)/);if(w)g.w=+w[1];if(h)g.h=+h[1]}if(!mark){i++;break}continue}
+    const nm=(l.match(/^(\w+)\./)||[])[1];
+    if(nm===gv||names.has(nm)||l[0]===';'||mark){g.ctl.push({k:'line',s:l});continue}
+    break}
+  if(curTab)g.noClose=true;
+  return{g,used:i-s}}
+const DS={admin:false,panic:true,pk:'^!q',mt:2,sm:'',si:'Force',wd:false,cm:true,cp:true,dh:false,kd:'',md:'',pers:false};
+const OFFSET={admin:false,panic:false,pk:'^!q',mt:0,sm:'',si:'',wd:false,cm:false,cp:false,dh:false,kd:'',md:'',pers:false};
+const setFromParse=d=>Object.assign({},OFFSET,d||{});
+const LEG=(()=>{try{return JSON.parse(localStorage.getItem('ahkbset'))||{}}catch(e){return{}}})();
+const APP={theme:LEG.theme||'auto'};
+const migrate=()=>({...DS,...(LEG.admin!==undefined?{admin:!!LEG.admin}:{}),...(LEG.panic!==undefined?{panic:!!LEG.panic}:{}),...(LEG.pk?{pk:LEG.pk}:{}),...(LEG.mt!==undefined?{mt:LEG.mt?2:0}:{}),...(LEG.sm!==undefined?{sm:LEG.sm}:{}),...(LEG.scr!==undefined?{cm:!!LEG.scr,cp:!!LEG.scr}:{})});
+let SET={...DS};
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function hl(c){const re=/(;.*$)|("(?:[^"`\n]|`.)*")|(^#\w+)|(^[^\s;:]\S*?::)|(\b\d+(?:\.\d+)?\b)|\b(Loop|while|if|else|break|global)\b/gm;let o='',i=0,m;
+  const sp=(col,x)=>`<span style="color:var(--${col})">${esc(x)}</span>`;
+  while((m=re.exec(c))){o+=esc(c.slice(i,m.index));o+=m[1]?sp('mut',m[1]):m[2]?sp('key',m[2]):m[3]?sp('mouse',m[3]):m[4]?`<b style="color:var(--event)">${esc(m[4])}</b>`:m[5]?sp('event',m[5]):sp('ctrl',m[6]);i=re.lastIndex}
+  return o+esc(c.slice(i))}
+const RES=new Set('and as break by case catch class continue contains else false finally for from global goto if in is isset local loop not or return static super switch this throw true try unset until while'.split(' '));
+const VARB=['set','tog','incr','rnd','inbox','getctl','getpix','rclip','time','fread','iniload','math','sett','inputkey','fsel','dsel','join','strlen','strcase','strrep','strsplit','copysel','wintitle','round','absv','minmax','modv','pickrnd','pad','setbool','trimv','substr','instrv','repeat','dateadd','httpget','ask3','askpw','lvsel','lvtext'];
+const IFS=['if','ifpix','ifpixn','ifimg','ifcolor','elif','ifkey','ifwin','ifyes','ifwex','ifproc','ifclip','ifcmp','iftext','ifexist','ifstarts','ifhour','ifday','ifimgv'];
+const NEED={every:'n',after:'n',trayitem:'t',send:'k',text:'s',run:'p',win:'s',wwait:'s',kwait:'k',call:'n',func:'n',funcp:'n',timer:'n',rawl:'s',set:'n',tog:'n',hold:'k',sendn:'k',holdms:'k'};
+const LOOPS=['loop','forever','while','foreach','forlist','whiletime','forlines'];
+const ACT=['send','text','hold','click','move','mclick','mrel','mglide','drag','scroll','sendn','holdms','pastet','typev','clkhold','paste','mhold'];
+const TOPONLY=new Set(['hotkey','hotstr','hkpass','hkup','func','funcp','trayitem','remap','abbr','hotif','hotall','guislot','onctl','onwin','every','after','include']);
+const AHKW='Send SendText SendInput Click MouseMove MouseClick MouseClickDrag MouseGetPos Sleep MsgBox InputBox ToolTip TrayTip Run RunWait WinActivate WinClose WinMinimize WinMaximize WinRestore WinMove WinExist WinActive WinWait WinWaitClose WinGetTitle WinSetAlwaysOnTop ProcessExist ProcessClose ProcessWait KeyWait GetKeyState Hotkey SetTimer SoundBeep SoundPlay SoundSetVolume SoundSetMute PixelGetColor PixelSearch ImageSearch FileAppend FileRead FileDelete FileExist IniRead IniWrite Random FormatTime StrReplace StrSplit SubStr InStr StrLen StrUpper StrLower Trim Round Floor Ceil Abs Min Max Format DllCall ComObject Gui ExitApp Reload Suspend Pause BlockInput SetKeyDelay SetMouseDelay SendMode CoordMode SetCapsLockState Download OnMessage OutputDebug ControlSend ControlClick InputHook ClipWait EnvGet Exit Sort Map Array Object RegExMatch RegExReplace'.split(' ');
+const BI=new Set(AHKW);
+function brace(c){let d=0;for(const ln of c.split('\n')){if(ln.trim()[0]===':')continue;let qc='';for(let i=0;i<ln.length;i++){const ch=ln[i];if(qc){if(ch==='`')i++;else if(ch===qc)qc='';continue}if(ch==='"'||ch==="'"){qc=ch;continue}if(ch===';'&&(i===0||/\s/.test(ln[i-1])))break;if(ch==='{')d++;if(ch==='}')d--}}return d}
+class Iss{constructor(id,sev,msg,why){this.id=id;this.sev=sev;this.msg=msg;this.why=why||''}toString(){return this.msg+(this.why?' — '+this.why:'')}}
+const ISS=[];
+function placementRule(t,anc,prev){const nm=LBL[t]||t;
+  if(TOPONLY.has(t)&&anc.length)return{msg:nm+' can’t go inside another block',why:'AutoHotkey only allows hotkeys, hotstrings, functions, tray items and #HotIf lines at the top level of the script, not inside a hotkey or a loop. Drag it out to the main area.'};
+  if((t==='else'||t==='elif')&&!(prev&&IFS.includes(prev)))return{msg:'“'+nm+'” needs an If block right before it',why:'An Else or Else if only works directly after an If-style block at the same level. Put it right underneath one.'};
+  if((t==='catch'||t==='finally')&&!(prev&&['try','catch'].includes(prev)))return{msg:'“'+nm+'” needs a Try block right before it',why:'Catch and Finally belong to a Try. Put them directly underneath it.'};
+  if((t==='brk'||t==='brkif')&&!anc.some(a=>LOOPS.includes(a)))return{msg:'“'+nm+'” only works inside a repeat block',why:'There is no loop to stop here. Put it inside Repeat, While or For each.'};
+  if(t==='clkimg'&&!anc.some(a=>['ifimg','ifcolor','ifimgv'].includes(a)))return{msg:'“Click found image” only works inside “If image found” or “If color found”',why:'The spot to click is only known inside those blocks.'};
+  return null}
+function pathTypes(id){if(id==='root')return[];const r=[];const f=(n,acc)=>{for(const k of n.kids){if(k.id===id){r.push(...acc,k.t);return true}if(f(k,[...acc,k.t]))return true}return false};f(root,[]);return r}
+function lint(c){const out=[],E='error',Wn='warn',I='info';
+  const add=(b,sev,msg,why)=>out.push(new Iss(b?b.id:null,sev,msg,why));
+  const FN=new Set(allFuncs()),hk=new Map(),fnd=new Set(),trs=new Set(),evs=new Set(),hs=new Set(),cn=new Set(ctlNames());let ctx='',trItem=false,slots=0;
+  const alive=['hotkey','hkpass','hkup','hotstr'].some(t=>hasType(root,t));
+  const walk=(n,anc)=>n.kids.forEach((b,i)=>{if(b.off)return;const nm=LBL[b.t]||b.t,top=!anc.length,prev=i?n.kids[i-1].t:null,v=b.v||{},tt=T[b.t];
+    if(top){if(b.t==='hotif')ctx=String(v.s);if(b.t==='hotall')ctx=''}
+    const pr=placementRule(b.t,anc,prev);if(pr)add(b,E,pr.msg,pr.why);
+    if(tt&&tt.box&&!b.kids.length)add(b,Wn,'“'+nm+'” is empty','There is nothing inside it, so it does nothing. Drop blocks into it.');
+    if(['hotkey','hkpass','hkup'].includes(b.t)){const k=String(v.key).trim();
+      if(!k)add(b,E,'This hotkey has no key','Type a key like F1 or ^j, or press ⌨ and hit the keys you want.');
+      else{if(/\s/.test(k)||/(ctrl|shift|alt|win)\s*\+/i.test(k))add(b,E,'Hotkey “'+k+'” is not valid','AutoHotkey uses symbols instead of words: ^ is Ctrl, + is Shift, ! is Alt, # is Win (so Ctrl+J is ^j). Press ⌨ and hit the keys to fill it in.');
+        if(top){const id=(ctx+'|'+k.replace(/^[~$*]+/,'')+(b.t==='hkup'?' up':'')).toLowerCase();if(hk.has(id))add(b,E,'Hotkey '+k+' is used twice','AutoHotkey refuses to start when two hotkeys are the same. Remove one or change its key.');else hk.set(id,b)}}}
+    if(b.t==='remap'&&top){const id=(ctx+'|'+String(v.a).replace(/^[~$*]+/,'')).toLowerCase();if(hk.has(id))add(b,E,'Key '+v.a+' is used twice','This remap clashes with another hotkey on the same key.');else hk.set(id,b)}
+    if(b.t==='hotstr'||b.t==='abbr'){const k=(b.t==='hotstr'?v.s:v.a);if(hs.has(k))add(b,E,'Hotstring “'+k+'” is used twice','AutoHotkey refuses to start with two identical hotstrings.');hs.add(k)}
+    if((b.t==='func'||b.t==='funcp')&&top){const f=vn(v.n).toLowerCase();if(fnd.has(f))add(b,E,'Function '+v.n+' is defined twice','Two functions with the same name stop the script from loading. Rename one.');fnd.add(f)}
+    if((b.t==='every'||b.t==='after')&&top){const f='timer_'+vn(v.n).toLowerCase();if(fnd.has(f))add(b,E,'Timer name “'+v.n+'” is used twice','Each timer needs its own name, because it becomes a function.');fnd.add(f)}
+    if(b.t==='onctl'||b.t==='onwin'){const k=b.t==='onctl'?vn(v.c)+'_'+v.ev:'win_'+v.ev;if(evs.has(k))add(b,E,'This event already has a handler','Two handlers would create two functions with the same name, and AutoHotkey won’t start. Keep one.');evs.add(k)}
+    if(b.t==='trayitem'&&top){const f=vn(v.t).toLowerCase();if(trs.has(f))add(b,E,'Tray item “'+v.t+'” is used twice','Two tray items with the same text create two functions with the same name. Rename one.');trs.add(f);trItem=true}
+    if(b.t==='trayclear'&&top&&trItem)add(b,Wn,'Put “Remove standard tray items” before your own items','It removes every item in the menu, including the ones you added before it.');
+    if(b.t==='guislot'){slots++;if(slots>1)add(b,E,'Only one “UI window here” block is allowed','The window code would be written twice.')}
+    if(NEED[b.t]&&!String(v[NEED[b.t]]).trim())add(b,E,'“'+nm+'” has an empty box','The generated line would be incomplete and AutoHotkey would complain. Fill it in.');
+    if(VARB.includes(b.t)){const nv=String(v.n||'');if(RES.has(nv.toLowerCase())||/^\d/.test(nv)||/^A_/i.test(nv))add(b,E,'“'+nv+'” can’t be used as a variable name','It is a reserved word, starts with a number, or belongs to AutoHotkey (names starting with A_). Pick another name like “count”.');else if(vn(nv)!==nv)add(b,E,'Variable name “'+nv+'” has unsupported characters','Variable names can only use letters, numbers and _.')}
+    if(['call','callp','timer','timeroff'].includes(b.t)&&!FN.has(vn(v.n))&&!BI.has(vn(v.n)))add(b,E,'Function “'+v.n+'” does not exist','This calls a function nobody defined. Add a “Define function” block with that name, or check the spelling.');
+    if(['setctl','settxt','getctl','settxtx','guien','guifocus','guivis','guilist','guichoose','guicolor','onctl','setctlv','guiclear','guicheck','guilistset','guimove','lvadd','lvclear','lvsel','lvtext','sbtext'].includes(b.t)&&!cn.has(String(v.c)))add(b,E,'Control “'+v.c+'” is not in your window','There is no control with that name in the UI Designer. Pick one from the dropdown, or add it there.');
+    if(['guishow','guihide','guiend','guititle','guimin','guibg'].includes(b.t)&&!real().length&&!GUI.imp)add(b,E,'There is no window to control','Your script has no UI window yet. Add controls in the UI Designer first.');
+    if((b.t==='forever'||b.t==='while'||b.t==='whiletime'||b.t==='forlist')&&['forever','while'].includes(b.t)&&!b.kids.some(k=>['wait','rwait','kwait','wwait','waitc'].includes(k.t)))add(b,Wn,'This repeat has no wait inside','A loop that never pauses can freeze your PC and eat 100% of a core. Add a Wait block inside it.');
+    if(b.t==='ret'&&top)add(b,Wn,'“Stop here” at the top level ends the startup section','Blocks after it won’t run at startup (hotkeys still work).');
+    if(top&&ACT.includes(b.t)&&alive)add(b,I,'“'+nm+'” runs once, when the script starts','It is outside any hotkey, so it happens one time at launch and not when you press a key. Drop it inside a “When key pressed” block to run it on a keypress.');
+    if(b.t==='power'&&['Log off','Restart','Shut down','Sleep'].includes(v.m))add(b,I,'This really will '+String(v.m).toLowerCase()+' your PC','Be careful when you run this block. Test it with “Lock” first.');
+    walk(b,[...anc,b.t])});
+  walk(root,[]);
+  if(SET.panic&&SET.pk){const id='|'+SET.pk.replace(/^[~$*]+/,'').toLowerCase();if(hk.has(id))add(hk.get(id),E,'The emergency stop key '+SET.pk+' is also used here','Two hotkeys on the same key stop AutoHotkey from loading. Change this hotkey, or change the emergency key in Script settings.')}
+  GUI.ctl.forEach(x=>{if(!x.k&&x.fn&&!FN.has(vn(x.fn)))add(null,E,'Control '+x.n+' runs function '+x.fn+', but no function has that name','Make one with “Define function”, or pick another in the UI Designer.')});
+  if(c){const d=brace(c);if(d)add(null,E,'The code has '+(d>0?'an unclosed {':'an extra }'),'AutoHotkey won’t load it. Check your Raw line blocks for a missing or extra brace.')}
+  const rank={error:0,warn:1,info:2};out.sort((a,b)=>rank[a.sev]-rank[b.sev]);ISS.length=0;ISS.push(...out);return out}
+
+
+const mk=(t,v)=>{const b={id:'b'+id++,t,v:{},kids:[]};for(const k in T[t].f)b.v[k]=T[t].f[k].d;return Object.assign(b.v,v||{}),b};
+function find(n,i,p){for(let k=0;k<n.kids.length;k++){const c=n.kids[k];if(c.id===i)return{n:c,p:n,i:k};const r=find(c,i);if(r)return r}return null}
+const has=(n,i)=>n.id===i||n.kids.some(c=>has(c,i));
+function ins(pid,idx,b){const p=pid==='root'?root:(find(root,pid)||{}).n||root;p.kids.splice(idx,0,b)}
+function drop(pid,idx,data){
+  if(data.startsWith('new:'))ins(pid,idx,mk(data.slice(4)));
+  else if(data.startsWith('move:')){const r=find(root,data.slice(5));if(!r||has(r.n,pid))return;
+    r.p.kids.splice(r.i,1);if(r.p.id===pid&&r.i<idx)idx--;ins(pid,idx,r.n)}
+  render()}
+let DRAG=null;
+const prevOf=(pid,idx)=>{const p=pid==='root'?root:(find(root,pid)||{}).n;return p&&idx>0&&p.kids[idx-1]?p.kids[idx-1].t:null};
+function gap(pid,idx,empty){const g=document.createElement('div');g.className='gap'+(empty?' empty':'');if(empty)g.textContent=pid==='root'?'Start here: click “When key pressed” on the left, then click the actions you want it to do. (Or press ⏺ Record and just do them.)':'Drop blocks here';const base=g.textContent;
+  g.ondragover=e=>{e.preventDefault();g.classList.add('over');const r=DRAG?placementRule(DRAG.t,pathTypes(pid),prevOf(pid,idx)):null;g.classList.toggle('bad',!!r);g.textContent=r?'⛔ '+r.msg+' — '+r.why:base};
+  g.ondragleave=()=>{g.classList.remove('over','bad');g.textContent=base};
+  g.ondrop=e=>{e.preventDefault();e.stopPropagation();DRAG=null;drop(pid,idx,e.dataTransfer.getData('text'))};return g}
+addEventListener('dragend',()=>{DRAG=null});
+function list(n){const f=document.createDocumentFragment();
+  if(!n.kids.length){f.append(gap(n.id,0,1));return f}
+  f.append(gap(n.id,0));n.kids.forEach((b,i)=>{f.append(blk(b),gap(n.id,i+1))});return f}
+function blk(b){const t=T[b.t],d=document.createElement('div');d.className='blk '+t.c+(sel===b.id?' sel':'');d.dataset.id=b.id;
+  const r=document.createElement('div');r.className='row';try{r.title=t.gen(b.v)}catch(e){}
+  const h=document.createElement('span');h.className='h';h.textContent='⋮⋮';h.title='Drag to move';h.draggable=true;
+  h.ondragstart=e=>{DRAG={t:b.t,id:b.id};e.dataTransfer.setData('text','move:'+b.id);e.dataTransfer.setDragImage(d,10,10)};r.append(h);if(t.box)r.append(mb(b.col?'▸':'▾','Collapse or expand',()=>{b.col=!b.col;render()}));
+  t.t.split(/(\{\w+\})/).forEach(s=>{const m=s.match(/^\{(\w+)\}$/);
+    if(!m){if(s.trim())r.append(s.trim());return}
+    const k=m[1],f=t.f[k];let el;
+    if(f.o||f.ctl){el=document.createElement('select');let ops=f.ctl?ctlNames():f.o;if(!ops.includes(b.v[k]))ops=[b.v[k],...ops];ops.forEach(o=>el.add(new Option(o,o)));el.value=b.v[k]}
+    else{el=document.createElement('input');el.value=b.v[k];el.size=1;el.style.width=(f.w||80)+'px';if(f.p)el.placeholder=f.p}
+    el.setAttribute('aria-label',k);el.oninput=el.onchange=()=>{b.v[k]=el.value;try{r.title=t.gen(b.v)}catch(e){}code()};
+    el.onclick=e=>e.stopPropagation();r.append(el);
+    if(b.t==='ifpix'&&k==='c'){const sw=document.createElement('span');sw.style.cssText='width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.4);display:inline-block';const up=()=>{sw.style.background=String(b.v.c).replace(/^0x/i,'#')};up();el.addEventListener('input',up);r.append(sw)}
+    if(b.t==='ifcolor'&&k==='c')r.append(mb('🎨','Pick this color from the screen: move the mouse over it, then press F8',()=>pickC(b)));
+    if(f.r)r.append(mb('⌨','Click, then press a key or combo to fill this in',()=>rec(b,k,f.r,el)));
+    {const im=(INTERP[b.t]||[]).includes(k)?'i':(EXPRF[b.t]||[]).includes(k)?'x':'';if(im&&el.tagName==='INPUT')r.append(mb('{}',im==='i'?'Insert something the user typed, or a variable, into this text':'Insert what the user typed, or a variable, here',()=>valuesMenu(el,im)))}
+    const mm=k.match(/^y(\d?)$/);if(mm&&t.f['x'+mm[1]])r.append(mb('🎯','Pick a screen spot: move the mouse there, then press F8',()=>pick(b,mm[1])))});
+  const x=document.createElement('button');x.className='x';x.textContent='×';x.title='Delete block';x.setAttribute('aria-label','Delete block');
+  x.onclick=e=>{e.stopPropagation();const r=find(root,b.id);r.p.kids.splice(r.i,1);if(has(b,sel))sel='root';render()};const dp=document.createElement('button');dp.className='x';dp.textContent='⧉';dp.title='Duplicate block';dp.setAttribute('aria-label','Duplicate block');dp.onclick=e=>{e.stopPropagation();const r=find(root,b.id);r.p.kids.splice(r.i+1,0,cl(b));render()};const of=mb(b.off?'▶':'⏻',b.off?'Enable block':'Disable block (comments it out)',()=>{b.off=!b.off;render()});dp.style.marginLeft='auto';x.style.marginLeft='0';r.append(dp,of,x);if(b.off)d.style.opacity='.45';d.append(r);
+  d.onclick=e=>{e.stopPropagation();sel=b.id;render()};d.tabIndex=-1;if(t.box){const k=document.createElement('div');k.className='kids';k.append(list(b));if(b.col)k.style.display='none';d.append(k)}
+  return d}
+function render(){snap();const c=$('#canvas');c.replaceChildren(list(root));c.onclick=()=>{sel='root';render()};code()}
+function vars(n,s=new Set()){n.kids.forEach(b=>{if(b.off)return;if(['set','tog','incr','rnd','inbox','getctl','getpix','rclip','time','fread','iniload','math','sett','inputkey','fsel','dsel','join','strlen','strcase','strrep','strsplit','copysel','wintitle','round','absv','minmax','modv','pickrnd','pad','setbool','trimv','substr','instrv','repeat','dateadd','httpget','ask3','askpw','lvsel','lvtext'].includes(b.t)&&!/^A_/i.test(String(b.v.n)))s.add(vn(b.v.n));if(b.t==='getpos'){s.add(vn(b.v.vx));s.add(vn(b.v.vy))}vars(b,s)});return s}
+function gen(n,ind,V){let o=[];n.kids.forEach(b=>{const t=T[b.t],p='  '.repeat(ind);let l=b.t==='guislot'?genGui().map(x=>p+x):String(t.gen(b.v)).split('\n').map(x=>p+x);
+  if(t.box){const gl=[...V].filter(x=>!(b.t==='funcp'&&String(b.v.p).split(',').some(z=>z.trim().replace(/^[&*]+|\?$|\s*:?=.*$/g,'')===x)));if(t.glob&&gl.length)l.push(p+'  global '+gl.join(', '));l.push(...gen(b,ind+1,V),p+'}',...(t.tail?t.tail(b.v).map(x=>p+x):[]))}
+  if(b.off)l=l.map(x=>p+'; '+x.slice(p.length));o.push(...l)});return o}
+function build(){const V=vars(root),h=['#Requires AutoHotkey v2.0'];VARSET.clear();V.forEach(x=>VARSET.add(x));
+  if(SET.si)h.push('#SingleInstance '+SET.si);
+  if(+SET.mt>1)h.push('#MaxThreadsPerHotkey '+(+SET.mt));
+  if(SET.sm)h.push('SendMode '+q(SET.sm));
+  if(SET.admin)h.push('if !A_IsAdmin {',"  Run '*RunAs \"' A_ScriptFullPath '\"'",'  ExitApp','}');
+  if(SET.wd)h.push('SetWorkingDir A_ScriptDir');
+  if(SET.cm)h.push('CoordMode "Mouse", "Screen"');if(SET.cp)h.push('CoordMode "Pixel", "Screen"');
+  if(SET.dh)h.push('DetectHiddenWindows true');
+  if(SET.kd!==''&&SET.kd!=null)h.push('SetKeyDelay '+SET.kd);if(SET.md!==''&&SET.md!=null)h.push('SetMouseDelay '+SET.md);
+  if(SET.pers||hasType(root,'trayitem'))h.push('Persistent true');
+  h.push(...[...V].map(v=>v+' := 0'),...(hasSlot(root)?[]:genGui()));const body=gen(root,0,V);
+  if(SET.panic&&SET.pk)body.push('',...(hasType(root,'hotif')?['#HotIf']:[]),'; Emergency stop: '+SET.pk,SET.pk+'::ExitApp');
+  return[...h,'',...body].join('\n')+'\n'}
+const cnt=n=>n.kids.reduce((a,b)=>a+1+cnt(b),0);
+function paintIssues(w){const L=$('#lint'),by={};w.forEach(x=>{if(x.id)(by[x.id]=by[x.id]||[]).push(x)});L.replaceChildren();
+  if(!w.length){const li=document.createElement('li');li.className='ok';li.textContent='✓ No problems found';L.append(li)}
+  w.forEach(x=>{const li=document.createElement('li');li.className='iss '+x.sev;const b=document.createElement('b'),sm=document.createElement('small');b.textContent=({error:'⛔ ',warn:'⚠ ',info:'ℹ '})[x.sev]+x.msg;sm.textContent=x.why||'';li.append(b,sm);if(x.id)li.onclick=()=>goBlock(x.id);L.append(li)});
+  document.querySelectorAll('.blk').forEach(e=>{const is=by[e.dataset.id]||[],er=is.some(x=>x.sev==='error'),wa=is.some(x=>x.sev==='warn');
+    e.classList.toggle('err',er);e.classList.toggle('warn',!er&&wa);e.classList.toggle('inf',!er&&!wa&&is.length>0);
+    const old=[...e.children].find(c=>c.classList.contains('issues'));if(old)old.remove();
+    if(is.length){const bx=document.createElement('div');bx.className='issues';is.forEach(x=>{const d=document.createElement('div');d.className='isl '+x.sev;const b=document.createElement('b'),sp=document.createElement('span');b.textContent=({error:'⛔ ',warn:'⚠ ',info:'ℹ '})[x.sev]+x.msg;sp.textContent=x.why||'';d.append(b,sp);bx.append(d)});e.children[0].after(bx)}})}
+function goBlock(id){if(view!=='blocks')setView('blocks');const e=document.querySelector('.blk[data-id="'+id+'"]');if(!e)return;if(e.scrollIntoView)e.scrollIntoView({block:'center',behavior:'smooth'});e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')}
+function code(){const c=build();$('#code').innerHTML=hl(c);const w=lint(c);paintIssues(w);
+  const er=w.filter(x=>x.sev==='error').length,wa=w.filter(x=>x.sev==='warn').length;
+  $('#info').innerHTML=(c.split('\n').length-1)+' lines · '+cnt(root)+' blocks · '+(er?'<b class="e">'+er+' error'+(er>1?'s':'')+'</b>':'')+(er&&wa?' · ':'')+(wa?'<b class="w">'+wa+' warning'+(wa>1?'s':'')+'</b>':'')+(!er&&!wa?'no problems':'')+(TABS[cur]&&TABS[cur].file?' · '+esc(TABS[cur].file):'');
+  document.title=(TABS[cur]?TABS[cur].name+' — ':'')+'AHK Blocks';
+  try{stash()}catch(e){}saveLibSoon()}
+function pal(){const g={};Object.keys(T).forEach(k=>(g[T[k].g]=g[T[k].g]||[]).push(k));
+  const GORD=['Event','Control','Keyboard','Mouse','Screen','Window','Window UI','Tray','Variables','Text','Time','Files','System','Other'];
+  Object.keys(g).sort((a,b)=>GORD.indexOf(a)-GORD.indexOf(b)).forEach(n=>{const d=document.createElement('div');d.className='grp';d.innerHTML='<h2>'+n+'</h2>';
+    const w=document.createElement('div');w.className='pal';
+    g[n].forEach(k=>{const b=document.createElement('button');b.className='pb '+T[k].c;b.textContent=LBL[k];b.draggable=true;try{const dv={};for(const f in T[k].f)dv[f]=T[k].f[f].d;b.title=String(T[k].gen(dv))}catch(e){}
+      b.ondragstart=e=>{DRAG={t:k};e.dataTransfer.setData('text','new:'+k)};
+      b.onclick=()=>{addBlock(mk(k))};w.append(b)});
+    d.firstChild.style.cursor='pointer';d.firstChild.title='Click to collapse';d.firstChild.onclick=()=>{w.hidden=!w.hidden};d.append(w);$('#pal').append(d)})}
+const S=(t,v,k)=>{const b=mk(t,v);if(k)b.kids=k;return b};
+function addBlock(b){const f=sel==='root'?null:find(root,sel);
+  if(!f)root.kids.push(b);else if(T[f.n.t].box)f.n.kids.push(b);else f.p.kids.splice(f.i+1,0,b);
+  sel=b.id;render();const e=document.querySelector('.blk[data-id="'+b.id+'"]');if(e&&e.scrollIntoView)e.scrollIntoView({block:'nearest'});return b}
+let BCLIP='';
+function selBlock(){return sel==='root'?null:find(root,sel)}
+function moveSel(d){const f=selBlock();if(!f)return;const j=f.i+d;if(j<0||j>=f.p.kids.length)return;f.p.kids.splice(f.i,1);f.p.kids.splice(j,0,f.n);render()}
+function delSel(){const f=selBlock();if(!f)return;f.p.kids.splice(f.i,1);const nx=f.p.kids[f.i-1]||f.p.kids[f.i];sel=nx?nx.id:(f.p.id==='root'?'root':f.p.id);render()}
+function dupSel(){const f=selBlock();if(!f)return;const c=cl(f.n);f.p.kids.splice(f.i+1,0,c);sel=c.id;render()}
+addEventListener('keydown',e=>{if(view!=='blocks'||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
+  const c=e.ctrlKey||e.metaKey;
+  if(e.key==='Delete'||e.key==='Backspace'){if(selBlock()){e.preventDefault();delSel()}}
+  else if(c&&e.key.toLowerCase()==='d'){if(selBlock()){e.preventDefault();dupSel()}}
+  else if(c&&e.key.toLowerCase()==='c'&&selBlock()&&!String(getSelection()||'')){e.preventDefault();BCLIP=JSON.stringify(selBlock().n);st('Block copied. Ctrl+V pastes it, even in another tab.')}
+  else if(c&&e.key.toLowerCase()==='v'&&BCLIP){e.preventDefault();addBlock(cl(JSON.parse(BCLIP)))}
+  else if(e.altKey&&e.key==='ArrowUp'){e.preventDefault();moveSel(-1)}
+  else if(e.altKey&&e.key==='ArrowDown'){e.preventDefault();moveSel(1)}
+  else if(e.key==='Escape'&&sel!=='root'){sel='root';render()}});
+$('#ps').onkeydown=e=>{if(e.key==='Enter'){const b=[...document.querySelectorAll('#pal .pb')].find(x=>x.style.display!=='none'&&x.closest('.grp').style.display!=='none');if(b){e.preventDefault();b.click()}}
+  else if(e.key==='Escape'){e.target.value='';e.target.oninput({target:e.target});e.target.blur()}};
+$('#clr').onclick=()=>{root.kids=[];sel='root';render()};
+$('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(src());$('#cp').textContent='Copied'}catch(e){const r=document.createRange();r.selectNodeContents($('#code'));getSelection().removeAllRanges();getSelection().addRange(r);$('#cp').textContent='Selected, press Ctrl+C'}
+  setTimeout(()=>$('#cp').textContent='Copy',1600)};
+
+const A=window.api;
+const st=m=>{if(!m)return;$('#st').textContent=m;clearTimeout(st.t);st.t=setTimeout(()=>$('#st').textContent='',4500)};
+$('#dl').onclick=async()=>{if(A){const r=await A.exportAhk(src(),TABS[cur].file);if(bad(r))return;if(r){TABS[cur].file=r;st('Exported '+r.split(/[\\/]/).pop());code()}return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([src()],{type:'text/plain'}));a.download='script.ahk';a.click()};
+$('#sv').onclick=async(e,as)=>{if(!A)return st('Saving projects works in the desktop app');if(!TABS[cur]||view==='home')return;syncCode();const r=await A.saveProject(JSON.stringify({v:4,name:TABS[cur].name,kids:root.kids,gui:GUI,set:SET},null,1),TABS[cur].proj,!!as);if(bad(r)||!r)return;TABS[cur].proj=r;st('Saved '+r.split(/[\\/]/).pop());code()};
+$('#op').onclick=async()=>{if(!A)return;const r=await A.openProject();if(bad(r)||!r)return;openText(r.name,r.text,r.file)};
+$('#run').onclick=()=>{const it=TABS[cur];if(it&&view!=='home')runItem(it)};
+$('#stp').onclick=async()=>{const it=TABS[cur];if(it&&A&&view!=='home')st(await A.stopScript(it.id))};
+$('#cmp').onclick=async()=>st(A?await A.compile(src(),TABS[cur].name):'Compile works in the desktop app');
+A&&A.onScriptState(d=>{if(d.running)RUN.add(d.id);else RUN.delete(d.id);const it=LIB.find(x=>x.id===d.id);if(!d.running)st((it?'“'+it.name+'”':'Script')+(d.code?' ended with an error (code '+d.code+')':' stopped'));renderTabs();if(view==='home')renderHome()});
+A&&A.onTray(c=>{if(c.cmd==='toggle'){const it=LIB.find(x=>x.id===c.id);if(it)toggleRun(it)}});
+A&&A.onOpen&&A.onOpen(d=>openText(d.name,d.text,d.file));
+$('#un').onclick=()=>{snap();if(!H.length)return;R.push(last);last=H.pop();restore(last)};
+$('#re').onclick=()=>{if(!R.length)return;H.push(last);last=R.pop();restore(last)};
+$('#ps').oninput=e=>{const v=e.target.value.toLowerCase();document.querySelectorAll('#pal .grp').forEach(g=>{let n=0;g.querySelectorAll('.pb').forEach(b=>{const m=(b.textContent+' '+(b.title||'')).toLowerCase().includes(v);b.style.display=m?'':'none';n+=m});g.style.display=n?'':'none'})};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase(),c=e.ctrlKey||e.metaKey,inCode=view==='code'||!!(e.target.closest&&e.target.closest('#mon')),ed=/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||inCode;
+ if(c&&k==='k'){e.preventDefault();qkOpen()}else if(c&&k==='f'&&!inCode){e.preventDefault();(view==='home'?$('#hm-q'):$('#ps')).focus()}else if(c&&k==='s'){e.preventDefault();e.shiftKey?$('#sv').onclick(null,true):$('#sv').click()}else if(c&&k==='o'){e.preventDefault();$('#op').click()}
+ else if(c&&k==='z'&&!e.shiftKey&&!ed){e.preventDefault();$('#un').click()}
+ else if(c&&(k==='y'||(k==='z'&&e.shiftKey))&&!ed){e.preventDefault();$('#re').click()}
+ else if(e.key==='F5'){e.preventDefault();$('#run').click()}else if(e.key==='F1'){e.preventDefault();$('#help').click()}});
+const GC=(t,n,x,y,w,h,text,fn)=>({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,n,x,y,w,h,text,fn:fn||''});
+const GG=(title,w,h,ctl)=>Object.assign(newGui(),{title,w,h,ctl});
+const TPL=[
+{n:'Reminder every 30 minutes',d:'A function plus a timer that pops a notification',f:()=>[S('func',{n:'Remind'},[S('tray',{s:'Time to stretch!'})]),S('timer',{ms:'1800000',n:'Remind'})]},
+{n:'Auto clicker (toggle)',d:'F6 starts and stops clicking, Esc quits',f:()=>[S('hotkey',{key:'F6'},[S('tog',{n:'clicking'}),S('while',{c:'clicking'},[S('click'),S('rwait',{a:'40',b:'70'})])]),S('hotkey',{key:'Esc'},[S('exit')])]},
+{n:'Hold to auto-click',d:'Hold the mouse side button and it clicks fast',f:()=>[S('hotkey',{key:'$XButton1'},[S('while',{c:'GetKeyState("XButton1","P")'},[S('click'),S('wait',{ms:'30'})])])]},
+{n:'Spam a key',d:'F7 presses E twenty times',f:()=>[S('hotkey',{key:'F7'},[S('loop',{n:'20'},[S('send',{k:'e'}),S('wait',{ms:'100'})])])]},
+{n:'Anti-AFK',d:'F8 toggles a tiny key press every 30 seconds',f:()=>[S('hotkey',{key:'F8'},[S('tog',{n:'afk'}),S('while',{c:'afk'},[S('send',{k:'{Shift}'}),S('wait',{ms:'30000'})])])]},
+{n:'Auto-walk toggle',d:'F9 holds W down, press again to release',f:()=>[S('hotkey',{key:'F9'},[S('tog',{n:'walking'}),S('if',{c:'walking'},[S('hold',{m:'down',k:'w'})]),S('else',{},[S('hold',{m:'up',k:'w'})])])]},
+{n:'Text expander',d:'Type a short code and get the full text',f:()=>[S('abbr',{a:'btw',b:'by the way'}),S('abbr',{a:'omw',b:'on my way!'}),S('abbr',{a:'sig',b:'Best regards,'})]},
+{n:'Quick paste snippets',d:'Ctrl+Alt+1/2/3 paste a ready-made reply',f:()=>[S('hotkey',{key:'^!1'},[S('pastet',{s:'Thanks for reaching out!'})]),S('hotkey',{key:'^!2'},[S('pastet',{s:'Best regards,'})]),S('hotkey',{key:'^!3'},[S('pastet',{s:'I will get back to you soon.'})])]},
+{n:'Volume hotkeys',d:'Ctrl+Alt+Up/Down changes volume, Ctrl+Alt+M mutes',f:()=>[S('hotkey',{key:'^!Up'},[S('vol',{n:'+5'})]),S('hotkey',{key:'^!Down'},[S('vol',{n:'-5'})]),S('hotkey',{key:'^!m'},[S('mute')])]},
+{n:'Always-on-top toggle',d:'Ctrl+Alt+T pins the active window above everything',f:()=>[S('hotkey',{key:'^!t'},[S('wtop',{s:'A'})])]},
+{n:'Color watcher',d:'F11 beeps when the pixel at 500,500 turns red (change it with 🎯)',f:()=>[S('hotkey',{key:'F11'},[S('tog',{n:'watching'}),S('while',{c:'watching'},[S('ifpix',{x:'500',y:'500',c:'0xFF0000'},[S('beep'),S('tog',{n:'watching'})]),S('wait',{ms:'50'})])])]},
+{n:'Hold a key for 2 seconds',d:'F12 holds W for two seconds, then lets go',f:()=>[S('hotkey',{key:'F12'},[S('holdms',{k:'w',ms:'2000'})])]},
+{n:'Middle click = double click',d:'Turns the middle mouse button into a double click',f:()=>[S('hotkey',{key:'MButton'},[S('mclick',{b:'Left',n:'2'})])]},
+{n:'Tray: Quick actions',d:'A tray menu with your own items, a separator and Quit',f:()=>[S('trayclear'),S('trayitem',{t:'Open Notepad'},[S('run',{p:'notepad.exe'})]),S('trayitem',{t:'Say hello'},[S('tray',{s:'Hello from the tray!'})]),S('traysep'),S('trayitem',{t:'Quit'},[S('exit')]),S('traydef',{t:'Open Notepad'})]},
+{n:'Tray: Pause switch',d:'A tray item with a tick that pauses F6 auto-clicking',f:()=>[S('trayitem',{t:'Paused'},[S('tog',{n:'paused'}),S('traycheck',{m:'ToggleCheck',t:'Paused'})]),S('hotkey',{key:'F6'},[S('if',{c:'!paused'},[S('click')])])]},
+{n:'Window: Tabbed settings',d:'A window with two tabs and a Save button (UI Designer)',f:()=>[S('func',{n:'Save'},[S('msg',{s:'Saved!'})])],g:()=>{const tb=GC('Tab3','tab1',10,10,300,200,'General|Options'),k=(t,n,x,y,w,h,text,pg)=>Object.assign(GC(t,n,x,y,w,h,text),{tabOf:tb.id,pg});return GG('Settings',330,270,[tb,k('Checkbox','chk1',30,50,220,24,'Start with Windows',1),k('Edit','ed1',30,85,240,26,'',1),k('Checkbox','chk2',30,50,220,24,'Dark mode',2),k('Checkbox','chk3',30,80,220,24,'Play sounds',2),GC('Button','btn1',10,222,100,30,'Save','Save')])}},
+{n:'Form: use what people type',d:'Name box, dropdown and checkbox. The button reads them all. Press {} on a block to insert a value',f:()=>[S('onctl',{c:'btn1',ev:'Click'},[S('if',{c:'!chk1.Value'},[S('msg',{s:'Please tick the box first.'}),S('ret')]),S('msg',{s:'Hello {ed1}! You picked {dd1}.'}),S('fapp',{s:'{ed1},{dd1}',f:'answers.txt'})])],g:()=>GG('Quick form',300,250,[GF('Text','txt1',20,16,200,22,'Your name:'),GF('Edit','ed1',20,40,250,26,'',{ph:'Type your name here',focus:true}),GF('Text','txt2',20,80,200,22,'Favorite color:'),GF('DropDownList','dd1',20,104,250,26,'Red|Green|Blue'),GF('Checkbox','chk1',20,144,250,24,'I agree'),GF('Button','btn1',20,180,110,32,'Submit',{opt:'Default'})])},
+{n:'Window: Styled launcher',d:'Dark window with colored flat buttons and a status bar (UI Designer)',f:()=>[S('func',{n:'OpenNotepad'},[S('run',{p:'notepad.exe'}),S('sbtext',{c:'sb1',s:'Opened Notepad'})]),S('func',{n:'OpenCalc'},[S('run',{p:'calc.exe'}),S('sbtext',{c:'sb1',s:'Opened Calculator'})])],g:()=>{const g=GG('My launcher',300,230,[GF('Text','txt1',20,16,260,30,'My launcher',{font:{fs:16,b:true,c:'4F7CFF'}}),GF('Text','btn1',20,64,260,36,'Notepad',{opt:'+0x200 +0x100 Center Background2A2F4A cFFFFFF',fn:'OpenNotepad'}),GF('Text','btn2',20,110,260,36,'Calculator',{opt:'+0x200 +0x100 Center Background2A2F4A cFFFFFF',fn:'OpenCalc'}),GF('StatusBar','sb1',0,0,300,22,'Ready')]);g.bgc='1A1A2E';g.fc='E6E6F0';g.font=true;g.fs=11;return g}},
+{n:'Window: Name greeter',d:'Type a name, click the button, the window answers (reads an input)',f:()=>[S('onctl',{c:'btn1',ev:'Click'},[S('getctl',{p:'Value',c:'ed1',n:'person'}),S('settxtx',{c:'txt2',e:'"Hello, " person "!"'})])],g:()=>GG('Greeter',280,180,[GC('Text','txt1',20,20,200,22,'Your name:'),GC('Edit','ed1',20,45,220,26,''),GC('Button','btn1',20,85,100,30,'Greet'),GC('Text','txt2',20,130,240,24,'')])},
+{n:'Window: App picker',d:'Pick from a dropdown and open it (reads the selected text)',f:()=>[S('onctl',{c:'btn1',ev:'Click'},[S('getctl',{p:'Text',c:'dd1',n:'choice'}),S('if',{c:'choice = "Notepad"'},[S('run',{p:'notepad.exe'})]),S('if',{c:'choice = "Calculator"'},[S('run',{p:'calc.exe'})]),S('if',{c:'choice = "Paint"'},[S('run',{p:'mspaint.exe'})])])],g:()=>GG('App picker',260,130,[GC('DropDownList','dd1',20,20,200,26,'Notepad|Calculator|Paint'),GC('Button','btn1',20,60,100,30,'Open')])},
+{n:'Window: Adder',d:'Two number boxes and a Plus button that shows the sum',f:()=>[S('onctl',{c:'btn1',ev:'Click'},[S('getctl',{p:'Value',c:'ed1',n:'x'}),S('getctl',{p:'Value',c:'ed2',n:'y'}),S('math',{n:'total',a:'x',op:'+',b:'y'}),S('settxtx',{c:'txt1',e:'"Sum: " total'})])],g:()=>GG('Adder',260,170,[GC('Edit','ed1',20,20,100,26,'1'),GC('Edit','ed2',140,20,100,26,'2'),GC('Button','btn1',20,60,100,30,'Plus'),GC('Text','txt1',20,105,220,24,'Sum: ')])},
+{n:'Window: Quick launcher',d:'A small window with buttons that open apps (UI Designer)',f:()=>[S('func',{n:'OpenNotepad'},[S('run',{p:'notepad.exe'})]),S('func',{n:'OpenCalc'},[S('run',{p:'calc.exe'})])],g:()=>GG('Quick Launcher',260,130,[GC('Text','txt1',20,15,200,22,'Pick an app'),GC('Button','btn1',20,50,100,30,'Notepad','OpenNotepad'),GC('Button','btn2',140,50,100,30,'Calculator','OpenCalc')])},
+{n:'Window: Click counter',d:'A window with a button that counts clicks (UI Designer)',f:()=>[S('func',{n:'AddOne'},[S('incr',{v:'1',n:'count'}),S('settxtx',{c:'txt1',e:'"Clicks: " count'})])],g:()=>GG('Counter',240,130,[GC('Text','txt1',20,20,200,24,'Clicks: 0'),GC('Button','btn1',20,60,100,32,'+1','AddOne')])},
+{n:'Window-only hotkey',d:'A hotkey that only works inside Notepad',f:()=>[S('hotif',{s:'ahk_exe notepad.exe'}),S('hotkey',{key:'F2'},[S('text',{s:'Hello from AHK Blocks'})]),S('hotall')]},
+{n:'Click an image when it appears',d:'F10 watches the screen for button.png and clicks it',f:()=>[S('hotkey',{key:'F10'},[S('tog',{n:'watching'}),S('while',{c:'watching'},[S('ifimg',{p:'button.png'},[S('clkimg'),S('wait',{ms:'500'})]),S('wait',{ms:'200'})])])]}
+];
+function tplLoad(i){SET=TABS[cur].set={...DS};root.kids=TPL[i].f();if(TPL[i].g){GUI=TPL[i].g();normGui(GUI)}sel='root';fix(root);render();renderUI()}
+TPL.forEach((t,i)=>{const b=document.createElement('button');b.className='tpl';b.innerHTML='<b></b><small></small>';b.firstChild.textContent=t.n;b.lastChild.textContent=t.d;
+  b.onclick=()=>{view==='home'||!TABS.length||root.kids.length||real().length?newTab(t.n,t.f(),t.g?{gui:t.g()}:undefined):tplLoad(i);$('#tpl').close()};$('#tl').append(b)});
+$('#imp').onclick=async()=>{if(!A)return st('Import works in the desktop app');const f=await A.importAhk();if(bad(f)||!f)return;const it=importItem(f.name,f.text,f.file);openItem(it);const r=it._r;
+  const nc=r.gui?r.gui.ctl.filter(c=>!c.k).length:0;st('Imported '+r.n+' blocks'+(r.gui?' and a UI with '+nc+' controls (see UI Designer)':'')+(r.rawN?' · '+r.rawN+' raw lines, edit them in the Code view':''))};
+$('#tp').onclick=()=>$('#tpl').showModal();$('#tc').onclick=()=>$('#tpl').close();
+const svs=()=>{try{localStorage.setItem('ahkbset',JSON.stringify({theme:APP.theme}))}catch(e){}};
+const thm=()=>{const r=document.documentElement;APP.theme==='auto'?r.removeAttribute('data-theme'):r.dataset.theme=APP.theme;$('#th').textContent='Theme: '+APP.theme;try{window.monaco&&monaco.editor.setTheme(dk()?'ahkd':'vs')}catch(e){}};
+$('#th').onclick=()=>{APP.theme={auto:'dark',dark:'light',light:'auto'}[APP.theme];svs();thm()};thm();
+
+const dk=()=>APP.theme==='dark'||(APP.theme==='auto'&&!matchMedia('(prefers-color-scheme: light)').matches);
+const newGui=()=>({v:'myGui',title:'My Window',w:420,h:300,opts:'',close:true,font:true,show:true,ctl:[]});
+const evBlocks=(n,o=[])=>{n.kids.forEach(b=>{if(!b.off&&(b.t==='onctl'||b.t==='onwin'))o.push(b);evBlocks(b,o)});return o};
+const hasType=(n,t)=>n.kids.some(b=>!b.off&&(b.t===t||hasType(b,t)));
+const hasSlot=n=>n.kids.some(b=>!b.off&&(b.t==='guislot'||hasSlot(b)));
+const src=()=>view==='code'&&EDV?EDV.get():build();
+/* ---- tabs ---- */
+function restore(x){const a=JSON.parse(x);root.kids=a[0];GUI=a[1];normGui(GUI);if(a[2]){SET=a[2];if(TABS[cur])TABS[cur].set=SET}sel='root';uSel=null;render();renderUI()}
+/* ---- library of scripts (Home) ---- */
+const uid=()=>'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+let LIB=[],RUN=new Set();
+const snapOf=it=>JSON.stringify([it.kids,it.gui,it.set]);
+const PERSIST=['id','name','kids','gui','set','file','proj','pinned','created','edited','lastRun','runs','startup','snap','startSynced'];
+function stash(){const t=TABS[cur];if(!t)return;t.kids=root.kids;t.H=H;t.R=R;t.last=last;t.gui=GUI;t.set=SET}
+function load(i){cur=i;const t=TABS[i];root.kids=t.kids;H=t.H||[];R=t.R||[];GUI=t.gui||(t.gui=newGui());normGui(GUI);SET=t.set=Object.assign({},DS,t.set||{});last=t.last||snapS();sel='root';uSel=null;uPage={};renderTabs();render();renderUI()}
+function addItem(name,kids,x){const it=Object.assign({id:uid(),name:name||'Script '+(LIB.length+1),kids:kids||[],gui:newGui(),created:Date.now(),edited:Date.now(),runs:0},x||{});if(!it.gui)it.gui=newGui();LIB.push(it);saveLibSoon();return it}
+function openItem(it){if(view==='code')setView('blocks');stash();let i=TABS.indexOf(it);if(i<0){TABS.push(it);i=TABS.length-1}load(i);if(view==='home')setView('blocks')}
+function newTab(name,kids,x){const it=addItem(name,kids,x);openItem(it);return it}
+function switchTab(i){openItem(TABS[i])}
+function closeTab(i){if(view==='code')setView('blocks');stash();TABS.splice(i,1);saveLibSoon();if(!TABS.length){cur=-1;setView('home');return}load(Math.min(i<cur?cur-1:cur,TABS.length-1))}
+function importItem(name,text,file){const r=parseAhk(String(text).replace(/^\ufeff/,''));const it=addItem(name,r.kids,{file,gui:r.gui||undefined,set:setFromParse(r.set)});normGui(it.gui);it.set=Object.assign({},DS,it.set);it.snap=snapOf(it);it._r=r;return it}
+function withScript(it,fn){const k=root.kids,g=GUI,s=SET,iss=ISS.slice();try{root.kids=it.kids;GUI=it.gui||newGui();normGui(GUI);SET=it.set||{...DS};return fn()}finally{root.kids=k;GUI=g;SET=s;ISS.length=0;ISS.push(...iss)}}
+const codeOf=it=>withScript(it,()=>build());
+const lintOf=it=>{try{return withScript(it,()=>lint(build()))}catch(e){return[]}};
+const isPristine=it=>!!(it.file&&it.snap&&it.snap===snapOf(it));
+let _sv=0;
+addEventListener('blur',()=>{if(_sv){clearTimeout(_sv);_sv=0;saveLibNow()}});addEventListener('pagehide',()=>{if(_sv){clearTimeout(_sv);_sv=0;saveLibNow()}});
+function saveLibSoon(){clearTimeout(_sv);_sv=setTimeout(saveLibNow,500)}
+function libData(){return{v:2,lib:LIB.map(it=>{const o={};PERSIST.forEach(k=>{if(it[k]!==undefined)o[k]=it[k]});return o}),open:TABS.map(t=>t.id),cur:TABS[cur]?TABS[cur].id:null}}
+async function saveLibNow(){const d=libData();try{if(A)await A.libSave(d);else localStorage.setItem('ahkblib',JSON.stringify(d))}catch(e){}
+  if(A){try{A.libSync([...LIB].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.lastRun||0)-(a.lastRun||0)).map(x=>({id:x.id,name:x.name})));
+    for(const it of LIB)if(it.startup&&(it.edited||0)>(it.startSynced||0)){it.startSynced=Date.now();A.setStartup({id:it.id,name:it.name,code:isPristine(it)?null:codeOf(it),file:isPristine(it)?it.file:null,on:true})}}catch(e){}}}
+const ago=t=>{if(!t)return'never';const s=(Date.now()-t)/1000;return s<60?'just now':s<3600?Math.floor(s/60)+' min ago':s<86400?Math.floor(s/3600)+' h ago':Math.floor(s/86400)+' d ago'};
+async function runItem(it){if(!A)return st('Running scripts works in the desktop app');
+  const isCur=TABS[cur]===it&&view!=='home';if(isCur)stash();
+  const errs=(isCur?ISS:lintOf(it)).filter(x=>x.sev==='error');
+  if(errs.length&&!confirm('This script has '+errs.length+' error'+(errs.length>1?'s':'')+' and AutoHotkey probably won’t start it.\n\n• '+errs[0].msg+'\n  '+errs[0].why+'\n\nRun it anyway?'))return;
+  const live=isCur&&view==='code'&&EDV&&EDV.get()!==codeBase;
+  const file=!live&&isPristine(it)?it.file:null,code=file?null:(isCur?src():codeOf(it));
+  const r=await A.runScript({id:it.id,name:it.name,code,file});if(bad(r))return;st(String(r));it.lastRun=Date.now();it.runs=(it.runs||0)+1;saveLibSoon()}
+const toggleRun=it=>RUN.has(it.id)?A&&A.stopScript(it.id):runItem(it);
+function dupItem(it){const d=addItem(it.name+' copy',JSON.parse(JSON.stringify(it.kids)),{gui:JSON.parse(JSON.stringify(it.gui)),set:{...it.set}});return d}
+async function removeItem(it){const msg=it.file?'Remove “'+it.name+'” from AHK Blocks?\n\nThe .ahk file on your disk is not deleted.':'Delete “'+it.name+'”?\n\nIt only exists inside AHK Blocks. Export it as .ahk first if you want a copy.';if(!confirm(msg))return;
+  if(RUN.has(it.id)&&A)await A.stopScript(it.id);if(it.startup&&A)A.setStartup({id:it.id,name:it.name,on:false});
+  const ti=TABS.indexOf(it);if(ti>=0){if(ti===cur){TABS.splice(ti,1);if(!TABS.length){cur=-1}else load(Math.min(ti,TABS.length-1))}else{TABS.splice(ti,1);if(ti<cur)cur--}}
+  LIB.splice(LIB.indexOf(it),1);saveLibSoon();renderTabs();renderHome()}
+function renderHome(){const box=$('#hm-list');if(!box)return;const q=($('#hm-q').value||'').toLowerCase(),sort=$('#hm-sort').value;
+  const L=LIB.filter(it=>!q||it.name.toLowerCase().includes(q)||String(it.file||'').toLowerCase().includes(q)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(sort==='name'?a.name.localeCompare(b.name):sort==='run'?(b.lastRun||0)-(a.lastRun||0):(b.edited||0)-(a.edited||0)));
+  const nr=LIB.filter(i=>RUN.has(i.id)).length;$('#hm-sub').textContent=LIB.length+' script'+(LIB.length===1?'':'s')+' · '+nr+' running';$('#hm-stop').disabled=!nr;
+  box.replaceChildren();
+  if(!L.length){const e=document.createElement('div');e.className='hm-empty';e.innerHTML=LIB.length?'<h2>No scripts match “'+esc(q)+'”</h2>':'<h2>Welcome to AHK Blocks</h2><p>Make your first script with blocks, start from a template, or bring in .ahk files you already have. Drop an .ahk file anywhere on this window to import it.</p>';box.append(e);return}
+  L.forEach(it=>box.append(card(it)))}
+function card(it){const run=RUN.has(it.id),c=document.createElement('div');c.className='hc'+(run?' on':'');
+  const mkb=(t,tip,fn,cls)=>{const b=document.createElement('button');b.textContent=t;b.title=tip;if(cls)b.className=cls;b.onclick=e=>{e.stopPropagation();fn()};return b};
+  const top=document.createElement('div');top.className='hc-top';
+  const nm=document.createElement('div');nm.className='hc-name';nm.textContent=it.name;nm.title='Double-click to rename';
+  nm.ondblclick=()=>{const inp=document.createElement('input');inp.value=it.name;let d=0;const ok=()=>{if(d)return;d=1;it.name=inp.value.trim()||it.name;saveLibSoon();renderHome();renderTabs()};inp.onblur=ok;inp.onkeydown=e=>{if(e.key==='Enter')ok()};nm.replaceWith(inp);inp.focus();inp.select()};
+  top.append(nm,mkb(it.pinned?'★':'☆','Pin to the top',()=>{it.pinned=!it.pinned;saveLibSoon();renderHome()},'ic'));
+  const chips=document.createElement('div');chips.className='chips';
+  const chip=(t,cls)=>{const s=document.createElement('span');s.className='chip '+(cls||'');s.textContent=t;chips.append(s)};
+  if(run)chip('● Running','ok');chip(it.file?(isPristine(it)?'File · original':'File · edited in blocks'):'Blocks');
+  const nerr=lintOf(it).filter(x=>x.sev==='error').length;if(nerr)chip('⛔ '+nerr+' error'+(nerr>1?'s':''),'bad');if(it.startup)chip('⏻ Starts with Windows');
+  const meta=document.createElement('div');meta.className='hc-meta';meta.textContent='Edited '+ago(it.edited)+' · Ran '+ago(it.lastRun)+(it.runs?' ('+it.runs+'×)':'');
+  const path=document.createElement('div');path.className='hc-path';path.textContent=it.file||'Stored in AHK Blocks';path.title=it.file||'';
+  const acts=document.createElement('div');acts.className='hc-acts';
+  acts.append(mkb(run?'■ Stop':'▶ Run',run?'Stop this script':'Run this script now',()=>toggleRun(it),run?'':'pri'),mkb('✎ Edit','Open in the editor',()=>openItem(it)));
+  const more=document.createElement('div');more.className='hc-more';
+  more.append(mkb('⎘','Duplicate',()=>{dupItem(it);renderHome()},'ic'),mkb('⏻','Start with Windows (on/off)',async()=>{if(!A)return st('Only in the desktop app');const on=!it.startup;const r=await A.setStartup({id:it.id,name:it.name,code:on&&!isPristine(it)?codeOf(it):null,file:on&&isPristine(it)?it.file:null,on});if(bad(r))return;it.startup=on;it.startSynced=Date.now();saveLibSoon();st(on?'“'+it.name+'” will start with Windows':'Removed from startup');renderHome()},'ic'+(it.startup?' on':'')),
+    mkb('💾','Save as .ahk file',async()=>{if(!A)return;const r=await A.exportAhk(isPristine(it)?it.file&&codeOf(it):codeOf(it),it.file||it.name+'.ahk');if(bad(r)||!r)return;it.file=r;it.snap=null;saveLibSoon();st('Saved '+r.split(/[\\/]/).pop());renderHome()},'ic'));
+  if(it.file)more.append(mkb('📂','Show the file in its folder',()=>A&&A.reveal(it.file),'ic'));
+  more.append(mkb('🗑','Remove',()=>removeItem(it),'ic'));acts.append(more);
+  c.append(top,chips,path,meta,acts);c.ondblclick=e=>{if(e.target===c)openItem(it)};return c}
+$('#hm-new').onclick=()=>newTab();
+$('#hm-tpl').onclick=()=>$('#tpl').showModal();
+$('#hm-imp').onclick=()=>$('#imp').click();
+$('#hm-stop').onclick=()=>A&&A.stopAll();
+$('#hm-q').oninput=renderHome;$('#hm-sort').onchange=renderHome;
+const savePrefs=()=>A&&A.setPrefs({closeToTray:$('#hm-tray').checked,keepRunning:$('#hm-keep').checked});
+$('#hm-tray').onchange=savePrefs;$('#hm-keep').onchange=savePrefs;
+$('#hm-fold').onclick=async()=>{if(!A)return st('Folders work in the desktop app');const r=await A.scanFolder();if(bad(r)||!r)return;
+  $('#scan-dir').textContent=r.dir+' · '+r.files.length+' .ahk file'+(r.files.length===1?'':'s')+' found';const L=$('#scan-list');L.replaceChildren();
+  r.files.forEach(f=>{const had=LIB.some(x=>x.file&&x.file.toLowerCase()===f.file.toLowerCase());const lb=document.createElement('label');lb.className='srow';const cb=document.createElement('input');cb.type='checkbox';cb.checked=!had;cb.dataset.file=f.file;cb.dataset.name=f.name;const sp=document.createElement('span');sp.textContent=f.name+(had?'  (already added)':'')+'  ·  '+Math.max(1,Math.round(f.size/1024))+' KB';lb.append(cb,sp);L.append(lb)});
+  if(!r.files.length)L.textContent='No .ahk files in that folder.';$('#scan').showModal()};
+$('#scan-x').onclick=()=>$('#scan').close();
+$('#scan-go').onclick=async()=>{const picks=[...document.querySelectorAll('#scan-list input:checked')];let n=0;for(const cb of picks){const t=await A.readFile(cb.dataset.file);if(bad(t))continue;importItem(cb.dataset.name,t,cb.dataset.file);n++}$('#scan').close();st('Added '+n+' script'+(n===1?'':'s')+' to Home');saveLibSoon();renderHome()};
+/* ---- quick launcher (Ctrl+K) ---- */
+let qkSel=0;const fuzzy=(s,q)=>{let i=0;for(const ch of s){if(ch===q[i])i++;if(i===q.length)return true}return!q};
+const qkItems=()=>{const q=$('#qk-in').value.toLowerCase().trim();return LIB.filter(it=>fuzzy(it.name.toLowerCase(),q)).sort((a,b)=>(RUN.has(b.id)?1:0)-(RUN.has(a.id)?1:0)||(b.pinned?1:0)-(a.pinned?1:0)||(b.lastRun||0)-(a.lastRun||0)).slice(0,12)};
+function qkRender(){const L=qkItems(),box=$('#qk-list');box.replaceChildren();qkSel=Math.min(qkSel,Math.max(0,L.length-1));
+  if(!L.length){box.innerHTML='<p class="tip" style="padding:8px">No scripts match.</p>';return}
+  L.forEach((it,i)=>{const d=document.createElement('div');d.className='qi'+(i===qkSel?' on':'');d.innerHTML='<span></span><small></small>';d.firstChild.textContent=it.name;d.lastChild.textContent=RUN.has(it.id)?'● running — Enter stops':'Enter runs';d.onclick=()=>{qkSel=i;qkGo(false)};box.append(d)})}
+function qkGo(edit){const it=qkItems()[qkSel];if(!it)return;$('#qk').close();edit?openItem(it):toggleRun(it)}
+function qkOpen(){if(!LIB.length)return st('No scripts yet. Make one first.');qkSel=0;$('#qk-in').value='';qkRender();$('#qk').showModal();$('#qk-in').focus()}
+$('#qk-in').oninput=()=>{qkSel=0;qkRender()};
+$('#qk-in').onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();qkSel++;qkRender()}else if(e.key==='ArrowUp'){e.preventDefault();qkSel=Math.max(0,qkSel-1);qkRender()}else if(e.key==='Enter'){e.preventDefault();qkGo(e.ctrlKey||e.metaKey)}};
+function renderTabs(){const t=$('#tabs');t.replaceChildren();
+  const h=document.createElement('div');h.className='tab home'+(view==='home'?' on':'');h.textContent='⌂ Home';h.onclick=()=>setView('home');t.append(h);
+  TABS.forEach((x,i)=>{const e=document.createElement('div');e.className='tab'+(view!=='home'&&i===cur?' on':'')+(RUN.has(x.id)?' run':'');e.setAttribute('role','tab');
+    const nm=document.createElement('span');nm.textContent=x.name;nm.title='Double-click to rename';
+    nm.ondblclick=()=>{const inp=document.createElement('input');inp.value=x.name;let d=0;const ok=()=>{if(d)return;d=1;x.name=inp.value.trim()||x.name;renderTabs();saveLibSoon()};inp.onblur=ok;inp.onkeydown=ev=>{if(ev.key==='Enter')ok()};inp.onclick=ev=>ev.stopPropagation();nm.replaceWith(inp);inp.focus();inp.select()};
+    const cx=document.createElement('button');cx.textContent='×';cx.title='Close tab (the script stays on Home)';cx.onclick=ev=>{ev.stopPropagation();closeTab(i)};
+    e.onclick=()=>{if(i!==cur||view==='home')switchTab(i)};e.append(nm,cx);t.append(e)});
+  const p=document.createElement('button');p.id='newtab';p.textContent='+';p.title='New script';p.onclick=()=>newTab();t.append(p)}
+/* ---- views + Monaco ---- */
+let view='home',ed=null,EDV=null,codeBase='';
+function loadMonaco(){return new Promise(res=>{if(ed)return res(ed);const s=document.createElement('script');s.src='../node_modules/monaco-editor/min/vs/loader.js';s.onerror=()=>res(null);
+  s.onload=()=>{try{window.require.config({paths:{vs:'../node_modules/monaco-editor/min/vs'}});window.require(['vs/editor/editor.main'],()=>{initMonaco();res(ed)},()=>res(null))}catch(e){res(null)}};document.head.append(s);setTimeout(()=>res(ed),8000)})}
+function initMonaco(){const m=window.monaco;m.languages.register({id:'ahk'});
+  m.languages.setMonarchTokensProvider('ahk',{ignoreCase:true,tokenizer:{root:[[/;.*$/,'comment'],[/"(?:[^"`]|`.)*"/,'string'],[/^#\w+/,'keyword'],[/^\S+?::/,'type'],[/\b\d+(\.\d+)?\b/,'number'],[/\b(loop|while|if|else|break|return|global|static|for|in|try|catch|throw|class|continue|until|switch|case)\b/,'keyword'],[/\b(send|sendtext|click|sleep|msgbox|run|mousemove|winactivate|exitapp|settimer|tooltip|keywait|gui)\b/,'predefined']]}});
+  m.languages.registerCompletionItemProvider('ahk',{provideCompletionItems:(model,pos)=>{const w=model.getWordUntilPosition(pos),range={startLineNumber:pos.lineNumber,endLineNumber:pos.lineNumber,startColumn:w.startColumn,endColumn:w.endColumn};return{suggestions:AHKW.map(x=>({label:x,kind:m.languages.CompletionItemKind.Function,insertText:x,range}))}}});
+  m.editor.defineTheme('ahkd',{base:'vs-dark',inherit:true,rules:[],colors:{'editor.background':'#0a0c11'}});
+  ed=m.editor.create($('#mon'),{value:'',language:'ahk',theme:dk()?'ahkd':'vs',minimap:{enabled:false},fontSize:13,automaticLayout:true,scrollBeyondLastLine:false,tabSize:2,padding:{top:10}})}
+async function getEd(){if(EDV)return EDV;const m=await loadMonaco();if(m)EDV={get:()=>ed.getValue(),set:v=>ed.setValue(v)};
+  else{const ta=document.createElement('textarea');ta.id='fb';ta.spellcheck=false;$('#mon').append(ta);EDV={get:()=>ta.value,set:v=>{ta.value=v}}}return EDV}
+function syncCode(){if(view!=='code'||!EDV)return;const t=EDV.get();if(t===codeBase)return;const r=parseAhk(t);root.kids=r.kids;GUI=r.gui||newGui();normGui(GUI);SET=TABS[cur].set=setFromParse(r.set);codeBase=t;sel='root';stash();snap()}
+async function enterCode(){const e=await getEd();codeBase=build();e.set(codeBase)}
+function leaveCode(){if(!EDV)return;const t=EDV.get();if(t!==codeBase){const r=parseAhk(t);root.kids=r.kids;GUI=r.gui||newGui();normGui(GUI);SET=TABS[cur].set=setFromParse(r.set);sel='root';render();renderUI();st('Code applied: '+r.n+' blocks'+(r.rawN?' ('+r.rawN+' raw lines)':''))}}
+async function setView(v){if(v!=='home'&&!TABS.length){newTab();return}
+  if(view==='code'&&v!=='code')leaveCode();view=v;$('#main').dataset.v=v;document.body.dataset.v=v;
+  ['home','blocks','ui','code'].forEach(x=>$('#v-'+x).hidden=x!==v);
+  document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  renderTabs();if(v==='home')renderHome();if(v==='ui')renderUI();if(v==='blocks')render();if(v==='code')await enterCode()}
+
+/* ---- generic importer: turns the generator of each block around ---- */
+const GENBOX=new Set(['ifkey','ifwin','ifyes','ifclip','iftext','forlist','foreach','forlines','ifexist','ifwex','ifproc','ifstarts','ifhour','ifday','ifimgv','ifcolor','ifpixn','whiletime']);
+const GENSKIP=new Set(['guislot','rawl','note','holdwhile','hotkey','hkpass','hkup','hotstr','abbr','remap','func','funcp','onctl','onwin','trayitem','every','after','if','while','elif','else','loop','forever','try','catch','finally','hotif','hotall']);
+const _GC={};
+function genTemplates(gv){if(_GC[gv])return _GC[gv];const sv=GUI;GUI=Object.assign({},sv,{v:gv});const out=[];
+  try{for(const k in T){if(GENSKIP.has(k))continue;const t=T[k],fk=Object.keys(t.f);
+    const opts=fk.filter(f=>t.f[f].o);let combos=[{}];
+    for(const f of opts){const nx=[];combos.forEach(c=>t.f[f].o.forEach(o=>nx.push(Object.assign({},c,{[f]:o}))));combos=nx;if(combos.length>40){combos=[];break}}
+    for(const fx of combos){const free=fk.filter(f=>!(f in fx)),v={};fk.forEach(f=>{v[f]=f in fx?fx[f]:'QZ'+fk.indexOf(f)+'XQ'});
+      let g;try{g=String(t.gen(v))}catch(e){continue}
+      if(!free.every(f=>g.includes('QZ'+fk.indexOf(f)+'XQ')))continue;
+      const lines=g.split('\n').map(x=>x.trim());
+      const box=!!t.box;if(box&&(t.tail||!GENBOX.has(k)||!/\{$/.test(lines[lines.length-1])))continue;
+      if(!box&&lines.length<2&&GENBOX.has(k))continue;
+      const segs=lines.map(ln=>{const parts=ln.split(/(QZ\d+XQ)/),o=[];let inq=false;
+        for(const p of parts){const m=p.match(/^QZ(\d+)XQ$/);if(m)o.push({tok:fk[+m[1]],inq});else{o.push(p);for(let i=0;i<p.length;i++){if(p[i]==='`'){i++;continue}if(p[i]==='"')inq=!inq}}}return o});
+      const lit=segs.reduce((a,l)=>a+l.reduce((b,p)=>b+(typeof p==='string'?p.length:0),0),0);
+      if(lit<4)continue;
+      out.push({t:k,segs,fx,box,n:lines.length,lit})}}}finally{GUI=sv}
+  out.sort((a,b)=>b.n-a.n||b.lit-a.lit);return _GC[gv]=out}
+const rxe=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function genFind(L,li,gv,mode){const tp=genTemplates(gv);
+  for(const tpl of tp){if(mode===1?!(tpl.n>1||tpl.box):(tpl.n>1||tpl.box))continue;
+    const vals={};let ok=true;
+    for(let j=0;j<tpl.n&&ok;j++){const ln=(L[li+j]||'').trim();if(!ln){ok=false;break}
+      const caps=[];let rs='^';
+      for(const p of tpl.segs[j]){if(typeof p==='string')rs+=rxe(p);
+        else if(p.tok in vals){rs+=rxe(p.inq?vals[p.tok].replace(/`/g,'``').replace(/"/g,'`"'):vals[p.tok])}
+        else{caps.push(p);rs+=p.inq?'((?:[^"`]|`.)*)':'(.+?)'}}
+      let m;try{m=new RegExp(rs+'$').exec(ln)}catch(e){m=null}
+      if(!m){ok=false;break}
+      caps.forEach((p,i)=>{vals[p.tok]=p.inq?m[i+1].replace(/`(["`])/g,'$1'):m[i+1].trim()})}
+    if(!ok)continue;
+    const v=Object.assign({},tpl.fx);for(const f in T[tpl.t].f)if(!(f in v))v[f]=(f in vals)?vals[f]:T[tpl.t].f[f].d;
+    let back;const sv=GUI;try{GUI=Object.assign({},sv,{v:gv});back=String(T[tpl.t].gen(v)).split('\n').map(x=>x.trim())}catch(e){back=null}finally{GUI=sv}
+    if(!back||back.length!==tpl.n||back.some((x,j)=>x!==(L[li+j]||'').trim()))continue;
+    return{t:tpl.t,v,box:tpl.box,n:tpl.n}}
+  return null}
+
+/* ---- UI designer ---- */
+const CT={Text:{w:120,h:22,t:'Label'},Button:{w:110,h:30,t:'Click me'},Edit:{w:200,h:26,t:''},Checkbox:{w:150,h:24,t:'Check me'},Radio:{w:150,h:24,t:'Option'},DropDownList:{w:160,h:26,t:'One|Two|Three'},ComboBox:{w:160,h:26,t:'One|Two|Three'},ListBox:{w:160,h:90,t:'One|Two|Three'},ListView:{w:280,h:120,t:'Name|Size|Date'},Slider:{w:200,h:28,t:''},Progress:{w:200,h:20,t:''},GroupBox:{w:220,h:110,t:'Group'},Tab3:{w:300,h:200,t:'General|Options'},Link:{w:240,h:22,t:'Visit <a href="https://www.autohotkey.com">AutoHotkey</a>'},Picture:{w:120,h:90,t:'logo.png'},DateTime:{w:150,h:26,t:'yyyy-MM-dd'},MonthCal:{w:230,h:170,t:''},Hotkey:{w:150,h:26,t:''},StatusBar:{w:0,h:22,t:'Ready'}};
+const NOARG=new Set(['MonthCal']),TABT=new Set(['Tab3','Tab2','Tab']),LISTT=new Set(['DropDownList','ComboBox','ListBox','ListView','Tab3','Tab2','Tab']),DOPT={DropDownList:'Choose1',ComboBox:'Choose1',ListBox:'Choose1',Slider:'Range0-100',Progress:'Range0-100'};
+const CP={Text:'txt',Button:'btn',Edit:'ed',Checkbox:'chk',Radio:'rad',DropDownList:'dd',ComboBox:'cb',ListBox:'lb',ListView:'lv',Slider:'sl',Progress:'pg',GroupBox:'grp',Tab3:'tab',Link:'lnk',Picture:'pic',DateTime:'dt',MonthCal:'cal',Hotkey:'hk',StatusBar:'sb'};
+const PRESET={flat:{t:'Text',opt:'+0x200 +0x100 Center Background4F7CFF cFFFFFF',w:110,h:30,text:'Click me',pre:'btn'},area:{t:'Edit',opt:'Multi VScroll',w:240,h:90,text:'',pre:'ed'},pw:{t:'Edit',opt:'Password',w:200,h:26,text:'',pre:'pw'},num:{t:'Edit',opt:'Number',w:100,h:26,text:'0',pre:'num'},line:{t:'Text',opt:'+0x10',w:200,h:2,text:'',pre:'ln'}};
+const PAL=[['Text','Text'],['Button','Button'],['Flat button','Text','flat'],['Edit box','Edit'],['Text area','Edit','area'],['Password','Edit','pw'],['Number box','Edit','num'],['Checkbox','Checkbox'],['Radio','Radio'],['Dropdown','DropDownList'],['Combo box','ComboBox'],['List box','ListBox'],['List view','ListView'],['Slider','Slider'],['Progress','Progress'],['Group box','GroupBox'],['Tab','Tab3'],['Link','Link'],['Picture','Picture'],['Date picker','DateTime'],['Calendar','MonthCal'],['Hotkey box','Hotkey'],['Line','Text','line'],['Status bar','StatusBar']];
+const FONTS=['Segoe UI','Arial','Calibri','Cambria','Consolas','Courier New','Georgia','Impact','Lucida Console','Tahoma','Times New Roman','Trebuchet MS','Verdana','Comic Sans MS'];
+const OPTS=[['+AlwaysOnTop','Always on top'],['+Resize','User can resize the window'],['-Caption','Hide the title bar'],['+ToolWindow','Small title bar (tool window)'],['-MinimizeBox','No minimize button'],['-MaximizeBox','No maximize button']];
+const optHas=(g,t)=>(g.opts||'').split(/\s+/).some(x=>x.toLowerCase()===t.toLowerCase());
+function optToggle(g,t,on){const b=t.slice(1).toLowerCase();const o=(g.opts||'').split(/\s+/).filter(Boolean).filter(x=>x.slice(1).toLowerCase()!==b);if(on)o.push(t);g.opts=o.join(' ');g.ctor=undefined}
+const tokOn=(c,t)=>(c.opt||'').split(/\s+/).some(x=>x.replace(/^\+/,'').toLowerCase()===t.toLowerCase());
+function setTok(c,t,on){c.opt=(c.opt||'').split(/\s+/).filter(Boolean).filter(x=>x.replace(/^\+/,'').toLowerCase()!==t.toLowerCase()).concat(on?[t]:[]).join(' ')}
+const tokVal=(c,re)=>{for(const x of(c.opt||'').split(/\s+/)){const m=x.match(re);if(m)return m[1]}return''};
+function setPre(c,pre,re,v){c.opt=(c.opt||'').split(/\s+/).filter(Boolean).filter(x=>!re.test(x)).concat(v!==''&&v!==undefined?[pre+v]:[]).join(' ')}
+const evOf=c=>(c.t==='Button'||c.t==='Checkbox'||c.t==='Radio'||c.t==='Link'||(c.t==='Text'&&/0x100/.test(c.opt||'')))?'Click':c.t==='ListView'?'DoubleClick':'Change';
+const ctlArg=c=>c.t==='MonthCal'?undefined:(c.t==='Slider'||c.t==='Progress')?(c.val!==undefined&&c.val!==''?String(+c.val||0):undefined):LISTT.has(c.t)?ARR(c.text):q(c.text);
+const fontSpec=f=>q((!f.b&&!f.i&&!f.u?'norm ':'')+'s'+(f.fs||10)+(f.b?' bold':'')+(f.i?' italic':'')+(f.u?' underline':'')+(f.c?' c'+f.c:''))+(f.face?', '+q(f.face):'');
+const GF=(t,n,x,y,w,h,text,o)=>{const c=Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,n,x,y,w,h,text,fn:'',evs:[],imp:0,hw:1,hh:1,opt:DOPT[t]||''},o||{});c.arg=ctlArg(c);return c};
+const isTab=t=>TABT.has(t);
+let uSel=null,uPrev=false,uPage={},uMulti=new Set();
+try{uPrev=localStorage.getItem('ahkbprev')==='1'}catch(e){}
+const ARR=t=>'['+String(t).split('|').map(q).join(', ')+']';
+function norm(c){if(c.k==='line'||c.hw!==undefined)return;c.hw=c.hh=1;c.imp=0;c.evs=[];c.opt=DOPT[c.t]||(c.on?'Checked':'');c.arg=ctlArg(c)}
+function fixTabOrder(g){for(let guard=0;guard<60;guard++){let mv=false;for(let i=0;i<g.ctl.length;i++){const c=g.ctl[i];if(c.k||!c.tabOf)continue;const ti=g.ctl.findIndex(x=>x.id===c.tabOf);if(ti<0){delete c.tabOf;delete c.pg}else if(ti>i){g.ctl.splice(i,1);g.ctl.splice(ti,0,c);mv=true;break}}if(!mv)break}}
+function normGui(g){g.v=g.v||'myGui';if(g.top){g.opts=((g.opts||'')+' +AlwaysOnTop').trim();delete g.top}if(g.font===undefined)g.font=true;if(g.show===undefined)g.show=true;g.ctl.forEach(norm);fixTabOrder(g)}
+function allFuncs(){const s=new Set();(function w(n){n.kids.forEach(b=>{if(b.off)return;if(b.t==='func'||b.t==='funcp')s.add(vn(b.v.n));if(b.t==='rawl'){const m=String(b.v.s).match(/^(\w+)\(.*\)\s*(\{|=>)/);if(m)s.add(m[1])}w(b)})})(root);return[...s]}
+const funcNames=allFuncs;
+const real=()=>GUI.ctl.filter(c=>!c.k);
+const ctlNames=()=>real().filter(c=>!c.anon&&c.n).map(c=>c.n);
+/* ---- rendering: Design skin and Preview skin ---- */
+const PX=pt=>Math.round(pt*96/72*10)/10;
+const mkE=(tag,st,txt)=>{const e=document.createElement(tag);if(st)Object.assign(e.style,st);if(txt!==undefined)e.textContent=txt;return e};
+const hexOf=(o,re)=>(o.match(re)||[])[1];
+const boxSize=()=>paintBox();
+function setSize(){boxSize();if(GUI.showr!==undefined){const u=UQ(GUI.showr);if(u!==null)GUI.showr=q(u.replace(/\bw\d+/,'w'+GUI.w).replace(/\bh\d+/,'h'+GUI.h))}code()}
+function paintTab(e,c,b,light){const pg=String(c.text).split('|'),act=Math.min(uPage[c.id]||1,pg.length),f=effFont(c),hh=Math.round(PX(f.fs)*1.9),L=(a,d)=>light?a:d;
+  b.style.cssText='position:absolute;inset:0;display:block;pointer-events:none';
+  b.append(mkE('div',{position:'absolute',left:0,right:0,top:hh+'px',bottom:0,border:'1px solid '+L('#d9d9d9','var(--line)'),background:L('#fff','var(--side)')}));
+  const hdr=mkE('div',{position:'absolute',left:0,top:0,height:(hh+1)+'px',display:'flex',alignItems:'flex-end',pointerEvents:'auto',fontFamily:L('"'+f.face+'",sans-serif',''),fontSize:L(PX(f.fs)+'px','13px'),color:L('#000','var(--ink)')});
+  pg.forEach((p,i)=>{const on=i+1===act,t=mkE('div',{padding:'0 12px',display:'flex',alignItems:'center',border:'1px solid '+L('#d9d9d9','var(--line)'),borderBottom:on?'0':'',background:on?L('#fff','var(--side)'):L('#f0f0f0','var(--raise)'),marginRight:'-1px',cursor:'pointer',position:'relative',zIndex:on?2:1,height:(on?hh+1:hh-3)+'px',whiteSpace:'nowrap'},p);
+    t.onpointerdown=ev=>{ev.stopPropagation();uPage[c.id]=i+1;uMulti=new Set();uSel=c.id;refreshAll();markSel();renderProps()};hdr.append(t)});b.append(hdr)}
+function refreshAll(){real().forEach(k=>{const e=document.querySelector('.uc[data-id="'+k.id+'"]');if(e)elStyle(e,k)})}
+function markSel(){document.querySelectorAll('.uc').forEach(x=>x.classList.toggle('sel',x.dataset.id===uSel||uMulti.has(x.dataset.id)))}
+const multi=()=>{const a=real().filter(c=>uMulti.has(c.id)&&c.t!=='StatusBar');return a.length>1?a:[]};
+const selList=()=>{const m=multi();if(m.length)return m;const c=real().find(x=>x.id===uSel);return c?[c]:[]};
+function alignSel(kind){const m=multi();if(m.length<2)return;const S0=new Set(m),ref=real().find(c=>c.id===uSel)||m[m.length-1];
+  const L=Math.min(...m.map(c=>c.x)),R=Math.max(...m.map(c=>c.x+c.w)),Tp=Math.min(...m.map(c=>c.y)),B=Math.max(...m.map(c=>c.y+c.h));
+  const put=(c,x,y)=>{x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));const dx=x-c.x,dy=y-c.y;c.x=x;c.y=y;if(isTab(c.t))real().forEach(k=>{if(k.tabOf===c.id&&!S0.has(k)){k.x=Math.max(0,k.x+dx);k.y=Math.max(0,k.y+dy)}})};
+  if(kind==='l')m.forEach(c=>put(c,L,c.y));else if(kind==='r')m.forEach(c=>put(c,R-c.w,c.y));else if(kind==='hc')m.forEach(c=>put(c,(L+R)/2-c.w/2,c.y));
+  else if(kind==='t')m.forEach(c=>put(c,c.x,Tp));else if(kind==='b')m.forEach(c=>put(c,c.x,B-c.h));else if(kind==='vc')m.forEach(c=>put(c,c.x,(Tp+B)/2-c.h/2));
+  else if(kind==='dh'&&m.length>2){const o=[...m].sort((a,b)=>a.x-b.x),gap=(R-L-o.reduce((a,c)=>a+c.w,0))/(o.length-1);let x=L;o.forEach(c=>{put(c,x,c.y);x+=c.w+gap})}
+  else if(kind==='dv'&&m.length>2){const o=[...m].sort((a,b)=>a.y-b.y),gap=(B-Tp-o.reduce((a,c)=>a+c.h,0))/(o.length-1);let y=Tp;o.forEach(c=>{put(c,c.x,y);y+=c.h+gap})}
+  else if(kind==='sw')m.forEach(c=>{c.w=ref.w;c.hw=1});else if(kind==='sh')m.forEach(c=>{c.h=ref.h;c.hh=1});
+  renderUI();snap();code()}
+function renderUI(){fixTabOrder(GUI);const b=$('#ui-win-box');paintBox();b.replaceChildren();
+  real().forEach(c=>{const e=document.createElement('div');e.className='uc '+(uPrev?'pvc':'c-'+(CT[c.t]?c.t:'Other'));e.dataset.id=c.id;const pv=document.createElement('span');pv.className='pv';e.append(pv);
+    e.onpointerdown=ev=>{ev.stopPropagation();
+      if(ev.shiftKey||ev.ctrlKey||ev.metaKey){ev.preventDefault();const w=new Set(uMulti);if(!w.size&&uSel)w.add(uSel);if(w.has(c.id))w.delete(c.id);else w.add(c.id);
+        if(w.size<2){uSel=[...w][0]||null;uMulti=new Set()}else{uMulti=w;uSel=c.id}markSel();renderProps();return}
+      if(!(uMulti.size>1&&uMulti.has(c.id)))uMulti=new Set();
+      uSel=c.id;markSel();renderProps();dragStart(ev,c,'m',e)};
+    const hd=document.createElement('i');hd.className='rs';hd.onpointerdown=ev=>{ev.stopPropagation();uMulti=new Set();uSel=c.id;markSel();dragStart(ev,c,'r',e)};e.append(hd);b.append(e);elStyle(e,c)});
+  if(!real().length&&!uPrev){const em=document.createElement('div');em.className='ui-guide';em.style.cssText='position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;pointer-events:none;opacity:.6;font-size:13px';em.textContent='Your window is empty. Click a control on the left (Button, Edit box…) to add it, then drag it where you want.';b.append(em)}
+  b.onpointerdown=ev=>{uMulti=new Set();uSel=null;markSel();renderProps();if(uPrev)return;
+    const r=b.getBoundingClientRect(),x0=ev.clientX-r.left,y0=ev.clientY-r.top;let m=null,moved=false;
+    const mv=e=>{const x=e.clientX-r.left,y=e.clientY-r.top;if(!moved&&Math.abs(x-x0)+Math.abs(y-y0)<4)return;moved=true;
+      if(!m){m=document.createElement('div');m.className='ui-guide';m.style.cssText='position:absolute;pointer-events:none;border:1px dashed #ff4fa3;background:rgba(255,79,163,.12);z-index:60';b.append(m)}
+      const L=Math.min(x,x0),T=Math.min(y,y0),W=Math.abs(x-x0),Hh=Math.abs(y-y0);m.style.left=L+'px';m.style.top=T+'px';m.style.width=W+'px';m.style.height=Hh+'px';
+      const hit=real().filter(c=>c.t!=='StatusBar'&&c.x<L+W&&c.x+c.w>L&&c.y<T+Hh&&c.y+c.h>T);
+      if(hit.length>1){uMulti=new Set(hit.map(c=>c.id));uSel=hit[hit.length-1].id}else{uMulti=new Set();uSel=hit[0]?hit[0].id:null}markSel()};
+    const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);if(m)m.remove();renderProps()};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up)};markSel();renderProps()}
+function setPrev(v){uPrev=v;try{localStorage.setItem('ahkbprev',v?'1':'')}catch(e){}$('#ui-d').classList.toggle('on',!v);$('#ui-p').classList.toggle('on',v);renderUI()}
+/* ---- tabs inside the window ---- */
+function autoParent(c){const cx=c.x+c.w/2,cy=c.y+Math.min(c.h,20)/2,tb=[...real()].reverse().find(t=>isTab(t.t)&&t.id!==c.id&&cx>=t.x&&cx<=t.x+t.w&&cy>=t.y+26&&cy<=t.y+t.h);
+  if(tb){if(c.tabOf!==tb.id){c.tabOf=tb.id;c.pg=uPage[tb.id]||1}}else{delete c.tabOf;delete c.pg}fixTabOrder(GUI)}
+function clampPages(c){const n=String(c.text).split('|').length;let ch=false;real().forEach(k=>{if(k.tabOf===c.id&&(k.pg||1)>n){k.pg=n;ch=true}});if((uPage[c.id]||1)>n)uPage[c.id]=n;return ch}
+let uSnap=(()=>{try{const v=localStorage.getItem('ahkbsnap');return v===null?5:(+v||0)}catch(e){return 5}})();
+function uClearGuides(){document.querySelectorAll('.ui-guide').forEach(x=>x.remove())}
+function uAlign(c,mode,off,ch){uClearGuides();if(off||c.t==='StatusBar')return;
+  const box=$('#ui-win-box'),TH=5,others=real().filter(o=>o!==c&&o.t!=='StatusBar'&&!(ch&&ch.some(k=>k.x===o)));
+  const X=[0,GUI.w/2,GUI.w],Y=[0,GUI.h/2,GUI.h];others.forEach(o=>{X.push(o.x,o.x+o.w/2,o.x+o.w);Y.push(o.y,o.y+o.h/2,o.y+o.h)});
+  const best=(mine,tg)=>{let b=null;for(const m of mine)for(const t of tg){const d=t-m;if(Math.abs(d)<=TH&&(!b||Math.abs(d)<Math.abs(b.d)))b={d,t}}return b};
+  const line=(v,h)=>{const g=document.createElement('div');g.className='ui-guide';g.style.cssText='position:absolute;pointer-events:none;background:#ff4fa3;z-index:50;'+(h?'left:0;right:0;height:1px;top:'+Math.round(v)+'px':'top:0;bottom:0;width:1px;left:'+Math.round(v)+'px');box.append(g)};
+  if(mode==='m'){const bx=best([c.x,c.x+c.w/2,c.x+c.w],X),by=best([c.y,c.y+c.h/2,c.y+c.h],Y);
+    if(bx){c.x=Math.max(0,Math.round(c.x+bx.d));line(bx.t,false)}if(by){c.y=Math.max(0,Math.round(c.y+by.d));line(by.t,true)}}
+  else{const bx=best([c.x+c.w],X),by=best([c.y+c.h],Y);if(bx){c.w=Math.max(1,Math.round(c.w+bx.d));line(bx.t,false)}if(by){c.h=Math.max(1,Math.round(c.h+by.d));line(by.t,true)}}}
+function dragStart(ev,c,mode,el){ev.preventDefault();if(c.t==='StatusBar')return;const sx=ev.clientX,sy=ev.clientY,ox=c.x,oy=c.y,ow=c.w,oh=c.h,sn=v=>uSnap?Math.round(v/uSnap)*uSnap:Math.round(v);let moved=false;
+  const grp=mode==='m'&&uMulti.has(c.id)?multi():[];
+  const chl=grp.length?[...new Set([...grp,...grp.flatMap(g=>isTab(g.t)?real().filter(k=>k.tabOf===g.id):[])])].filter(x=>x!==c):(mode==='m'&&isTab(c.t)?real().filter(x=>x.tabOf===c.id):[]);
+  const ch=chl.map(x=>({x,ox:x.x,oy:x.y}));
+  const mv=e=>{const dx=e.clientX-sx,dy=e.clientY-sy;moved=true;
+    if(mode==='m'){c.x=Math.max(0,sn(ox+dx));c.y=Math.max(0,sn(oy+dy));uAlign(c,'m',e.altKey,ch);ch.forEach(k=>{k.x.x=Math.max(0,k.ox+c.x-ox);k.x.y=Math.max(0,k.oy+c.y-oy);const ke=document.querySelector('.uc[data-id="'+k.x.id+'"]');if(ke)elStyle(ke,k.x)})}
+    else{c.w=Math.max(1,sn(ow+dx));c.h=Math.max(1,sn(oh+dy));c.hw=c.hh=1;uAlign(c,'r',e.altKey)}elStyle(el,c)};
+  const up=()=>{uClearGuides();removeEventListener('pointermove',mv);removeEventListener('pointerup',up);if(moved&&mode==='m'&&!isTab(c.t)&&!grp.length){const was=c.tabOf;autoParent(c);if(was!==c.tabOf)renderUI()}renderProps();snap();code()};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+function fld(lbl,val,on,type){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent=lbl;const i=document.createElement('input');if(type)i.type=type;
+  if(type==='checkbox')i.checked=!!val;else i.value=val;i.oninput=()=>on(type==='checkbox'?i.checked:type==='number'?+i.value:i.value);w.append(s,i);return w}
+function selFld(lbl,opts,val,on){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent=lbl;const sel=document.createElement('select');opts.forEach(([v,t])=>sel.add(new Option(t,v)));sel.value=val;sel.onchange=()=>on(sel.value);w.append(s,sel);return w}
+function dupCtl(){const c=real().find(x=>x.id===uSel);if(!c)return;const nid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6),nm=new Set(real().map(z=>z.n));
+  const uniq=b0=>{let i=1;const base=b0.replace(/\d+$/,'');while(nm.has(base+i))i++;nm.add(base+i);return base+i};
+  const cp=x=>{const n=JSON.parse(JSON.stringify(x));n.id=nid();n.x+=20;n.y+=20;if(!x.anon)n.n=uniq(x.n);return n};
+  const n=cp(c),kids=isTab(c.t)?real().filter(x=>x.tabOf===c.id).map(k=>{const z=cp(k);z.tabOf=n.id;return z}):[];
+  GUI.ctl.splice(GUI.ctl.indexOf(c)+1,0,n,...kids);uSel=n.id;renderUI();snap();code()}
+function reorder(c,dir){const a=GUI.ctl,i=a.indexOf(c);a.splice(i,1);dir>0?a.push(c):a.unshift(c);fixTabOrder(GUI);renderUI();snap();code()}
+function delCtl(){const ids=new Set(selList().map(c=>c.id));if(!ids.size)return;real().forEach(x=>{if(ids.has(x.tabOf)){delete x.tabOf;delete x.pg}});GUI.ctl=GUI.ctl.filter(x=>x.k||!ids.has(x.id));uSel=null;uMulti=new Set();renderUI();snap();code()}
+PAL.forEach(([l,t,p])=>{const b=document.createElement('button');b.textContent='+ '+l;b.onclick=()=>addCtl(t,p);$('#ui-add').append(b)});
+addEventListener('keydown',e=>{if(view==='ui'&&uSel&&e.key==='Delete'&&!/INPUT|SELECT/.test(e.target.tagName))delCtl()});
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+const _sn=$('#ui-snap');_sn.value=String(uSnap);_sn.onchange=()=>{uSnap=+_sn.value;try{localStorage.setItem('ahkbsnap',String(uSnap))}catch(e){}};
+$('#ui-d').onclick=()=>setPrev(false);$('#ui-p').onclick=()=>setPrev(true);$('#ui-d').classList.toggle('on',!uPrev);$('#ui-p').classList.toggle('on',uPrev);
+function genGui(){const g=GUI;if(!g||(!g.ctl.length&&!g.imp&&!g.bgc))return[];fixTabOrder(g);const V=g.v||'myGui';
+  const o=['; --- UI (edit this in the UI Designer view) ---',V+' := Gui('+(g.ctor!==undefined?g.ctor:(g.opts?q(g.opts):'')+', '+q(g.title))+')'];
+  if(g.bgc)o.push(V+'.BackColor := '+q(g.bgc));
+  if(g.font)o.push(V+'.SetFont('+q('s'+(g.fs||10)+(g.fc?' c'+g.fc:''))+', '+q(g.face||'Segoe UI')+')');
+  let cur=null,focus=null;const tabN=id=>{const t=g.ctl.find(x=>x.id===id);return t&&t.n?vn(t.n):null};
+  g.ctl.forEach(c=>{if(c.k==='line'){o.push(c.s);return}
+    const tn=c.tabOf?tabN(c.tabOf):null,want=tn?{n:tn,pg:c.pg||1}:null;
+    if(cur&&(!want||want.n!==cur.n)){o.push(cur.n+'.UseTab()');cur=null}
+    if(want&&(!cur||cur.pg!==want.pg)){o.push(want.n+'.UseTab('+want.pg+')');cur=want}
+    const sb=c.t==='StatusBar',n=c.n&&!c.anon?vn(c.n):'',pos=sb?[]:['x'+c.x,'y'+c.y];if(!sb){if(c.hw)pos.push('w'+c.w);if(c.hh)pos.push('h'+c.h)}
+    const os=pos.join(' ')+(c.opt?(pos.length?' ':'')+c.opt:''),hasArg=c.arg!==undefined&&c.arg!=='';
+    const call=V+'.Add('+q(c.t)+(os||hasArg?', '+(os?q(os):''):'')+(hasArg?', '+c.arg:'')+')';
+    o.push(n?n+' := '+call:call);
+    if(n){if(c.font)o.push(n+'.SetFont('+fontSpec(c.font)+')');if(c.ph)o.push('SendMessage(0x1501, 1, StrPtr('+q(c.ph)+'), '+n+')')}
+    if(c.spin)o.push(V+'.Add("UpDown", '+q('Range'+c.spin)+(c.val!==undefined&&c.val!==''?', '+(+c.val||0):'')+')');
+    if(n&&c.t==='ListView'&&c.rows)String(c.rows).split('\n').filter(x=>x.trim()).forEach(r=>o.push(n+'.Add("", '+r.split('|').map(x=>q(x.trim())).join(', ')+')'));
+    if(c.focus&&n&&!focus)focus=n;
+    if(c.fn&&n)o.push(n+'.OnEvent("'+evOf(c)+'", (*) => '+vn(c.fn)+'())');(c.evs||[]).forEach(e=>o.push(e))});
+  if(cur&&!g.noClose)o.push(cur.n+'.UseTab()');
+  if(focus)o.push(focus+'.Focus()');
+  const eb=evBlocks(root);eb.forEach(b=>o.push(b.t==='onctl'?vn(b.v.c)+'.OnEvent("'+b.v.ev+'", '+vn(b.v.c)+'_'+b.v.ev+')':V+'.OnEvent("'+b.v.ev+'", '+V+'_'+b.v.ev+')'));
+  if(g.close&&!eb.some(b=>b.t==='onwin'&&b.v.ev==='Close'))o.push(V+'.OnEvent("Close", (*) => ExitApp())');
+  if(g.show!==false)o.push(V+'.Show('+(g.showr!==undefined?g.showr:q('w'+g.w+' h'+g.h))+')');
+  o.push('; --- end UI ---');return o}
+function effFont(c){const f=Object.assign({},c.fp||{},c.font||{});return{fs:f.fs||(GUI.font?(GUI.fs||10):9),b:f.b,i:f.i,u:f.u,st:f.st,face:f.face||(GUI.font&&GUI.face)||'Segoe UI',c:f.c||(GUI.font&&GUI.fc)||null}}
+function paintBox(){const b=$('#ui-win-box'),w=$('#ui-wrap'),ch=$('#ui-chrome');b.style.width=GUI.w+'px';b.style.height=GUI.h+'px';b.style.background=GUI.bgc?'#'+GUI.bgc:GUI.bg?'#'+GUI.bg:(uPrev?'#f0f0f0':'');w.classList.toggle('prev',uPrev);
+  const o=GUI.opts||'',nocap=/-Caption/i.test(o),tool=/\+ToolWindow/i.test(o);ch.style.display=uPrev&&!nocap?'flex':'none';ch.replaceChildren(mkE('div',{flex:1,paddingLeft:'10px',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'},GUI.title||'AutoHotkey'));
+  if(!tool){const bt=(t,d)=>mkE('div',{width:'46px',height:'31px',display:'grid',placeItems:'center',color:d?'#bbb':'#000'},t);ch.append(bt('─',/-MinimizeBox/i.test(o)),bt('☐',/-MaximizeBox/i.test(o)))}
+  ch.append(mkE('div',{width:'46px',height:'31px',display:'grid',placeItems:'center'},'✕'));b.style.fontFamily=uPrev?'"Segoe UI",system-ui,sans-serif':''}
+function paintDesign(e,c,b){const o=c.opt||'',s=e.style,bg=hexOf(o,/\bBackground([0-9a-f]{6})\b/i),f=effFont(c),col=hexOf(o,/\bc([0-9a-f]{6})\b/i)||f.c;
+  if(bg)s.background='#'+bg;if(col)s.color='#'+col;if(c.font&&c.font.fs||c.fp&&c.fp.fs)s.fontSize=PX(f.fs)+'px';if(f.b)s.fontWeight='700';if(f.i)s.fontStyle='italic';if(/\bCenter\b/i.test(o))b.style.justifyContent='center';
+  if(/\bDisabled\b|\bHidden\b/i.test(o))s.opacity='.5';
+  if(isTab(c.t))return paintTab(e,c,b,false);
+  const T=String(c.text===undefined?'':c.text);
+  b.textContent=({MonthCal:'📅 Calendar',Picture:'🖼 '+T,ListView:T.split('|').join(' │ '),Hotkey:'⌨ '+(T||'hotkey box'),DateTime:'📅 '+T,Link:T.replace(/<[^>]+>/g,''),StatusBar:T,Progress:'',Slider:''})[c.t]??(LISTT.has(c.t)?T.split('|')[0]:(T||(CT[c.t]?'':c.t)))}
+function paintPrev(e,c,b){const s=e.style,o=c.opt||'',f=effFont(c),px=PX(f.fs),t=c.t,txt=c.text===undefined?'':String(c.text);
+  const bg=hexOf(o,/\bBackground([0-9a-f]{6})\b/i),col=hexOf(o,/\bc([0-9a-f]{6})\b/i)||f.c,dis=/\bDisabled\b/i.test(o),hid=/\bHidden\b/i.test(o),ro=/\bReadOnly\b/i.test(o),pw=/\bPassword\b/i.test(o),ctr=/\bCenter\b/i.test(o),rt=/\bRight\b/i.test(o),vc=/0x200\b/i.test(o),bd=/(^|\s)\+?Border\b/i.test(o),chk=/\bChecked1?\b/i.test(o),mult=/\bMulti\b/i.test(o)||/\br([2-9]|\d{2,})\b/i.test(o)||c.h>px*2.6,ch=+((o.match(/\bChoose(\d+)\b/i)||[])[1]||0);
+  const rg=o.match(/\bRange(-?\d+)-(-?\d+)\b/i),mn=rg?+rg[1]:0,mx=rg?+rg[2]:100,val=c.val!==undefined&&c.val!==''?+c.val:(/^-?\d+$/.test(String(c.arg||''))?+c.arg:mn),pc=Math.max(0,Math.min(100,(val-mn)/((mx-mn)||1)*100));
+  Object.assign(s,{fontFamily:'"'+f.face+'","Segoe UI",system-ui,sans-serif',fontSize:px+'px',fontWeight:f.b?'700':'400',fontStyle:f.i?'italic':'normal',textDecoration:[f.u?'underline':'',f.st?'line-through':''].join(' ').trim()||'none',color:dis?'#a0a0a0':(col?'#'+col:'#000'),opacity:hid?'.35':'',lineHeight:'1.25',boxSizing:'border-box'});
+  b.style.cssText='position:absolute;inset:0;display:flex;pointer-events:none;overflow:hidden';
+  const arrow=mkE('div',{width:'17px',height:'100%',background:'#e5e5e5',display:'grid',placeItems:'center',fontSize:'9px',borderLeft:'1px solid #d0d0d0',flex:'none'},'▾');
+  switch(t){
+    case'Text':if(/\+?0x10\b/.test(o)){Object.assign(s,{borderTop:'1px solid #a0a0a0',borderBottom:'1px solid #fff'});break}
+      if(bg)s.background='#'+bg;if(bd)s.border='1px solid #646464';Object.assign(b.style,{alignItems:vc?'center':'flex-start',justifyContent:ctr?'center':rt?'flex-end':'flex-start',padding:'0 2px',whiteSpace:'pre-wrap',textAlign:ctr?'center':rt?'right':'left'});b.textContent=txt;break;
+    case'Button':Object.assign(s,{background:dis?'#cccccc':'#e1e1e1',border:'1px solid '+(/\bDefault\b/i.test(o)?'#0078d7':'#adadad')});Object.assign(b.style,{alignItems:'center',justifyContent:'center'});b.textContent=txt;break;
+    case'Edit':{Object.assign(s,{background:bg?'#'+bg:ro?'#f0f0f0':'#fff',border:'1px solid #7a7a7a'});Object.assign(b.style,{alignItems:mult?'flex-start':'center',padding:'0 3px',whiteSpace:mult?'pre-wrap':'nowrap',justifyContent:ctr?'center':rt?'flex-end':'flex-start'});
+      if(!txt&&c.ph){b.textContent=c.ph;b.style.color='#8a8a8a'}else b.textContent=pw?'•'.repeat(txt.length):txt;
+      if(c.spin)b.append(mkE('div',{position:'absolute',right:0,top:0,bottom:0,width:'17px',borderLeft:'1px solid #c0c0c0',background:'#e5e5e5',display:'grid',placeItems:'center',fontSize:'8px',lineHeight:'1',whiteSpace:'pre'},'▴\n▾'));break}
+    case'Checkbox':case'Radio':{const r=t==='Radio';b.style.alignItems='center';b.append(mkE('div',{width:'13px',height:'13px',border:'1px solid '+(dis?'#bcbcbc':'#333'),background:'#fff',borderRadius:r?'50%':'1px',flex:'none',marginRight:'6px',display:'grid',placeItems:'center',fontSize:'10px',lineHeight:'1'},chk?(r?'●':'✔'):''),mkE('div',{},txt));break}
+    case'DropDownList':case'ComboBox':{const it=txt.split('|');Object.assign(s,{background:bg?'#'+bg:'#fff',border:'1px solid #7a7a7a'});Object.assign(b.style,{alignItems:'center',justifyContent:'space-between',paddingLeft:'3px'});b.append(mkE('div',{},ch?it[ch-1]||'':''),arrow);break}
+    case'ListBox':{Object.assign(s,{background:bg?'#'+bg:'#fff',border:'1px solid #7a7a7a'});Object.assign(b.style,{flexDirection:'column',alignItems:'stretch',padding:'1px'});txt.split('|').forEach((x,i)=>b.append(mkE('div',{padding:'0 2px',background:i+1===ch?'#0078d7':'',color:i+1===ch?'#fff':'',whiteSpace:'nowrap'},x)));break}
+    case'ListView':{Object.assign(s,{background:bg?'#'+bg:'#fff',border:'1px solid #828790'});b.style.flexDirection='column';const row=(cells,hd)=>{const r=mkE('div',{display:'flex',flex:'none',height:Math.round(px*1.7)+'px',alignItems:'center',borderBottom:'1px solid #ececec',background:hd?'#fff':''});cells.forEach(x=>r.append(mkE('div',{flex:1,padding:'0 6px',borderRight:hd?'1px solid #e5e5e5':'',overflow:'hidden',whiteSpace:'nowrap',color:hd?'#444':''},x)));return r};b.append(row(txt.split('|'),true));String(c.rows||'').split('\n').filter(x=>x.trim()).forEach(r=>b.append(row(r.split('|').map(x=>x.trim()),false)));break}
+    case'Slider':{b.style.alignItems='center';b.style.padding='0 8px';const tr=mkE('div',{flex:1,height:'4px',background:'#d6d6d6',border:'1px solid #bcbcbc',position:'relative'});tr.append(mkE('div',{position:'absolute',left:'calc('+pc+'% - 5px)',top:'-8px',width:'11px',height:'20px',background:'#0078d7',borderRadius:'2px'}));b.append(tr);break}
+    case'Progress':{Object.assign(s,{background:bg?'#'+bg:'#e6e6e6',border:'1px solid #bcbcbc'});b.style.alignItems='stretch';b.append(mkE('div',{width:pc+'%',background:col?'#'+col:'#06b025'}));break}
+    case'GroupBox':{b.style.overflow='visible';s.overflow='visible';b.append(mkE('div',{position:'absolute',left:0,right:0,top:Math.round(px*.7)+'px',bottom:0,border:'1px solid #dcdcdc',borderRadius:'3px',boxShadow:'1px 1px 0 #fff,inset 1px 1px 0 #fff'}),mkE('div',{position:'absolute',left:'9px',top:0,padding:'0 3px',background:GUI.bgc?'#'+GUI.bgc:GUI.bg?'#'+GUI.bg:'#f0f0f0',whiteSpace:'nowrap'},txt));break}
+    case'Tab3':case'Tab2':case'Tab':paintTab(e,c,b,true);break;
+    case'Link':{b.style.alignItems='center';txt.split(/(<a[^>]*>.*?<\/a>)/i).forEach(p=>{const m=p.match(/^<a[^>]*>(.*?)<\/a>$/i);b.append(m?mkE('span',{color:'#0066cc',textDecoration:'underline'},m[1]):mkE('span',{},p))});break}
+    case'Picture':Object.assign(s,{background:'#e8e8e8',border:'1px dashed #999',color:'#666'});Object.assign(b.style,{alignItems:'center',justifyContent:'center',flexDirection:'column'});b.append(mkE('div',{fontSize:'22px'},'🖼'),mkE('div',{fontSize:'11px'},txt));break;
+    case'DateTime':{const d=new Date(),pad=n=>String(n).padStart(2,'0'),shown=/yy/i.test(txt)?txt.replace(/yyyy/g,d.getFullYear()).replace(/MM/g,pad(d.getMonth()+1)).replace(/dd/g,pad(d.getDate())).replace(/HH/g,pad(d.getHours())).replace(/mm/g,pad(d.getMinutes())):d.toLocaleDateString();Object.assign(s,{background:'#fff',border:'1px solid #7a7a7a'});Object.assign(b.style,{alignItems:'center',justifyContent:'space-between',paddingLeft:'3px'});b.append(mkE('div',{},shown),arrow);break}
+    case'MonthCal':{Object.assign(s,{background:'#fff',border:'1px solid #bcbcbc'});b.style.flexDirection='column';const d=new Date(),y=d.getFullYear(),m=d.getMonth(),first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate();b.append(mkE('div',{textAlign:'center',padding:'4px',background:'#0078d7',color:'#fff'},d.toLocaleString('default',{month:'long'})+' '+y));const g=mkE('div',{display:'grid',gridTemplateColumns:'repeat(7,1fr)',flex:1,textAlign:'center',alignContent:'space-around',fontSize:'11px'});for(let i=0;i<first;i++)g.append(mkE('div',{}));for(let i=1;i<=dim;i++)g.append(mkE('div',{background:i===d.getDate()?'#0078d7':'',color:i===d.getDate()?'#fff':''},String(i)));b.append(g);break}
+    case'Hotkey':Object.assign(s,{background:'#fff',border:'1px solid #7a7a7a'});Object.assign(b.style,{alignItems:'center',padding:'0 3px'});b.textContent=txt||'None';break;
+    case'StatusBar':Object.assign(s,{background:'#f0f0f0',borderTop:'1px solid #d0d0d0'});Object.assign(b.style,{alignItems:'center',padding:'0 6px'});b.textContent=txt;break;
+    default:Object.assign(s,{background:'#fff',border:'1px dashed #999',color:'#666'});Object.assign(b.style,{alignItems:'center',justifyContent:'center'});b.textContent=t+(txt?' · '+txt:'')}}
+function elStyle(e,c){const s=e.style,b=e.querySelector('.pv');['background','color','fontSize','fontWeight','fontStyle','textDecoration','fontFamily','border','borderTop','borderBottom','opacity','lineHeight','overflow','boxSizing'].forEach(k=>s[k]='');
+  Object.assign(s,{left:c.x+'px',top:c.y+'px',width:c.w+'px',height:c.h+'px'});
+  if(c.t==='StatusBar')Object.assign(s,{left:'0px',top:(GUI.h-(c.h||22))+'px',width:GUI.w+'px'});
+  b.replaceChildren();b.removeAttribute('style');s.display=c.tabOf&&(uPage[c.tabOf]||1)!==(c.pg||1)?'none':'';uPrev?paintPrev(e,c,b):paintDesign(e,c,b)}
+const textLabel=ty=>isTab(ty)?'Pages (a|b)':ty==='ListView'?'Columns (a|b)':LISTT.has(ty)?'Items (a|b)':ty==='DateTime'?'Format':ty==='Picture'?'Image file':ty==='Link'?'Text (links: <a href="…">…</a>)':'Text';
+function colorFld(lbl,hex,on){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent=lbl;const box=document.createElement('div');box.style.cssText='display:flex;gap:4px;align-items:center';const i=document.createElement('input');i.type='color';i.value='#'+(hex&&/^[0-9a-f]{6}$/i.test(hex)?hex:'888888');if(!hex)i.style.opacity='.45';const x=document.createElement('button');x.textContent='none';x.title='Use the default';x.style.cssText='padding:0 6px;font-size:11px';i.oninput=()=>{i.style.opacity='1';on(i.value.slice(1).toUpperCase())};x.onclick=()=>{on('');i.value='#888888';i.style.opacity='.45'};box.append(i,x);w.append(s,box);return w}
+function setF(c,k,v){c.font=Object.assign({},c.font||{});if(v===''||v===false||v===undefined||v===null)delete c.font[k];else c.font[k]=v;if(!Object.keys(c.font).length)delete c.font}
+function makeHandler(c){const ev=evOf(c);let b=null;(function f(n){n.kids.forEach(k=>{if(k.t==='onctl'&&k.v.c===c.n&&k.v.ev===ev)b=k;f(k)})})(root);if(!b){b=mk('onctl',{c:c.n,ev});root.kids.push(b);snap()}setView('blocks');setTimeout(()=>goBlock(b.id),60)}
+function renderProps(){const P=$('#ui-props');P.replaceChildren();const c=real().find(x=>x.id===uSel);
+  const H3=t=>{const h=document.createElement('h3');h.textContent=t;P.append(h)},tip=t=>{const p=document.createElement('p');p.className='tip';p.textContent=t;P.append(p)},btn=(t,tt,fn)=>{const b=document.createElement('button');b.textContent=t;if(tt)b.title=tt;b.onclick=fn;return b};
+  const chk=(l,on,get)=>P.append(fld(l,get,on,'checkbox'));
+  const mm=multi();if(mm.length){H3(mm.length+' controls selected');tip('Shift/Ctrl-click adds or removes one. Drag to move them together, arrow keys nudge them. Drag on empty space to box-select.');
+    const row=items=>{const d=document.createElement('div');d.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:4px 0';items.forEach(([t,tt,k])=>d.append(btn(t,tt,()=>alignSel(k))));P.append(d)};
+    row([['⇤ Left','Line up left edges','l'],['↔ Center','Center horizontally','hc'],['⇥ Right','Line up right edges','r']]);
+    row([['⤒ Top','Line up top edges','t'],['↕ Middle','Center vertically','vc'],['⤓ Bottom','Line up bottom edges','b']]);
+    row([['Space across','Even gaps, left to right (3+ controls)','dh'],['Space down','Even gaps, top to bottom (3+ controls)','dv']]);
+    row([['Same width','Match the width of the last one you clicked','sw'],['Same height','Match the height of the last one you clicked','sh']]);
+    P.append(btn('Delete all','Remove the selected controls',delCtl));return}
+  if(!c){H3('Window');
+    P.append(fld('Title',GUI.title,v=>{GUI.title=v;GUI.ctor=undefined;paintBox();code()}),fld('Width',GUI.w,v=>{GUI.w=Math.max(100,v||100);setSize();refreshAll()},'number'),fld('Height',GUI.h,v=>{GUI.h=Math.max(60,v||60);setSize();refreshAll()},'number'),colorFld('Background',GUI.bgc||'',v=>{GUI.bgc=v||undefined;paintBox();refreshAll();code()}));
+    H3('Default text');
+    P.append(fld('Size',GUI.fs||10,v=>{GUI.font=true;GUI.fs=Math.max(6,v||10);refreshAll();code()},'number'),selFld('Font',FONTS.concat(FONTS.includes(GUI.face||'Segoe UI')?[]:[GUI.face]).map(x=>[x,x]),GUI.face||'Segoe UI',v=>{GUI.font=true;GUI.face=v;refreshAll();code()}),colorFld('Color',GUI.fc||'',v=>{GUI.font=true;GUI.fc=v||undefined;refreshAll();code()}));
+    H3('Window options');OPTS.forEach(([t,l])=>chk(l,v=>{optToggle(GUI,t,v);paintBox();code()},optHas(GUI,t)));chk('Quit the script when it is closed',v=>{GUI.close=v;code()},GUI.close);
+    P.append(btn('Remove all controls','',()=>{if(real().length&&confirm('Remove every control?')){GUI.ctl=GUI.ctl.filter(x=>x.k);renderUI();snap();code()}}));
+    tip(GUI.imp?'This UI came from your script. Lines the designer can’t edit are kept exactly as they were.':'The UI code lives in your script. It sits where the “UI window here” block is, or at the top if there is none.');return}
+  const ty=c.t,up=()=>{const e=document.querySelector('.uc[data-id="'+c.id+'"]');if(e)elStyle(e,c);code()},F=c.font||{};
+  H3(({Tab3:'Tab',DropDownList:'Dropdown',MonthCal:'Calendar',DateTime:'Date picker'})[ty]||ty);
+  if(!c.anon)P.append(fld('Name',c.n,v=>{c.n=v.replace(/\W/g,'')||c.n;code()}));
+  tip('The name is how blocks refer to it. Use the {} button on a block to put what a person typed into a message.');
+  if(ty==='Slider'||ty==='Progress'){P.append(fld('Start value',c.val===undefined?0:c.val,v=>{c.val=String(v);c.arg=ctlArg(c);up()},'number'),fld('Range (min-max)',tokVal(c,/^Range(.+)$/)||'0-100',v=>{setPre(c,'Range',/^Range/i,v);up()}))}
+  else if(ty!=='MonthCal')P.append(fld(textLabel(ty),c.text,v=>{c.text=v;c.arg=ctlArg(c);if(isTab(ty)&&clampPages(c))refreshAll();up()}));
+  if(ty==='ListView'){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent='Starting rows';const ta=document.createElement('textarea');ta.rows=3;ta.value=c.rows||'';ta.placeholder='one row per line, columns split by |';ta.oninput=()=>{c.rows=ta.value;up()};w.append(s,ta);P.append(w)}
+  if(isTab(ty)){const pg=String(c.text).split('|');P.append(selFld('Show page',pg.map((p,i)=>[String(i+1),p]),String(Math.min(uPage[c.id]||1,pg.length)),v=>{uPage[c.id]=+v;refreshAll()}));tip('Drag a control onto the tab to put it on the page you are showing. Or select the tab and click an “Add” button.')}
+  if(c.tabOf){const tb=real().find(x=>x.id===c.tabOf);if(tb){const pg=String(tb.text).split('|');P.append(selFld('In tab '+tb.n,pg.map((p,i)=>[String(i+1),p]),String(c.pg||1),v=>{c.pg=+v;uPage[tb.id]=+v;refreshAll();code()}));P.append(btn('Take out of the tab','',()=>{delete c.tabOf;delete c.pg;renderUI();snap();code()}))}}
+  if(ty!=='StatusBar'){H3('Position and size');[['x','X'],['y','Y'],['w','Width'],['h','Height']].forEach(([k,l])=>P.append(fld(l,c[k],v=>{c[k]=Math.max(0,v||0);if(k==='w')c.hw=1;if(k==='h')c.hh=1;up()},'number')))}
+  if(!['Picture','MonthCal','StatusBar'].includes(ty)){H3('Look');
+    P.append(fld('Text size',F.fs||'',v=>{setF(c,'fs',v>0?v:'');up()},'number'),selFld('Font',[['','(window default)'],...FONTS.map(x=>[x,x])],F.face||'',v=>{setF(c,'face',v);up()}));
+    chk('Bold',v=>{setF(c,'b',v);up()},!!F.b);chk('Italic',v=>{setF(c,'i',v);up()},!!F.i);chk('Underline',v=>{setF(c,'u',v);up()},!!F.u);
+    if(!['Button','Slider'].includes(ty))P.append(colorFld(ty==='Progress'?'Bar color':'Text color',tokVal(c,/^c([0-9a-f]{6})$/i),v=>{setPre(c,'c',/^c[0-9a-f]{6}$/i,v);up()}));
+    if(['Text','Edit','ListBox','ListView','ComboBox','DropDownList','Progress','Hotkey','DateTime'].includes(ty))P.append(colorFld(ty==='Progress'?'Track color':'Background',tokVal(c,/^Background([0-9a-f]{6})$/i),v=>{setPre(c,'Background',/^Background[0-9a-f]{6}$/i,v);up()}));
+    if(ty==='Button')tip('Windows buttons ignore colors. Use “Flat button” from the Add list for a colored one.');
+    if(['Text','Edit'].includes(ty)){P.append(selFld('Align text',[['','Left'],['Center','Center'],['Right','Right']],tokOn(c,'Center')?'Center':tokOn(c,'Right')?'Right':'',v=>{setTok(c,'Center',v==='Center');setTok(c,'Right',v==='Right');up()}));chk('Border',v=>{setTok(c,'+Border',v);up()},tokOn(c,'Border'))}
+    if(ty==='Text')chk('Center text up-down inside the box',v=>{setTok(c,'+0x200',v);up()},/0x200/.test(c.opt||''))}
+  H3('Behavior');
+  chk('Disabled (greyed out)',v=>{setTok(c,'Disabled',v);up()},tokOn(c,'Disabled'));chk('Hidden at start',v=>{setTok(c,'Hidden',v);up()},tokOn(c,'Hidden'));
+  if(ty==='Checkbox'||ty==='Radio')chk('Ticked at start',v=>{setTok(c,'Checked',v);up()},tokOn(c,'Checked'));
+  if(ty==='Button')chk('Default button (Enter presses it)',v=>{setTok(c,'Default',v);up()},tokOn(c,'Default'));
+  if(ty==='Edit'){chk('Read only',v=>{setTok(c,'ReadOnly',v);up()},tokOn(c,'ReadOnly'));chk('Password dots',v=>{setTok(c,'Password',v);up()},tokOn(c,'Password'));chk('Numbers only',v=>{setTok(c,'Number',v);up()},tokOn(c,'Number'));chk('Several lines',v=>{setTok(c,'Multi',v);up()},tokOn(c,'Multi'));chk('Force UPPERCASE',v=>{setTok(c,'Uppercase',v);up()},tokOn(c,'Uppercase'));
+    P.append(fld('Max length',tokVal(c,/^Limit(\d+)$/)||'',v=>{setPre(c,'Limit',/^Limit\d*$/i,v>0?String(v):'');up()},'number'),fld('Hint text',c.ph||'',v=>{c.ph=v||undefined;up()}),fld('Arrows (min-max)',c.spin||'',v=>{c.spin=v.trim()||undefined;up()}))}
+  if(!['Text','GroupBox','Picture','StatusBar','Progress','Link'].includes(ty))chk('Has the cursor when the window opens',v=>{real().forEach(x=>{delete x.focus});if(v)c.focus=true;code()},!!c.focus);
+  H3('When used');
+  if(ty!=='Text'||/0x100/.test(c.opt||'')){if(!c.anon){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent=evOf(c)==='Click'?'On click':'On change';
+    const sel=document.createElement('select'),names=['',...allFuncs()];if(c.fn&&!names.includes(c.fn))names.push(c.fn);names.forEach(n=>sel.add(new Option(n||'(nothing)',n)));sel.value=c.fn||'';sel.onchange=()=>{c.fn=sel.value;code()};w.append(s,sel);P.append(w);
+    P.append(btn('✨ Make it do something','Adds a “When control event happens” block to your script and takes you there',()=>makeHandler(c)));
+    tip('This puts a block in your script that runs when it is '+(evOf(c)==='Click'?'clicked':'changed')+'. Inside it, use the {} button on a block to get what the user typed or picked.')}}
+  if(c.evs&&c.evs.length)tip('Also has '+c.evs.length+' custom event line(s) kept from your script.');
+  const row=document.createElement('div');row.className='bar2';row.style.flexWrap='wrap';row.style.marginTop='8px';
+  [['Duplicate','Ctrl+D',()=>dupCtl()],['Center','Center horizontally',()=>{const d=c.x;c.x=Math.max(0,Math.round((GUI.w-c.w)/2/5)*5);real().forEach(k=>{if(k.tabOf===c.id)k.x+=c.x-d});renderUI();snap();code()}],...(c.imp?[]:[['Front','Bring to front',()=>reorder(c,1)],['Back','Send to back',()=>reorder(c,-1)]])].forEach(([t2,tt,f2])=>row.append(btn(t2,tt,f2)));P.append(row);
+  tip('Arrow keys nudge the control (hold Shift for bigger steps).');P.append(btn('Delete control','',()=>delCtl()))}
+function addCtl(t,pst){const pr=pst?PRESET[pst]:null,ty=pr?pr.t:t,d=pr||CT[ty],pre=pr?pr.pre:CP[ty];
+  if(ty==='StatusBar'){const ex=real().find(x=>x.t==='StatusBar');if(ex){uSel=ex.id;markSel();renderProps();return}}
+  let i=1;const nm=new Set(real().map(c=>c.n));while(nm.has(pre+i))i++;
+  const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),t:ty,n:pre+i,x:20,y:20+((real().length*40)%Math.max(60,GUI.h-60)),w:ty==='StatusBar'?GUI.w:d.w,h:d.h,hw:1,hh:1,text:pr?pr.text:d.t,opt:pr?pr.opt:(DOPT[ty]||''),fn:'',evs:[],imp:0};if(pst)c.preset=pst;c.arg=ctlArg(c);
+  const sc=real().find(x=>x.id===uSel),tb=sc&&!isTab(ty)&&ty!=='StatusBar'?(isTab(sc.t)?sc:real().find(x=>x.id===sc.tabOf)):null;
+  if(tb){const pg=Math.min(uPage[tb.id]||1,String(tb.text).split('|').length),n0=real().filter(x=>x.tabOf===tb.id&&(x.pg||1)===pg).length;c.tabOf=tb.id;c.pg=pg;c.x=tb.x+16;c.y=tb.y+40+((n0*34)%Math.max(40,tb.h-80));c.w=Math.min(c.w,Math.max(40,tb.w-32))}
+  GUI.ctl.push(c);uSel=c.id;uMulti=new Set();renderUI();snap();code()}
+/* ---- recorder ---- */
+function recToBlocks(txt,o){const out=[],MD={LControl:'^',RControl:'^',Control:'^',LShift:'+',RShift:'+',Shift:'+',LAlt:'!',RAlt:'!',Alt:'!',LWin:'#',RWin:'#'},held=new Map(),down=new Set();let buf='',first=true;
+  const flush=()=>{if(buf){out.push(mk('send',{k:buf}));buf=''}},esc1=c=>'+^!#{}'.includes(c)?'{'+c+'}':c;
+  for(const ln of txt.split(/\r?\n/)){const p=ln.split('|');if(p.length<2)continue;const d=+p[0]||0,t=p[1],k=p[2];
+    if(t!=='KU'){if(o.delay&&!first&&d>=250&&k!=='F10'){flush();out.push(mk('wait',{ms:String(Math.round(d/50)*50)}))}first=false}
+    if(t==='KD'){if(down.has(k))continue;down.add(k);if(MD[k]){held.set(k,MD[k]);continue}if(k==='F10')continue;
+      const m=[...new Set(held.values())].join('');
+      if(k==='Space'&&!m)buf+=' ';
+      else if(k.length===1&&(!m||m==='+')&&/[a-z]/i.test(k))buf+=m?k.toUpperCase():k;
+      else if(k.length===1&&!m)buf+=esc1(k);
+      else{flush();out.push(mk('send',{k:m+(k.length===1?esc1(k):'{'+k+'}')}))}}
+    else if(t==='KU'){down.delete(k);held.delete(k)}
+    else if(t==='C'){flush();out.push(mk('click',{b:k,x:p[3],y:p[4]}))}
+    else if(t==='W'){flush();const l=out[out.length-1];if(l&&l.t==='scroll'&&l.v.d===k)l.v.n=String(+l.v.n+1);else out.push(mk('scroll',{d:k,n:'1'}))}}
+  flush();return out}
+$('#rec').onclick=()=>{if(!A)return st('Recording works in the desktop app');$('#recd').showModal()};
+$('#rc-x').onclick=()=>$('#recd').close();
+$('#rc-go').onclick=async()=>{$('#recd').close();const o={delay:$('#rc-d').checked,wrap:$('#rc-w').checked};const r=await A.recStart();if(r.err)return st(r.err);
+  const out=recToBlocks(r.text||'',o);if(!out.length)return st('Nothing was recorded');
+  let add=out;if(o.wrap){const h=mk('hotkey',{key:'F1'});h.kids=out;add=[h]}
+  const pr=sel==='root'?root:(find(root,sel)||{}).n||root;pr.kids.push(...add);render();st('Recorded '+out.length+' blocks')};
+addEventListener('keydown',e=>{if(view!=='ui'||!uSel||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;const c=real().find(x=>x.id===uSel);if(!c)return;
+  const k=e.shiftKey?10:1,mv={ArrowLeft:[-k,0],ArrowRight:[k,0],ArrowUp:[0,-k],ArrowDown:[0,k]}[e.key];
+  if(mv){e.preventDefault();const L=selList();new Set([...L,...L.flatMap(g=>isTab(g.t)?real().filter(k=>k.tabOf===g.id):[])]).forEach(z=>{z.x=Math.max(0,z.x+mv[0]);z.y=Math.max(0,z.y+mv[1]);const el=document.querySelector('.uc[data-id="'+z.id+'"]');if(el)elStyle(el,z)});renderProps();code()}
+  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){e.preventDefault();dupCtl()}});
+addEventListener('keyup',e=>{if(view==='ui'&&/^Arrow/.test(e.key))snap()});
+addEventListener('keydown',e=>{if(view!=='ui'||uPrev||!(e.ctrlKey||e.metaKey)||e.key.toLowerCase()!=='a'||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
+  e.preventDefault();const a=real().filter(c=>c.t!=='StatusBar');if(a.length>1){uMulti=new Set(a.map(c=>c.id));uSel=a[a.length-1].id}else{uMulti=new Set();uSel=a[0]?a[0].id:null}markSel();renderProps()});
+function renderSettings(){const F=$('#sf');F.replaceChildren();
+  const sec=t=>{const h=document.createElement('h3');h.textContent=t;F.append(h)};
+  const row=(l,el,tip)=>{const w=document.createElement('label');w.className='srow';if(tip)w.title=tip;const sp=document.createElement('span');sp.textContent=l;w.append(el,sp);F.append(w);return el};
+  const chk=(k,l,tip)=>{const i=document.createElement('input');i.type='checkbox';i.checked=!!SET[k];i.onchange=()=>{SET[k]=i.checked;code()};return row(l,i,tip)};
+  const num=(k,l,tip)=>{const i=document.createElement('input');i.type='number';i.style.width='84px';i.value=SET[k]===undefined?'':SET[k];i.oninput=()=>{SET[k]=i.value===''?'':+i.value;code()};return row(l,i,tip)};
+  const sel=(k,l,ops,tip)=>{const x=document.createElement('select');ops.forEach(([v,t])=>x.add(new Option(t,v)));x.value=SET[k]||'';x.onchange=()=>{SET[k]=x.value;code()};return row(l,x,tip)};
+  const nm=document.createElement('input');nm.value=TABS[cur].name;nm.oninput=()=>{TABS[cur].name=nm.value.trim()||TABS[cur].name;renderTabs();code()};row('Script name',nm);
+  sec('Running');chk('admin','Run as administrator','Needed to control games or apps that run as admin');chk('pers','Keep running even with no hotkeys');
+  sel('si','If it is already running',[['','Ask me'],['Force','Replace the old copy'],['Ignore','Ignore the new copy'],['Off','Allow several copies']]);chk('wd','Use the script’s folder as its working folder');
+  sec('Hotkeys and sending');num('mt','Max threads per hotkey (2 or more lets a hotkey switch its own loop off)');sel('sm','Send mode',[['','Default'],['Input','Input (fast)'],['Event','Event (games)'],['Play','Play']]);num('kd','Key delay in ms (blank = default)');num('md','Mouse delay in ms (blank = default)');
+  chk('panic','Emergency stop hotkey that quits the script');const pk=document.createElement('input');pk.size=8;pk.value=SET.pk||'';pk.oninput=()=>{SET.pk=pk.value.trim();code()};
+  const kb=document.createElement('button');kb.textContent='⌨';kb.title='Press the keys you want';kb.onclick=()=>rec({v:SET},'pk','hot',pk);const pr=document.createElement('div');pr.className='srow';pr.append(pk,kb);F.append(pr);
+  sec('Screen and windows');chk('cm','Mouse coordinates are relative to the screen');chk('cp','Pixel and color coordinates are relative to the screen');chk('dh','Find hidden windows');
+  sec('Copy from another script');const cs=document.createElement('select');TABS.forEach((t,i)=>{if(i!==cur)cs.add(new Option(t.name,String(i)))});
+  if(cs.options.length){const cb=document.createElement('button');cb.textContent='Copy its settings here';cb.onclick=()=>{Object.assign(SET,TABS[+cs.value].set||{});renderSettings();code()};const w=document.createElement('div');w.className='srow';w.append(cs,cb);F.append(w)}
+  else{const p=document.createElement('p');p.className='tip';p.textContent='Open a second script to copy settings between them.';F.append(p)}}
+$('#sbtn').onclick=()=>{renderSettings();$('#sset').showModal()};$('#sx').onclick=()=>$('#sset').close();$('#sr').onclick=()=>{Object.assign(SET,DS);renderSettings();code()};
+/* ---- using what people typed: {name} in text, and the {} helper ---- */
+const VARSET=new Set();
+const INTERP={msg:['s'],tip:['s'],tray:['s'],text:['s'],pastet:['s'],clip:['s'],settxt:['v'],setctl:['v'],ttip2:['s'],speak:['s'],fapp:['s'],guititle:['s'],sett:['s'],ifyes:['s'],typeline:['s'],fwrite:['s'],ask3:['s'],lvadd:['a','b'],sbtext:['s']};
+const EXPRF={set:['v'],if:['c'],elif:['c'],while:['c'],ifcmp:['a','b'],math:['a','b'],join:['a','b'],typev:['v'],showv:['v'],settxtx:['e'],incr:['v'],brkif:['c'],waitc:['c'],retv:['v'],callp:['a'],strlen:['v'],strcase:['v'],strrep:['v'],strsplit:['v'],forlist:['v'],iftext:['v'],setctlv:['v'],round:['v'],absv:['v'],minmax:['a','b'],modv:['a','b'],pad:['v'],trimv:['v'],substr:['v'],instrv:['v'],ifstarts:['v']};
+const defProp=c=>(LISTT.has(c.t)&&c.t!=='ListView')||isTab(c.t)||['Text','Button','Link','StatusBar'].includes(c.t)?'Text':'Value';
+function resolveName(nm){if(/^A_\w+$/.test(nm))return nm;const m=nm.match(/^(\w+)(?:\.(\w+))?$/);if(!m)return null;const c=real().find(x=>!x.anon&&x.n===m[1]);if(c)return vn(c.n)+'.'+(m[2]||defProp(c));return VARSET.has(m[1])&&!m[2]?m[1]:null}
+function qi(s){s=String(s);if(!/\{[\w.]+\}/.test(s))return q(s);const parts=[];let last=0;
+  s.replace(/\{([\w.]+)\}/g,(m,nm,off)=>{const ex=resolveName(nm);if(ex===null)return m;if(off>last)parts.push(q(s.slice(last,off)));parts.push(ex);last=off+m.length;return m});
+  if(last<s.length)parts.push(q(s.slice(last)));return parts.length?parts.join(' '):q(s)}
+function valueChoices(){const out=[],G='From your window';
+  real().forEach(c=>{if(c.anon||!c.n)return;const n=c.n,t=c.t;
+    if(t==='Edit'||t==='Hotkey')out.push({l:'Text typed in '+n,e:vn(n)+'.Value',k:n,g:G});
+    else if(t==='Checkbox'||t==='Radio')out.push({l:n+' is ticked (1) or not (0)',e:vn(n)+'.Value',k:n,g:G});
+    else if(['DropDownList','ComboBox','ListBox'].includes(t)){out.push({l:'Chosen text in '+n,e:vn(n)+'.Text',k:n,g:G});out.push({l:'Chosen item number in '+n,e:vn(n)+'.Value',k:n+'.Value',g:G})}
+    else if(isTab(t))out.push({l:'Current page name of '+n,e:vn(n)+'.Text',k:n,g:G});
+    else if(['Slider','Progress','DateTime','MonthCal'].includes(t))out.push({l:'Value of '+n,e:vn(n)+'.Value',k:n,g:G});
+    else if(['Text','Button','Link'].includes(t))out.push({l:'Text shown on '+n,e:vn(n)+'.Text',k:n,g:G})});
+  vars(root).forEach(v=>out.push({l:'Variable '+v,e:v,k:v,g:'Your variables'}));
+  [['A_Clipboard','Clipboard text'],['A_UserName','Windows user name'],['A_ComputerName','Computer name'],['A_Now','Date and time right now'],['A_ScriptDir','Folder of this script'],['A_ScreenWidth','Screen width'],['A_ScreenHeight','Screen height']].forEach(([e,l])=>out.push({l,e,k:e,g:'Built in'}));return out}
+function valuesMenu(el,mode){document.querySelectorAll('.vmenu').forEach(x=>x.remove());const m=document.createElement('div');m.className='vmenu';const r=el.getBoundingClientRect();m.style.left=Math.max(8,Math.min(r.left,innerWidth-300))+'px';m.style.top=Math.max(8,Math.min(r.bottom+4,innerHeight-330))+'px';
+  const hd=document.createElement('p');hd.className='tip';hd.textContent=mode==='i'?'Click one to put it into this text. It shows up as {name} and is swapped for the real value when the script runs.':'Click one to put its value into this box.';m.append(hd);
+  if(!real().length&&!vars(root).size){const p=document.createElement('p');p.className='tip';p.textContent='Tip: add controls in the UI Designer, or use “Set variable” blocks, and they will show up here.';m.append(p)}
+  let lg='';valueChoices().forEach(x=>{if(x.g!==lg){lg=x.g;m.append(mkE('h4',null,x.g))}const it=mkE('div',null,x.l);it.className='vi';it.onclick=()=>{const ins=mode==='i'?'{'+x.k+'}':x.e;el.focus();const s0=el.selectionStart==null?el.value.length:el.selectionStart,e0=el.selectionEnd==null?el.value.length:el.selectionEnd;el.setRangeText(ins,s0,e0,'end');el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));m.remove()};m.append(it)});
+  document.body.append(m);setTimeout(()=>addEventListener('pointerdown',function f(ev){if(!m.contains(ev.target)){m.remove();removeEventListener('pointerdown',f,true)}},true),0)}
+const bad=r=>r&&typeof r==='object'&&r.err?(st('Error: '+r.err),true):false;
+const safePath=f=>{try{return A&&A.pathOf?A.pathOf(f):undefined}catch(e){return undefined}};
+function openText(name,text,file){text=String(text).replace(/^\ufeff/,'');
+  if(/\.ahkb$/i.test(name)){try{const o=JSON.parse(text);o.kids=o.kids||[];fix(o);newTab(o.name||name.replace(/\.ahkb$/i,''),o.kids,{gui:o.gui,proj:file,set:o.set?Object.assign({},DS,o.set):undefined});return st('Opened '+name)}catch(e){return st('Not a valid project file')}}
+  const it=importItem(name.replace(/\.ahk$/i,''),text,file);openItem(it);const r=it._r;
+  st('Imported '+r.n+' blocks'+(r.gui?' and a UI':'')+(r.rawN?' · '+r.rawN+' raw lines':''))}
+addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()});
+addEventListener('drop',async e=>{const fl=[...(e.dataTransfer?e.dataTransfer.files:[])];if(!fl.length)return;e.preventDefault();for(const f of fl)if(/\.(ahk|ahkb)$/i.test(f.name))openText(f.name,await f.text(),safePath(f))});
+async function pickC(b){if(!A)return st('Picking works in the desktop app');st('Move the mouse over the color, then press F8 (Esc cancels)');const r=await A.pick();if(!r)return st('Pick cancelled');b.v.c=r.c;render();st('Picked '+r.c)}
+$('#help').onclick=()=>$('#hlp').showModal();$('#hc').onclick=()=>$('#hlp').close();
+pal();
+(async function(){let d=null;
+  try{d=A?await A.libLoad():JSON.parse(localStorage.getItem('ahkblib'))}catch(e){}
+  if(!d||!d.lib){let o=null;try{o=JSON.parse(localStorage.getItem('ahkbtabs'))}catch(e){}
+    if(o&&o.tabs&&o.tabs.length){LIB=o.tabs.map(t=>({id:uid(),name:t.name||'Script',kids:t.kids||[],gui:t.gui||newGui(),file:t.file,proj:t.proj,set:t.set,created:Date.now(),edited:Date.now(),runs:0}));LIB.forEach(t=>{fix(t);if(!t.set)t.set=migrate()});TABS=LIB.slice();load(Math.min(o.cur||0,TABS.length-1))}}
+  else{LIB=d.lib.map(t=>Object.assign({runs:0},t));LIB.forEach(t=>{fix(t);if(!t.gui)t.gui=newGui();normGui(t.gui);t.set=Object.assign({},DS,t.set||{})});
+    TABS=(d.open||[]).map(id=>LIB.find(x=>x.id===id)).filter(Boolean);if(TABS.length)load(Math.max(0,TABS.findIndex(t=>t.id===d.cur)));else cur=-1}
+  if(!TABS.length)cur=-1;
+  if(A){try{RUN=new Set(await A.running()||[]);const pf=await A.getPrefs();$('#hm-tray').checked=!!pf.closeToTray;$('#hm-keep').checked=!!pf.keepRunning}catch(e){}}
+  renderTabs();setView('home');saveLibSoon()})();
+</script>
+</body>
+</html>
