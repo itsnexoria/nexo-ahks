@@ -19,7 +19,7 @@ jobs:
       - run: npx electron-builder --win --publish never
       - uses: actions/upload-artifact@v4
         with:
-          name: AHK-Blocks-win
+          name: Nexo-Ahks-win
           path: dist/*.exe
           if-no-files-found: error
       - name: Attach to the GitHub release (tag builds only)

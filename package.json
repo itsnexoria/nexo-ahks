@@ -1,7 +1,7 @@
 {
-  "name": "ahk-blocks",
-  "version": "7.2.0",
-  "description": "Block-based AutoHotkey v2 script builder",
+  "name": "nexo-ahks",
+  "version": "8.1.0",
+  "description": "Nexo Ahks \u2014 block-based AutoHotkey v2 script builder",
   "main": "main.js",
   "author": "Nexoria",
   "scripts": {
@@ -16,12 +16,13 @@
     "jsdom": "^25.0.1"
   },
   "build": {
-    "appId": "org.nexoria.ahkblocks",
-    "productName": "AHK Blocks",
+    "appId": "org.nexoria.nexoahks",
+    "productName": "Nexo Ahks",
     "files": [
       "main.js",
       "preload.js",
       "renderer/**",
+      "build/icon.png",
       "node_modules/monaco-editor/min/**",
       "!**/node_modules/monaco-editor/{dev,esm,min-maps}/**"
     ],
@@ -29,21 +30,37 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Nexo-Ahks-${version}-${os}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nexo Ahks",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/installerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "icon": "build/icon.png"
     },
     "fileAssociations": [
       {
         "ext": "ahkb",
-        "name": "AHK Blocks project"
+        "name": "Nexo Ahks project",
+        "icon": "build/icon.ico"
       }
-    ]
+    ],
+    "directories": {
+      "buildResources": "build"
+    }
   },
   "dependencies": {
     "monaco-editor": "^0.52.0"

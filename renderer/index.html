@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; worker-src 'self' blob:">
-<title>AHK Blocks</title>
+<title>Nexo Ahks</title>
 <style>
 :root{--bg:#0d0f15;--side:#11141c;--panel:#161a24;--raise:#1e2331;--ink:#e7eaf3;--mut:#8b92a6;--line:#262c3c;--acc:#6f8dff;--code:#0a0c11;--codeink:#d6dae8;--event:#e89a2b;--ctrl:#4a86f0;--key:#2fae78;--mouse:#a173ee;--misc:#79829a;--ui:#e05c97;--on:#fff;color-scheme:dark}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef0f5;--side:#f7f8fb;--panel:#fff;--raise:#f0f2f7;--ink:#1b1e29;--mut:#6a7185;--line:#d9dce6;--acc:#4668e8;--event:#d98a1f;--ctrl:#3a74e0;--key:#239a68;--mouse:#8a5cd6;--misc:#6b7385;--ui:#d14a86;color-scheme:light}}
@@ -139,6 +139,16 @@ button.ic{padding:3px 8px;background:transparent}button.ic.on{border-color:#2fae
 #lint li.iss{cursor:pointer;padding:7px 9px;border-radius:8px;margin:5px 0;background:var(--raise);border-left:3px solid var(--mut)}
 #lint li.iss.error{border-color:#ff4d4f}#lint li.iss.warn{border-color:#f5c542}#lint li.iss.info{border-color:#4a86f0}
 #lint li.iss b{display:block;color:var(--ink);font-weight:600}#lint li.iss small{display:block;color:var(--mut);margin-top:2px}#lint li.ok{color:#2fae78}
+.pb.fav::after{content:' ★';color:#ffd54a;font-size:11px}.grp.top h2{color:#ffd54a}.grp.top .hint{font-size:11.5px;color:var(--mut);padding:2px 4px}
+.blk .sum{display:none;font-size:12px;color:var(--mut);padding:2px 10px 6px 34px;font-style:italic}body.explain .blk .sum,.blk.col .sum{display:block}
+.tut-hl{outline:3px solid #ffd54a!important;outline-offset:2px;border-radius:8px;box-shadow:0 0 0 7px rgba(255,213,74,.28);animation:tutp 1.1s ease-in-out infinite;position:relative;z-index:5}@keyframes tutp{50%{box-shadow:0 0 0 12px rgba(255,213,74,.08)}}
+#tut{position:fixed;right:18px;bottom:18px;width:330px;z-index:9999;background:#171a24;color:#eef0ff;border:1px solid #3a4160;border-radius:14px;padding:14px 16px;box-shadow:0 14px 40px rgba(0,0,0,.5);font-size:13.5px;line-height:1.45}
+#tut .ts{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9aa4d6;margin-bottom:4px}#tut b{color:#ffd54a}#tut .tb{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}#tut button{border:0;border-radius:8px;padding:6px 12px;font-weight:600;cursor:pointer;background:#2a3050;color:#eef0ff}#tut button.pri{background:#6d7cff}#tut .dots{display:flex;gap:4px;margin-top:8px}#tut .dots i{width:18px;height:4px;border-radius:2px;background:#2a3050}#tut .dots i.on{background:#6d7cff}
+.tab.dropt{outline:2px dashed #7c8cff;outline-offset:-2px}
+.vrow{display:grid;grid-template-columns:1fr auto 150px auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line,#2a2f3d)}.vrow code{font-weight:700}.vrow small{color:var(--mut)}
+.verrow{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line,#2a2f3d)}.verrow span{flex:1}.verrow small{color:var(--mut);display:block}
+#brand .logo-img{width:26px;height:26px;vertical-align:middle;margin-right:4px}.hm-logo{width:150px;height:150px;object-fit:contain;display:block;margin:0 auto 6px;filter:drop-shadow(0 6px 18px rgba(80,90,255,.35))}
+.fixbtn{margin-top:5px;border:0;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;background:#2fae78;color:#04140d}.fixbtn:hover{filter:brightness(1.12)}.fixbtn.all{margin:0 0 4px;padding:6px 12px}
 #info b.e{color:#ff6b6b}#info b.w{color:#f5c542}
 .gap.over.bad{height:auto;min-height:26px;background:#ff4d4f;opacity:.95;color:#fff;font-size:12px;padding:5px 10px;display:flex;align-items:center}
 #ui-tools{width:236px}#ui-add{grid-template-columns:1fr 1fr}#ui-add button{padding:5px 6px;font-size:12.5px}
@@ -155,19 +165,20 @@ button.ic{padding:3px 8px;background:transparent}button.ic.on{border-color:#2fae
 <body data-v="home">
 <div id="app">
 <header id="top">
-  <div id="brand"><span class="logo">◈</span> AHK Blocks</div>
+  <div id="brand"><img class="logo-img" src="logo-small.png" alt=""> Nexo Ahks</div>
   <div id="tabs" role="tablist"></div>
   <div id="views"><button data-v="blocks" class="on">Blocks</button><button data-v="ui">UI Designer</button><button data-v="code">Code</button></div><button id="th" title="Switch light / dark">Theme</button>
 </header>
 <div id="bar">
   <div class="g2"><button id="tp">Templates</button><button id="imp" title="Open an existing .ahk script as a new tab">Import .ahk</button><button id="rec" title="Record your real clicks and keys">⏺ Record</button></div>
   <div class="g2"><button id="op" title="Ctrl+O">Open</button><button id="sv" title="Ctrl+S">Save</button><button id="un" title="Ctrl+Z">↶ Undo</button><button id="re" title="Ctrl+Y">↷ Redo</button><button id="clr">Clear</button><button id="sbtn" title="Settings for this script only">⚙ Script settings</button></div>
+  <div class="g2"><button id="vbtn" title="All variables, rename everywhere">𝑥 Variables</button><button id="verbtn" title="Snapshots of this script">🕓 Versions</button><button id="expl" title="Show a plain-English sentence under every block that has blocks inside it">💬 Explain</button><button id="shr" title="Save a .ahk that also carries your blocks, so others can open it as blocks">↗ Share</button></div>
   <span class="sp"></span>
   <div class="g2"><button class="pri" id="run" title="F5">▶ Run</button><button id="stp">■ Stop</button><button id="cmp">Compile to EXE</button><button id="help" title="Help (F1)">?</button></div>
 </div>
 <main id="main" data-v="home">
   <aside id="side"><input id="ps" placeholder="Search blocks…  (Ctrl+F)" aria-label="Search blocks"><div id="pal"></div>
-    <p class="tip">Click a block to add it. It lands inside the block you selected (hotkey, loop, if…) or right after it. Click empty space to go back to the end of the script. Type in the search box and press <b>Enter</b> to add the first match. <b>Delete</b> removes, <b>Ctrl+D</b> duplicates, <b>Ctrl+C / Ctrl+V</b> copies between tabs, <b>Alt+↑/↓</b> moves the selected block.</p></aside>
+    <p class="tip">Click a block to add it (right-click to pin it as a favorite). It lands inside the block you selected (hotkey, loop, if…) or right after it. Click empty space to go back to the end of the script. Type in the search box and press <b>Enter</b> to add the first match. <b>Delete</b> removes, <b>Ctrl+D</b> duplicates, <b>Ctrl+C / Ctrl+V</b> copies between tabs, <b>Alt+↑/↓</b> moves the selected block.</p></aside>
   <section id="center">
     <div id="v-home" class="view">
   <div id="hm-top"><div><h1>Your scripts</h1><p class="tip" id="hm-sub"></p></div><span class="sp"></span>
@@ -193,18 +204,21 @@ button.ic{padding:3px 8px;background:transparent}button.ic.on{border-color:#2fae
 </main>
 <footer id="sb"><span id="st"></span><span class="sp"></span><span id="info"></span></footer>
 </div>
+<dialog id="vard"><h2>Variables</h2><p class="tip">Every variable your blocks create. Rename one and every block that uses it is updated.</p><div id="varl"></div><p style="margin-top:14px"><button class="pri" id="varx">Done</button></p></dialog>
+<dialog id="verd"><h2>Versions</h2><p class="tip">Snapshots of this script. One is saved automatically when you run, save or compile. Restoring never loses anything: your current state is saved as a version first.</p><div id="verl"></div><p style="margin-top:14px"><button id="vernew">Save a version now</button> <button class="pri" id="verx">Close</button></p></dialog>
 <dialog id="tpl"><h2>Templates</h2><div id="tl"></div><button id="tc">Close</button></dialog>
 <dialog id="qk"><input id="qk-in" placeholder="Type a script name…" autocomplete="off"><div id="qk-list"></div><p class="tip">↑ ↓ choose · Enter runs or stops · Ctrl+Enter edits · Esc closes</p></dialog>
 <dialog id="scan"><h2>Add scripts from a folder</h2><p class="tip" id="scan-dir"></p><div id="scan-list"></div><p style="margin-top:14px"><button class="pri" id="scan-go">Add selected</button> <button id="scan-x">Cancel</button></p></dialog>
 <dialog id="sset"><h2>Script settings</h2><p class="tip">These belong to this script only. Every tab has its own.</p><div id="sf"></div><p style="margin-top:14px"><button id="sr">Reset to defaults</button> <button class="pri" id="sx">Done</button></p></dialog>
 <dialog id="hlp"><h2>Help</h2>
+<p><button id="tut-go" class="pri">▶ Take the 2-minute tour (make your first clicker)</button></p>
 <h3>Shortcuts</h3><table><tr><td><kbd>Ctrl+S</kbd> / <kbd>Ctrl+Shift+S</kbd></td><td>Save / Save as</td></tr><tr><td><kbd>Ctrl+O</kbd></td><td>Open a project</td></tr><tr><td><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></td><td>Undo / redo (blocks and UI)</td></tr><tr><td><kbd>Ctrl+F</kbd></td><td>Search blocks</td></tr><tr><td><kbd>F5</kbd></td><td>Run the script</td></tr><tr><td><kbd>F8</kbd></td><td>Confirm a 🎯 screen pick, <kbd>Esc</kbd> cancels</td></tr><tr><td><kbd>F10</kbd></td><td>Stop recording</td></tr><tr><td><kbd>Delete</kbd></td><td>Delete the selected control in the UI Designer</td></tr></table>
 <h3>Key symbols</h3><table><tr><td><kbd>^</kbd> Ctrl</td><td><kbd>+</kbd> Shift</td><td><kbd>!</kbd> Alt</td><td><kbd>#</kbd> Win</td></tr><tr><td colspan="4">Example: <kbd>^!j</kbd> is Ctrl+Alt+J. Use the ⌨ button next to a key field and just press the keys.</td></tr></table>
 <h3>Getting what the user typed in your window</h3><ul><li>Every control has a <b>name</b> (like ed1). Select a control to see or change it.</li><li>Put actions in a <b>“When control event happens”</b> block. The UI Designer’s <b>✨ Make it do something</b> button creates one for you.</li><li>On blocks with a <b>{}</b> button, click it to insert the text typed in a box, the picked dropdown item, a checkbox, or a variable. In text it shows as <code>{ed1}</code>.</li></ul><h3>Good to know</h3><ul><li>Yellow outline on a block means the Problems panel found something.</li><li>Use <b>Hotkeys can interrupt themselves</b> (on by default) so pressing a toggle hotkey a second time can switch a loop off.</li><li>Drop an .ahk or .ahkb file on the window to open it in a new tab.</li><li>The Code view is the best place for big hand-written scripts. Switch back to Blocks any time.</li></ul>
 <button id="hc">Close</button></dialog>
 <dialog id="recd"><h2>Record actions</h2>
-  <p>Press Start and do your thing. The window minimizes while recording. Press <b>F10</b> to stop and your clicks and keys turn into blocks.</p>
-  <p><label><input type="checkbox" id="rc-d" checked> Include pauses between actions</label><br><label><input type="checkbox" id="rc-w" checked> Wrap in a hotkey block (F1)</label></p>
+  <p>Press Start and do your thing. The window minimizes while recording. Press <b>F10</b> to stop. Your clicks, drags, scrolling and keys turn into blocks.</p>
+  <p><label><input type="checkbox" id="rc-d" checked> Include pauses between actions</label><br><label>Trim long pauses to <select id="rc-t"><option value="0">no limit</option><option value="500">0.5 s</option><option value="1000">1 s</option><option value="2000" selected>2 s</option><option value="5000">5 s</option></select></label><br><label><input type="checkbox" id="rc-w" checked> Wrap in a hotkey block (F1)</label></p>
   <button class="pri" id="rc-go">Start recording</button> <button id="rc-x">Cancel</button></dialog>
 <script>
 const $=s=>document.querySelector(s);
@@ -264,7 +278,7 @@ getpos:{c:'mouse',g:'Mouse',t:'Save mouse position in {vx} and {vy}',f:{vx:{d:'m
 incr:{c:'misc',g:'Variables',t:'Add {v} to {n}',f:{v:{d:'1',w:50},n:{d:'count',w:70}},gen:v=>`${vn(v.n)} += ${v.v}`},
 rnd:{c:'misc',g:'Variables',t:'Set {n} to random {a} to {b}',f:{n:{d:'roll',w:70},a:{d:'1',w:45},b:{d:'10',w:45}},gen:v=>`${vn(v.n)} := Random(${v.a}, ${v.b})`},
 inbox:{c:'misc',g:'Variables',t:'Ask me {p} and save in {n}',f:{p:{d:'Name?',w:100},n:{d:'answer',w:70}},gen:v=>`${vn(v.n)} := InputBox(${q(v.p)}).Value`},
-tray:{c:'misc',g:'Other',t:'Show notification {s}',f:{s:{d:'Done!',w:130}},gen:v=>`TrayTip ${qi(v.s)}, "AHK Blocks"`},
+tray:{c:'misc',g:'Other',t:'Show notification {s}',f:{s:{d:'Done!',w:130}},gen:v=>`TrayTip ${qi(v.s)}, "Nexo Ahks"`},
 sound:{c:'misc',g:'Other',t:'Play sound file {f}',f:{f:{d:'C:\\Windows\\Media\\tada.wav',w:200}},gen:v=>`SoundPlay ${q(v.f)}`},
 guishow:{c:'ui',g:'Window UI',t:'Show my window',f:{},gen:()=>(GUI.v||'myGui')+'.Show()'},
 guihide:{c:'ui',g:'Window UI',t:'Hide my window',f:{},gen:()=>(GUI.v||'myGui')+'.Hide()'},
@@ -283,7 +297,7 @@ funcp:{c:'ctrl',g:'Control',box:1,glob:1,t:'Define function {n} taking {p}',f:{n
 callp:{c:'ctrl',g:'Control',t:'Run function {n} with {a}',f:{n:{d:'MyFunc',w:90},a:{d:'1',w:70}},gen:v=>`${vn(v.n)}(${v.a})`},
 brkif:{c:'ctrl',g:'Control',t:'Stop repeating if {c}',f:{c:{d:'count >= 10',w:140}},gen:v=>`if (${v.c}) {\n  break\n}`},
 waitc:{c:'ctrl',g:'Control',t:'Wait until {c}',f:{c:{d:'done',w:140}},gen:v=>`while !(${v.c}) {\n  Sleep 25\n}`},
-ifyes:{c:'ctrl',g:'Control',box:1,t:'If I click Yes on {s}',f:{s:{d:'Continue?',w:130}},gen:v=>`if MsgBox(${qi(v.s)}, "AHK Blocks", "YesNo") = "Yes" {`},
+ifyes:{c:'ctrl',g:'Control',box:1,t:'If I click Yes on {s}',f:{s:{d:'Continue?',w:130}},gen:v=>`if MsgBox(${qi(v.s)}, "Nexo Ahks", "YesNo") = "Yes" {`},
 ifclip:{c:'ctrl',g:'Control',box:1,t:'If clipboard contains {s}',f:{s:{d:'text',w:120}},gen:v=>`if InStr(A_Clipboard, ${q(v.s)}) {`},
 foreach:{c:'ctrl',g:'Control',box:1,t:'For each file matching {p}',f:{p:{d:'C:\\Users\\*.txt',w:180}},gen:v=>`Loop Files ${q(v.p)} {`},
 sendn:{c:'key',g:'Keyboard',t:'Press {k} {n} times',f:{k:{d:'Enter',w:70,r:'name'},n:{d:'3',w:45}},gen:v=>`Send ${q(`{${v.k} ${v.n}}`)}`},
@@ -419,8 +433,8 @@ muteset:{c:'misc',g:'System',t:'Mute the sound {m}',f:{m:{d:'On',o:['On','Off']}
 recempty:{c:'misc',g:'System',t:'Empty the recycle bin',f:{},gen:()=>'FileRecycleEmpty()'},
 monoff:{c:'misc',g:'System',t:'Turn the monitor off',f:{},gen:()=>'PostMessage(0x112, 0xF170, 2, , "Program Manager")'},
 soundwait:{c:'misc',g:'System',t:'Play sound {f} and wait until it ends',f:{f:{d:'C:\\Windows\\Media\\tada.wav',w:190}},gen:v=>`SoundPlay ${q(v.f)}, "Wait"`},
-ask3:{c:'misc',g:'Variables',t:'Ask {s} with Yes / No / Cancel and save the answer in {n}',f:{s:{d:'Continue?',w:110},n:{d:'answer',w:60}},gen:v=>`${vn(v.n)} := MsgBox(${qi(v.s)}, "AHK Blocks", "YesNoCancel")`},
-askpw:{c:'misc',g:'Variables',t:'Ask {s} (typing hidden) and save it in {n}',f:{s:{d:'Password?',w:100},n:{d:'secret',w:60}},gen:v=>`${vn(v.n)} := InputBox(${q(v.s)}, "AHK Blocks", "Password").Value`},
+ask3:{c:'misc',g:'Variables',t:'Ask {s} with Yes / No / Cancel and save the answer in {n}',f:{s:{d:'Continue?',w:110},n:{d:'answer',w:60}},gen:v=>`${vn(v.n)} := MsgBox(${qi(v.s)}, "Nexo Ahks", "YesNoCancel")`},
+askpw:{c:'misc',g:'Variables',t:'Ask {s} (typing hidden) and save it in {n}',f:{s:{d:'Password?',w:100},n:{d:'secret',w:60}},gen:v=>`${vn(v.n)} := InputBox(${q(v.s)}, "Nexo Ahks", "Password").Value`},
 every:{c:'ctrl',g:'Event',box:1,glob:1,t:'Every {ms} ms, do (name {n})',f:{ms:{d:'5000',w:60},n:{d:'check',w:70}},gen:v=>`SetTimer(Timer_${vn(v.n)}, ${v.ms||1000})\nTimer_${vn(v.n)}() {`},
 after:{c:'ctrl',g:'Event',box:1,glob:1,t:'After {ms} ms, do once (name {n})',f:{ms:{d:'3000',w:60},n:{d:'later',w:70}},gen:v=>`SetTimer(Timer_${vn(v.n)}, -${v.ms||1000})\nTimer_${vn(v.n)}() {`},
 include:{c:'misc',g:'Other',t:'Include script file {f}',f:{f:{d:'helpers.ahk',w:140}},gen:v=>`#Include ${q(v.f)}`},
@@ -454,6 +468,7 @@ function rec(b,k,mode,el){st('Press the key or combo now…');const h=e=>{if(['C
 async function pick(b,n){if(!A)return st('Picking works in the desktop app');st('Move the mouse to the spot, then press F8 (Esc cancels)');
   const r=await A.pick();if(!r)return st('Pick cancelled');b.v['x'+n]=String(r.x);b.v['y'+n]=String(r.y);if(n===''&&T[b.t].f.c)b.v.c=r.c;render();st('Picked '+r.x+', '+r.y)}
 function parseAhk(txt){
+  txt=String(txt).replace(/"AHK Blocks"/g,'"Nexo Ahks"');let v1=null;if(looksV1(txt)){v1=v1to2(txt);txt=v1.text}
   const genMatch=(L,li,gv,mode)=>{const r=genFind(L,li,gv,mode);if(!r)return 0;add(r.t,r.v,r.box);return r.n};
   const top={kids:[]},stk=[top];let raw=0,hdr=true,adm=false,skip=0,n=0,rawN=0,inui=0,gui=null,ps={};
   const U=x=>{const m=String(x).trim().match(/^"((?:[^"`]|`.)*)"$/);return!m||/`[^"`]/.test(m[1])?null:m[1].replace(/`(["`])/g,'$1')};
@@ -547,7 +562,7 @@ function parseAhk(txt){
       if((m=l.match(/^(\w+)\((.+)\)$/))&&bal(m[2])&&!/^(if|while|for|loop|switch|catch|return)$/i.test(m[1])&&!/^A_/.test(m[1])){add('callp',{n:m[1],a:m[2]});continue}
       add('rawl',{s:l});rawN++;if(/\{$/.test(l))raw=1}}
   const hasTr=k=>k.some(b=>b.t==='trayitem'||hasTr(b.kids));if(ps.pers&&hasTr(top.kids))delete ps.pers;
-  return{kids:top.kids,n,rawN,gui,set:ps}}
+  return{kids:top.kids,n,rawN,gui,set:ps,v1}}
 let TABS=[],cur=0,GUI={title:'My Window',w:420,h:300,top:false,close:true,ctl:[]};
 function stripC(l){let qc='';for(let i=0;i<l.length;i++){const c=l[i];if(qc){if(c==='`')i++;else if(c===qc)qc='';continue}if(c==='"'||c==="'"){qc=c;continue}if(c===';'&&i>0&&/\s/.test(l[i-1]))return[l.slice(0,i).trimEnd(),l.slice(i+1).trim()]}return[l,'']}
 const HDRX=/^(loop|while|if|else|try|catch|finally|for|switch|class)\b|::$|^[\w.]+\(.*\)$/i;
@@ -592,10 +607,13 @@ function grabGui(L,s,mark){const g=newGui();Object.assign(g,{imp:1,font:false,sh
       if(lm&&m[2]===evOf(c)&&!c.fn)c.fn=lm[1];else c.evs.push(l);continue}
     if(new RegExp('^'+R+'\\.OnEvent\\("Close",\\s*\\(\\*\\)\\s*=>\\s*ExitApp\\(\\)\\)$').test(l)){g.close=true;continue}
     if(m=l.match(new RegExp('^'+R+'\\.Show\\((.*)\\)$'))){g.show=true;g.showr=m[1].trim();const u=UQ(m[1]);if(u){const w=u.match(/\bw(\d+)/),h=u.match(/\bh(\d+)/);if(w)g.w=+w[1];if(h)g.h=+h[1]}if(!mark){i++;break}continue}
+    if(new RegExp('^'+R+'\\.OnEvent\\("Size",\\s*'+R+'_Anchor\\)$').test(l))continue;
+    if(new RegExp('^'+R+'_Anchor\\(g, mm, w, h\\) \\{$').test(l)){const mt=(L[i+1]||'').trim().match(/^; nexo-anchors (.*)$/);if(mt){try{g.anchors=JSON.parse(mt[1])}catch(e){}}while(i<L.length&&L[i].trim()!=='}')i++;continue}
     const nm=(l.match(/^(\w+)\./)||[])[1];
     if(nm===gv||names.has(nm)||l[0]===';'||mark){g.ctl.push({k:'line',s:l});continue}
     break}
   if(curTab)g.noClose=true;
+  if(g.anchors){g.ctl.forEach(c=>{const a=g.anchors[c.n];if(a)Object.assign(c,a)});delete g.anchors}
   return{g,used:i-s}}
 const DS={admin:false,panic:true,pk:'^!q',mt:2,sm:'',si:'Force',wd:false,cm:true,cp:true,dh:false,kd:'',md:'',pers:false};
 const OFFSET={admin:false,panic:false,pk:'^!q',mt:0,sm:'',si:'',wd:false,cm:false,cp:false,dh:false,kd:'',md:'',pers:false};
@@ -619,7 +637,7 @@ const TOPONLY=new Set(['hotkey','hotstr','hkpass','hkup','func','funcp','trayite
 const AHKW='Send SendText SendInput Click MouseMove MouseClick MouseClickDrag MouseGetPos Sleep MsgBox InputBox ToolTip TrayTip Run RunWait WinActivate WinClose WinMinimize WinMaximize WinRestore WinMove WinExist WinActive WinWait WinWaitClose WinGetTitle WinSetAlwaysOnTop ProcessExist ProcessClose ProcessWait KeyWait GetKeyState Hotkey SetTimer SoundBeep SoundPlay SoundSetVolume SoundSetMute PixelGetColor PixelSearch ImageSearch FileAppend FileRead FileDelete FileExist IniRead IniWrite Random FormatTime StrReplace StrSplit SubStr InStr StrLen StrUpper StrLower Trim Round Floor Ceil Abs Min Max Format DllCall ComObject Gui ExitApp Reload Suspend Pause BlockInput SetKeyDelay SetMouseDelay SendMode CoordMode SetCapsLockState Download OnMessage OutputDebug ControlSend ControlClick InputHook ClipWait EnvGet Exit Sort Map Array Object RegExMatch RegExReplace'.split(' ');
 const BI=new Set(AHKW);
 function brace(c){let d=0;for(const ln of c.split('\n')){if(ln.trim()[0]===':')continue;let qc='';for(let i=0;i<ln.length;i++){const ch=ln[i];if(qc){if(ch==='`')i++;else if(ch===qc)qc='';continue}if(ch==='"'||ch==="'"){qc=ch;continue}if(ch===';'&&(i===0||/\s/.test(ln[i-1])))break;if(ch==='{')d++;if(ch==='}')d--}}return d}
-class Iss{constructor(id,sev,msg,why){this.id=id;this.sev=sev;this.msg=msg;this.why=why||''}toString(){return this.msg+(this.why?' — '+this.why:'')}}
+class Iss{constructor(id,sev,msg,why,fix){this.id=id;this.sev=sev;this.msg=msg;this.why=why||'';this.fix=fix||null}toString(){return this.msg+(this.why?' — '+this.why:'')}}
 const ISS=[];
 function placementRule(t,anc,prev){const nm=LBL[t]||t;
   if(TOPONLY.has(t)&&anc.length)return{msg:nm+' can’t go inside another block',why:'AutoHotkey only allows hotkeys, hotstrings, functions, tray items and #HotIf lines at the top level of the script, not inside a hotkey or a loop. Drag it out to the main area.'};
@@ -630,38 +648,46 @@ function placementRule(t,anc,prev){const nm=LBL[t]||t;
   return null}
 function pathTypes(id){if(id==='root')return[];const r=[];const f=(n,acc)=>{for(const k of n.kids){if(k.id===id){r.push(...acc,k.t);return true}if(f(k,[...acc,k.t]))return true}return false};f(root,[]);return r}
 function lint(c){const out=[],E='error',Wn='warn',I='info';
-  const add=(b,sev,msg,why)=>out.push(new Iss(b?b.id:null,sev,msg,why));
+  const add=(b,sev,msg,why,fix)=>out.push(new Iss(b?b.id:null,sev,msg,why,fix));
+  const FX=(label,fn)=>({label,fn});
+  const usedKeys=new Set(),names=new Set();
+  (function pk(n){n.kids.forEach(b=>{const v=b.v||{};if(!b.off){if(['hotkey','hkpass','hkup'].includes(b.t))usedKeys.add(String(v.key).replace(/^[~$*]+/,'').toLowerCase());if(b.t==='remap')usedKeys.add(String(v.a).replace(/^[~$*]+/,'').toLowerCase())}['n','t','s','a'].forEach(k=>{if(typeof v[k]==='string')names.add(v[k].toLowerCase())});pk(b)})})(root);
+  if(SET.pk)usedKeys.add(String(SET.pk).replace(/^[~$*]+/,'').toLowerCase());
+  const freeKey=()=>{for(let i=1;i<=24;i++){if(!usedKeys.has('f'+i)){usedKeys.add('f'+i);return 'F'+i}}return 'F1'};
+  const uniq=x=>{const base=String(x).replace(/\d+$/,'')||'item';let i=2;while(names.has((base+i).toLowerCase()))i++;names.add((base+i).toLowerCase());return base+i};
+  const rm=(b,l)=>FX(l||'Remove it',()=>{const f=find(root,b.id);if(f)f.p.kids.splice(f.i,1)});
+  const mkFn=name=>FX('Create function “'+name+'”',()=>{root.kids.push(S('func',{n:vn(name)},[S('note',{s:'Put what this function should do here'})]))});
   const FN=new Set(allFuncs()),hk=new Map(),fnd=new Set(),trs=new Set(),evs=new Set(),hs=new Set(),cn=new Set(ctlNames());let ctx='',trItem=false,slots=0;
   const alive=['hotkey','hkpass','hkup','hotstr'].some(t=>hasType(root,t));
   const walk=(n,anc)=>n.kids.forEach((b,i)=>{if(b.off)return;const nm=LBL[b.t]||b.t,top=!anc.length,prev=i?n.kids[i-1].t:null,v=b.v||{},tt=T[b.t];
     if(top){if(b.t==='hotif')ctx=String(v.s);if(b.t==='hotall')ctx=''}
     const pr=placementRule(b.t,anc,prev);if(pr)add(b,E,pr.msg,pr.why);
-    if(tt&&tt.box&&!b.kids.length)add(b,Wn,'“'+nm+'” is empty','There is nothing inside it, so it does nothing. Drop blocks into it.');
+    if(tt&&tt.box&&!b.kids.length)add(b,Wn,'“'+nm+'” is empty','There is nothing inside it, so it does nothing. Drop blocks into it.',rm(b,'Remove the empty block'));
     if(['hotkey','hkpass','hkup'].includes(b.t)){const k=String(v.key).trim();
-      if(!k)add(b,E,'This hotkey has no key','Type a key like F1 or ^j, or press ⌨ and hit the keys you want.');
-      else{if(/\s/.test(k)||/(ctrl|shift|alt|win)\s*\+/i.test(k))add(b,E,'Hotkey “'+k+'” is not valid','AutoHotkey uses symbols instead of words: ^ is Ctrl, + is Shift, ! is Alt, # is Win (so Ctrl+J is ^j). Press ⌨ and hit the keys to fill it in.');
-        if(top){const id=(ctx+'|'+k.replace(/^[~$*]+/,'')+(b.t==='hkup'?' up':'')).toLowerCase();if(hk.has(id))add(b,E,'Hotkey '+k+' is used twice','AutoHotkey refuses to start when two hotkeys are the same. Remove one or change its key.');else hk.set(id,b)}}}
-    if(b.t==='remap'&&top){const id=(ctx+'|'+String(v.a).replace(/^[~$*]+/,'')).toLowerCase();if(hk.has(id))add(b,E,'Key '+v.a+' is used twice','This remap clashes with another hotkey on the same key.');else hk.set(id,b)}
-    if(b.t==='hotstr'||b.t==='abbr'){const k=(b.t==='hotstr'?v.s:v.a);if(hs.has(k))add(b,E,'Hotstring “'+k+'” is used twice','AutoHotkey refuses to start with two identical hotstrings.');hs.add(k)}
-    if((b.t==='func'||b.t==='funcp')&&top){const f=vn(v.n).toLowerCase();if(fnd.has(f))add(b,E,'Function '+v.n+' is defined twice','Two functions with the same name stop the script from loading. Rename one.');fnd.add(f)}
-    if((b.t==='every'||b.t==='after')&&top){const f='timer_'+vn(v.n).toLowerCase();if(fnd.has(f))add(b,E,'Timer name “'+v.n+'” is used twice','Each timer needs its own name, because it becomes a function.');fnd.add(f)}
-    if(b.t==='onctl'||b.t==='onwin'){const k=b.t==='onctl'?vn(v.c)+'_'+v.ev:'win_'+v.ev;if(evs.has(k))add(b,E,'This event already has a handler','Two handlers would create two functions with the same name, and AutoHotkey won’t start. Keep one.');evs.add(k)}
-    if(b.t==='trayitem'&&top){const f=vn(v.t).toLowerCase();if(trs.has(f))add(b,E,'Tray item “'+v.t+'” is used twice','Two tray items with the same text create two functions with the same name. Rename one.');trs.add(f);trItem=true}
+      if(!k)add(b,E,'This hotkey has no key','Type a key like F1 or ^j, or press ⌨ and hit the keys you want.',FX('Use a free key',()=>{b.v.key=freeKey()}));
+      else{if(/\s/.test(k)||/(ctrl|shift|alt|win)\s*\+/i.test(k))add(b,E,'Hotkey “'+k+'” is not valid','AutoHotkey uses symbols instead of words: ^ is Ctrl, + is Shift, ! is Alt, # is Win (so Ctrl+J is ^j). Press ⌨ and hit the keys to fill it in.',FX('Convert to symbols',()=>{const M={ctrl:'^',control:'^',shift:'+',alt:'!',win:'#',windows:'#'};const p=String(b.v.key).trim().split(/\s*\+\s*|\s+/).filter(Boolean);const key=p.pop()||'';b.v.key=p.map(x=>M[x.toLowerCase()]||'').join('')+(key.length===1?key.toLowerCase():key)}));
+        if(top){const id=(ctx+'|'+k.replace(/^[~$*]+/,'')+(b.t==='hkup'?' up':'')).toLowerCase();if(hk.has(id))add(b,E,'Hotkey '+k+' is used twice','AutoHotkey refuses to start when two hotkeys are the same. Remove one or change its key.',FX('Change it to a free key',()=>{b.v.key=freeKey()}));else hk.set(id,b)}}}
+    if(b.t==='remap'&&top){const id=(ctx+'|'+String(v.a).replace(/^[~$*]+/,'')).toLowerCase();if(hk.has(id))add(b,E,'Key '+v.a+' is used twice','This remap clashes with another hotkey on the same key.',FX('Remove this remap',()=>{const f=find(root,b.id);if(f)f.p.kids.splice(f.i,1)}));else hk.set(id,b)}
+    if(b.t==='hotstr'||b.t==='abbr'){const k=(b.t==='hotstr'?v.s:v.a);if(hs.has(k))add(b,E,'Hotstring “'+k+'” is used twice','AutoHotkey refuses to start with two identical hotstrings.',FX('Rename it',()=>{const fk=b.t==='hotstr'?'s':'a';b.v[fk]=uniq(b.v[fk])}));hs.add(k)}
+    if((b.t==='func'||b.t==='funcp')&&top){const f=vn(v.n).toLowerCase();if(fnd.has(f))add(b,E,'Function '+v.n+' is defined twice','Two functions with the same name stop the script from loading. Rename one.',FX('Rename it',()=>{b.v.n=uniq(b.v.n)}));fnd.add(f)}
+    if((b.t==='every'||b.t==='after')&&top){const f='timer_'+vn(v.n).toLowerCase();if(fnd.has(f))add(b,E,'Timer name “'+v.n+'” is used twice','Each timer needs its own name, because it becomes a function.',FX('Rename it',()=>{b.v.n=uniq(b.v.n)}));fnd.add(f)}
+    if(b.t==='onctl'||b.t==='onwin'){const k=b.t==='onctl'?vn(v.c)+'_'+v.ev:'win_'+v.ev;if(evs.has(k))add(b,E,'This event already has a handler','Two handlers would create two functions with the same name, and AutoHotkey won’t start. Keep one.',rm(b,'Remove the duplicate'));evs.add(k)}
+    if(b.t==='trayitem'&&top){const f=vn(v.t).toLowerCase();if(trs.has(f))add(b,E,'Tray item “'+v.t+'” is used twice','Two tray items with the same text create two functions with the same name. Rename one.',FX('Rename it',()=>{b.v.t=uniq(b.v.t)}));trs.add(f);trItem=true}
     if(b.t==='trayclear'&&top&&trItem)add(b,Wn,'Put “Remove standard tray items” before your own items','It removes every item in the menu, including the ones you added before it.');
-    if(b.t==='guislot'){slots++;if(slots>1)add(b,E,'Only one “UI window here” block is allowed','The window code would be written twice.')}
+    if(b.t==='guislot'){slots++;if(slots>1)add(b,E,'Only one “UI window here” block is allowed','The window code would be written twice.',rm(b,'Remove the extra one'))}
     if(NEED[b.t]&&!String(v[NEED[b.t]]).trim())add(b,E,'“'+nm+'” has an empty box','The generated line would be incomplete and AutoHotkey would complain. Fill it in.');
-    if(VARB.includes(b.t)){const nv=String(v.n||'');if(RES.has(nv.toLowerCase())||/^\d/.test(nv)||/^A_/i.test(nv))add(b,E,'“'+nv+'” can’t be used as a variable name','It is a reserved word, starts with a number, or belongs to AutoHotkey (names starting with A_). Pick another name like “count”.');else if(vn(nv)!==nv)add(b,E,'Variable name “'+nv+'” has unsupported characters','Variable names can only use letters, numbers and _.')}
-    if(['call','callp','timer','timeroff'].includes(b.t)&&!FN.has(vn(v.n))&&!BI.has(vn(v.n)))add(b,E,'Function “'+v.n+'” does not exist','This calls a function nobody defined. Add a “Define function” block with that name, or check the spelling.');
-    if(['setctl','settxt','getctl','settxtx','guien','guifocus','guivis','guilist','guichoose','guicolor','onctl','setctlv','guiclear','guicheck','guilistset','guimove','lvadd','lvclear','lvsel','lvtext','sbtext'].includes(b.t)&&!cn.has(String(v.c)))add(b,E,'Control “'+v.c+'” is not in your window','There is no control with that name in the UI Designer. Pick one from the dropdown, or add it there.');
+    if(VARB.includes(b.t)){const nv=String(v.n||'');if(RES.has(nv.toLowerCase())||/^\d/.test(nv)||/^A_/i.test(nv))add(b,E,'“'+nv+'” can’t be used as a variable name','It is a reserved word, starts with a number, or belongs to AutoHotkey (names starting with A_). Pick another name like “count”.',FX('Use a valid name',()=>{let z=vn(nv).replace(/^[^A-Za-z_]+/,'').replace(/^A_/i,'my_');if(!z||RES.has(z.toLowerCase()))z='my_'+(z||'var');b.v.n=z}));else if(vn(nv)!==nv)add(b,E,'Variable name “'+nv+'” has unsupported characters','Variable names can only use letters, numbers and _.',FX('Clean the name',()=>{b.v.n=vn(nv)}))}
+    if(['call','callp','timer','timeroff'].includes(b.t)&&!FN.has(vn(v.n))&&!BI.has(vn(v.n)))add(b,E,'Function “'+v.n+'” does not exist','This calls a function nobody defined. Add a “Define function” block with that name, or check the spelling.',mkFn(v.n));
+    if(['setctl','settxt','getctl','settxtx','guien','guifocus','guivis','guilist','guichoose','guicolor','onctl','setctlv','guiclear','guicheck','guilistset','guimove','lvadd','lvclear','lvsel','lvtext','sbtext'].includes(b.t)&&!cn.has(String(v.c)))add(b,E,'Control “'+v.c+'” is not in your window','There is no control with that name in the UI Designer. Pick one from the dropdown, or add it there.',ctlNames().length?FX('Use “'+ctlNames()[0]+'”',()=>{b.v.c=ctlNames()[0]}):null);
     if(['guishow','guihide','guiend','guititle','guimin','guibg'].includes(b.t)&&!real().length&&!GUI.imp)add(b,E,'There is no window to control','Your script has no UI window yet. Add controls in the UI Designer first.');
-    if((b.t==='forever'||b.t==='while'||b.t==='whiletime'||b.t==='forlist')&&['forever','while'].includes(b.t)&&!b.kids.some(k=>['wait','rwait','kwait','wwait','waitc'].includes(k.t)))add(b,Wn,'This repeat has no wait inside','A loop that never pauses can freeze your PC and eat 100% of a core. Add a Wait block inside it.');
-    if(b.t==='ret'&&top)add(b,Wn,'“Stop here” at the top level ends the startup section','Blocks after it won’t run at startup (hotkeys still work).');
-    if(top&&ACT.includes(b.t)&&alive)add(b,I,'“'+nm+'” runs once, when the script starts','It is outside any hotkey, so it happens one time at launch and not when you press a key. Drop it inside a “When key pressed” block to run it on a keypress.');
+    if((b.t==='forever'||b.t==='while'||b.t==='whiletime'||b.t==='forlist')&&['forever','while'].includes(b.t)&&!b.kids.some(k=>['wait','rwait','kwait','wwait','waitc'].includes(k.t)))add(b,Wn,'This repeat has no wait inside','A loop that never pauses can freeze your PC and eat 100% of a core. Add a Wait block inside it.',FX('Add a short Wait inside',()=>{b.kids.push(mk('wait',{ms:'10'}))}));
+    if(b.t==='ret'&&top)add(b,Wn,'“Stop here” at the top level ends the startup section','Blocks after it won’t run at startup (hotkeys still work).',rm(b));
+    if(top&&ACT.includes(b.t)&&alive)add(b,I,'“'+nm+'” runs once, when the script starts','It is outside any hotkey, so it happens one time at launch and not when you press a key. Drop it inside a “When key pressed” block to run it on a keypress.',FX('Put it inside a new hotkey',()=>{const f=find(root,b.id);if(!f)return;f.p.kids.splice(f.i,1,S('hotkey',{key:freeKey()},[b]))}));
     if(b.t==='power'&&['Log off','Restart','Shut down','Sleep'].includes(v.m))add(b,I,'This really will '+String(v.m).toLowerCase()+' your PC','Be careful when you run this block. Test it with “Lock” first.');
     walk(b,[...anc,b.t])});
   walk(root,[]);
-  if(SET.panic&&SET.pk){const id='|'+SET.pk.replace(/^[~$*]+/,'').toLowerCase();if(hk.has(id))add(hk.get(id),E,'The emergency stop key '+SET.pk+' is also used here','Two hotkeys on the same key stop AutoHotkey from loading. Change this hotkey, or change the emergency key in Script settings.')}
-  GUI.ctl.forEach(x=>{if(!x.k&&x.fn&&!FN.has(vn(x.fn)))add(null,E,'Control '+x.n+' runs function '+x.fn+', but no function has that name','Make one with “Define function”, or pick another in the UI Designer.')});
+  if(SET.panic&&SET.pk){const id='|'+SET.pk.replace(/^[~$*]+/,'').toLowerCase();if(hk.has(id))add(hk.get(id),E,'The emergency stop key '+SET.pk+' is also used here','Two hotkeys on the same key stop AutoHotkey from loading. Change this hotkey, or change the emergency key in Script settings.',FX('Change that hotkey',()=>{const hb=hk.get(id);hb.v[hb.t==='remap'?'a':'key']=freeKey()}))}
+  GUI.ctl.forEach(x=>{if(!x.k&&x.fn&&!FN.has(vn(x.fn)))add(null,E,'Control '+x.n+' runs function '+x.fn+', but no function has that name','Make one with “Define function”, or pick another in the UI Designer.',mkFn(x.fn))});
   if(c){const d=brace(c);if(d)add(null,E,'The code has '+(d>0?'an unclosed {':'an extra }'),'AutoHotkey won’t load it. Check your Raw line blocks for a missing or extra brace.')}
   const rank={error:0,warn:1,info:2};out.sort((a,b)=>rank[a.sev]-rank[b.sev]);ISS.length=0;ISS.push(...out);return out}
 
@@ -688,7 +714,7 @@ function list(n){const f=document.createDocumentFragment();
 function blk(b){const t=T[b.t],d=document.createElement('div');d.className='blk '+t.c+(sel===b.id?' sel':'');d.dataset.id=b.id;
   const r=document.createElement('div');r.className='row';try{r.title=t.gen(b.v)}catch(e){}
   const h=document.createElement('span');h.className='h';h.textContent='⋮⋮';h.title='Drag to move';h.draggable=true;
-  h.ondragstart=e=>{DRAG={t:b.t,id:b.id};e.dataTransfer.setData('text','move:'+b.id);e.dataTransfer.setDragImage(d,10,10)};r.append(h);if(t.box)r.append(mb(b.col?'▸':'▾','Collapse or expand',()=>{b.col=!b.col;render()}));
+  h.ondragstart=e=>{DRAG={t:b.t,id:b.id};e.dataTransfer.setData('text','move:'+b.id);e.dataTransfer.setDragImage(d,10,10)};r.append(h);if(t.box)r.append(mb(b.col?'▸':'▾','Collapse or expand',()=>{b.col=!b.col;render()}));if(['hotkey','hkpass','hkup','hotstr'].includes(b.t))r.append(mb('▶','Test just this block once. It starts after 3 seconds so you can switch windows.',()=>testBlock(b)));
   t.t.split(/(\{\w+\})/).forEach(s=>{const m=s.match(/^\{(\w+)\}$/);
     if(!m){if(s.trim())r.append(s.trim());return}
     const k=m[1],f=t.f[k];let el;
@@ -698,12 +724,13 @@ function blk(b){const t=T[b.t],d=document.createElement('div');d.className='blk 
     el.onclick=e=>e.stopPropagation();r.append(el);
     if(b.t==='ifpix'&&k==='c'){const sw=document.createElement('span');sw.style.cssText='width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.4);display:inline-block';const up=()=>{sw.style.background=String(b.v.c).replace(/^0x/i,'#')};up();el.addEventListener('input',up);r.append(sw)}
     if(b.t==='ifcolor'&&k==='c')r.append(mb('🎨','Pick this color from the screen: move the mouse over it, then press F8',()=>pickC(b)));
+    if(f.ctl&&b.v[k])r.append(mb('🖼','Show this control in the UI Designer',()=>jumpCtl(String(b.v[k]))));
     if(f.r)r.append(mb('⌨','Click, then press a key or combo to fill this in',()=>rec(b,k,f.r,el)));
     {const im=(INTERP[b.t]||[]).includes(k)?'i':(EXPRF[b.t]||[]).includes(k)?'x':'';if(im&&el.tagName==='INPUT')r.append(mb('{}',im==='i'?'Insert something the user typed, or a variable, into this text':'Insert what the user typed, or a variable, here',()=>valuesMenu(el,im)))}
     const mm=k.match(/^y(\d?)$/);if(mm&&t.f['x'+mm[1]])r.append(mb('🎯','Pick a screen spot: move the mouse there, then press F8',()=>pick(b,mm[1])))});
   const x=document.createElement('button');x.className='x';x.textContent='×';x.title='Delete block';x.setAttribute('aria-label','Delete block');
   x.onclick=e=>{e.stopPropagation();const r=find(root,b.id);r.p.kids.splice(r.i,1);if(has(b,sel))sel='root';render()};const dp=document.createElement('button');dp.className='x';dp.textContent='⧉';dp.title='Duplicate block';dp.setAttribute('aria-label','Duplicate block');dp.onclick=e=>{e.stopPropagation();const r=find(root,b.id);r.p.kids.splice(r.i+1,0,cl(b));render()};const of=mb(b.off?'▶':'⏻',b.off?'Enable block':'Disable block (comments it out)',()=>{b.off=!b.off;render()});dp.style.marginLeft='auto';x.style.marginLeft='0';r.append(dp,of,x);if(b.off)d.style.opacity='.45';d.append(r);
-  d.onclick=e=>{e.stopPropagation();sel=b.id;render()};d.tabIndex=-1;if(t.box){const k=document.createElement('div');k.className='kids';k.append(list(b));if(b.col)k.style.display='none';d.append(k)}
+  d.onclick=e=>{e.stopPropagation();sel=b.id;render()};d.tabIndex=-1;if(t.box){const k=document.createElement('div');k.className='kids';k.append(list(b));if(b.col)k.style.display='none';d.append(k);const sm=document.createElement('div');sm.className='sum';sm.textContent=(b.t==='hotkey'?'':'')+fillT(b)+': '+plain(b);d.append(sm);if(b.col)d.classList.add('col')}
   return d}
 function render(){snap();const c=$('#canvas');c.replaceChildren(list(root));c.onclick=()=>{sel='root';render()};code()}
 function vars(n,s=new Set()){n.kids.forEach(b=>{if(b.off)return;if(['set','tog','incr','rnd','inbox','getctl','getpix','rclip','time','fread','iniload','math','sett','inputkey','fsel','dsel','join','strlen','strcase','strrep','strsplit','copysel','wintitle','round','absv','minmax','modv','pickrnd','pad','setbool','trimv','substr','instrv','repeat','dateadd','httpget','ask3','askpw','lvsel','lvtext'].includes(b.t)&&!/^A_/i.test(String(b.v.n)))s.add(vn(b.v.n));if(b.t==='getpos'){s.add(vn(b.v.vx));s.add(vn(b.v.vy))}vars(b,s)});return s}
@@ -724,29 +751,45 @@ function build(){const V=vars(root),h=['#Requires AutoHotkey v2.0'];VARSET.clear
   if(SET.panic&&SET.pk)body.push('',...(hasType(root,'hotif')?['#HotIf']:[]),'; Emergency stop: '+SET.pk,SET.pk+'::ExitApp');
   return[...h,'',...body].join('\n')+'\n'}
 const cnt=n=>n.kids.reduce((a,b)=>a+1+cnt(b),0);
+function applyFix(x){if(!x||!x.fix)return;x.fix.fn();render();snap();code();st('Fixed: '+x.msg)}
+function fixAll(){let n=0;for(;n<30;n++){const x=lint(build()).find(i=>i.fix);if(!x)break;x.fix.fn()}render();snap();code();st(n?'Fixed '+n+' problem'+(n>1?'s':''):'Nothing to fix automatically')}
+function fixBtn(x){const fb=document.createElement('button');fb.className='fixbtn';fb.textContent='🔧 '+x.fix.label;fb.onclick=e=>{e.stopPropagation();applyFix(x)};return fb}
 function paintIssues(w){const L=$('#lint'),by={};w.forEach(x=>{if(x.id)(by[x.id]=by[x.id]||[]).push(x)});L.replaceChildren();
   if(!w.length){const li=document.createElement('li');li.className='ok';li.textContent='✓ No problems found';L.append(li)}
-  w.forEach(x=>{const li=document.createElement('li');li.className='iss '+x.sev;const b=document.createElement('b'),sm=document.createElement('small');b.textContent=({error:'⛔ ',warn:'⚠ ',info:'ℹ '})[x.sev]+x.msg;sm.textContent=x.why||'';li.append(b,sm);if(x.id)li.onclick=()=>goBlock(x.id);L.append(li)});
+  const nf=w.filter(x=>x.fix).length;if(nf>1){const li=document.createElement('li');const b=document.createElement('button');b.className='fixbtn all';b.textContent='🔧 Fix all '+nf+' automatically';b.onclick=fixAll;li.append(b);L.append(li)}
+  w.forEach(x=>{const li=document.createElement('li');li.className='iss '+x.sev;const b=document.createElement('b'),sm=document.createElement('small');b.textContent=({error:'⛔ ',warn:'⚠ ',info:'ℹ '})[x.sev]+x.msg;sm.textContent=x.why||'';li.append(b,sm);if(x.fix)li.append(fixBtn(x));if(x.id)li.onclick=()=>goBlock(x.id);L.append(li)});
   document.querySelectorAll('.blk').forEach(e=>{const is=by[e.dataset.id]||[],er=is.some(x=>x.sev==='error'),wa=is.some(x=>x.sev==='warn');
     e.classList.toggle('err',er);e.classList.toggle('warn',!er&&wa);e.classList.toggle('inf',!er&&!wa&&is.length>0);
     const old=[...e.children].find(c=>c.classList.contains('issues'));if(old)old.remove();
-    if(is.length){const bx=document.createElement('div');bx.className='issues';is.forEach(x=>{const d=document.createElement('div');d.className='isl '+x.sev;const b=document.createElement('b'),sp=document.createElement('span');b.textContent=({error:'⛔ ',warn:'⚠ ',info:'ℹ '})[x.sev]+x.msg;sp.textContent=x.why||'';d.append(b,sp);bx.append(d)});e.children[0].after(bx)}})}
+    if(is.length){const bx=document.createElement('div');bx.className='issues';is.forEach(x=>{const d=document.createElement('div');d.className='isl '+x.sev;const b=document.createElement('b'),sp=document.createElement('span');b.textContent=({error:'⛔ ',warn:'⚠ ',info:'ℹ '})[x.sev]+x.msg;sp.textContent=x.why||'';d.append(b,sp);if(x.fix)d.append(fixBtn(x));bx.append(d)});e.children[0].after(bx)}})}
 function goBlock(id){if(view!=='blocks')setView('blocks');const e=document.querySelector('.blk[data-id="'+id+'"]');if(!e)return;if(e.scrollIntoView)e.scrollIntoView({block:'center',behavior:'smooth'});e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')}
 function code(){const c=build();$('#code').innerHTML=hl(c);const w=lint(c);paintIssues(w);
   const er=w.filter(x=>x.sev==='error').length,wa=w.filter(x=>x.sev==='warn').length;
   $('#info').innerHTML=(c.split('\n').length-1)+' lines · '+cnt(root)+' blocks · '+(er?'<b class="e">'+er+' error'+(er>1?'s':'')+'</b>':'')+(er&&wa?' · ':'')+(wa?'<b class="w">'+wa+' warning'+(wa>1?'s':'')+'</b>':'')+(!er&&!wa?'no problems':'')+(TABS[cur]&&TABS[cur].file?' · '+esc(TABS[cur].file):'');
-  document.title=(TABS[cur]?TABS[cur].name+' — ':'')+'AHK Blocks';
+  document.title=(TABS[cur]?TABS[cur].name+' — ':'')+'Nexo Ahks';
   try{stash()}catch(e){}saveLibSoon()}
+
+/* ---- favorites (right-click a block) and recently used ---- */
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let FAVS=lsGet('nexoFav',[]),RECENT=lsGet('nexoRecent',[]);
+function useRecent(k){RECENT=[k,...RECENT.filter(x=>x!==k)].slice(0,8);lsSet('nexoRecent',RECENT);palTop()}
+function toggleFav(k){FAVS=FAVS.includes(k)?FAVS.filter(x=>x!==k):[...FAVS,k];lsSet('nexoFav',FAVS);palTop()}
+function palBtnFor(k){const b=document.createElement('button');b.className='pb '+T[k].c+(FAVS.includes(k)?' fav':'');b.textContent=LBL[k];b.draggable=true;try{const dv={};for(const f in T[k].f)dv[f]=T[k].f[f].d;b.title=String(T[k].gen(dv))}catch(e){}
+  b.ondragstart=e=>{DRAG={t:k};e.dataTransfer.setData('text','new:'+k)};b.onclick=()=>{addBlock(mk(k))};b.oncontextmenu=e=>{e.preventDefault();toggleFav(k)};return b}
+function palTop(){let c=$('#paltop');if(!c){c=document.createElement('div');c.id='paltop';$('#pal').prepend(c)}c.replaceChildren();
+  const grp=(title,keys,hint)=>{const d=document.createElement('div');d.className='grp top';d.innerHTML='<h2>'+title+'</h2>';const w=document.createElement('div');w.className='pal';
+    if(keys.length)keys.filter(k=>T[k]).forEach(k=>w.append(palBtnFor(k)));else{const h=document.createElement('div');h.className='hint';h.textContent=hint;w.append(h)}d.append(w);c.append(d)};
+  grp('★ Favorites',FAVS,'Right-click any block to pin it here.');if(RECENT.length)grp('🕘 Recently used',RECENT.filter(k=>!FAVS.includes(k)).slice(0,6),'')}
 function pal(){const g={};Object.keys(T).forEach(k=>(g[T[k].g]=g[T[k].g]||[]).push(k));
   const GORD=['Event','Control','Keyboard','Mouse','Screen','Window','Window UI','Tray','Variables','Text','Time','Files','System','Other'];
   Object.keys(g).sort((a,b)=>GORD.indexOf(a)-GORD.indexOf(b)).forEach(n=>{const d=document.createElement('div');d.className='grp';d.innerHTML='<h2>'+n+'</h2>';
     const w=document.createElement('div');w.className='pal';
     g[n].forEach(k=>{const b=document.createElement('button');b.className='pb '+T[k].c;b.textContent=LBL[k];b.draggable=true;try{const dv={};for(const f in T[k].f)dv[f]=T[k].f[f].d;b.title=String(T[k].gen(dv))}catch(e){}
       b.ondragstart=e=>{DRAG={t:k};e.dataTransfer.setData('text','new:'+k)};
-      b.onclick=()=>{addBlock(mk(k))};w.append(b)});
-    d.firstChild.style.cursor='pointer';d.firstChild.title='Click to collapse';d.firstChild.onclick=()=>{w.hidden=!w.hidden};d.append(w);$('#pal').append(d)})}
+      b.onclick=()=>{addBlock(mk(k))};b.oncontextmenu=e=>{e.preventDefault();toggleFav(k)};b.dataset.k=k;w.append(b)});
+    d.firstChild.style.cursor='pointer';d.firstChild.title='Click to collapse';d.firstChild.onclick=()=>{w.hidden=!w.hidden};d.append(w);$('#pal').append(d)});palTop()}
 const S=(t,v,k)=>{const b=mk(t,v);if(k)b.kids=k;return b};
-function addBlock(b){const f=sel==='root'?null:find(root,sel);
+function addBlock(b){useRecent(b.t);const f=sel==='root'?null:find(root,sel);
   if(!f)root.kids.push(b);else if(T[f.n.t].box)f.n.kids.push(b);else f.p.kids.splice(f.i+1,0,b);
   sel=b.id;render();const e=document.querySelector('.blk[data-id="'+b.id+'"]');if(e&&e.scrollIntoView)e.scrollIntoView({block:'nearest'});return b}
 let BCLIP='';
@@ -782,7 +825,7 @@ A&&A.onTray(c=>{if(c.cmd==='toggle'){const it=LIB.find(x=>x.id===c.id);if(it)tog
 A&&A.onOpen&&A.onOpen(d=>openText(d.name,d.text,d.file));
 $('#un').onclick=()=>{snap();if(!H.length)return;R.push(last);last=H.pop();restore(last)};
 $('#re').onclick=()=>{if(!R.length)return;H.push(last);last=R.pop();restore(last)};
-$('#ps').oninput=e=>{const v=e.target.value.toLowerCase();document.querySelectorAll('#pal .grp').forEach(g=>{let n=0;g.querySelectorAll('.pb').forEach(b=>{const m=(b.textContent+' '+(b.title||'')).toLowerCase().includes(v);b.style.display=m?'':'none';n+=m});g.style.display=n?'':'none'})};
+$('#ps').oninput=e=>{const v=e.target.value.toLowerCase();document.querySelectorAll('#pal .grp').forEach(g=>{let n=0;g.querySelectorAll('.pb').forEach(b=>{const m=(b.textContent+' '+(b.title||'')).toLowerCase().includes(v);b.style.display=m?'':'none';n+=m});g.style.display=n?'':'none'});document.querySelectorAll('#pal .grp.top').forEach(g=>{g.style.display=v?'none':''})};
 addEventListener('keydown',e=>{const k=e.key.toLowerCase(),c=e.ctrlKey||e.metaKey,inCode=view==='code'||!!(e.target.closest&&e.target.closest('#mon')),ed=/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||inCode;
  if(c&&k==='k'){e.preventDefault();qkOpen()}else if(c&&k==='f'&&!inCode){e.preventDefault();(view==='home'?$('#hm-q'):$('#ps')).focus()}else if(c&&k==='s'){e.preventDefault();e.shiftKey?$('#sv').onclick(null,true):$('#sv').click()}else if(c&&k==='o'){e.preventDefault();$('#op').click()}
  else if(c&&k==='z'&&!e.shiftKey&&!ed){e.preventDefault();$('#un').click()}
@@ -814,7 +857,7 @@ const TPL=[
 {n:'Window: Adder',d:'Two number boxes and a Plus button that shows the sum',f:()=>[S('onctl',{c:'btn1',ev:'Click'},[S('getctl',{p:'Value',c:'ed1',n:'x'}),S('getctl',{p:'Value',c:'ed2',n:'y'}),S('math',{n:'total',a:'x',op:'+',b:'y'}),S('settxtx',{c:'txt1',e:'"Sum: " total'})])],g:()=>GG('Adder',260,170,[GC('Edit','ed1',20,20,100,26,'1'),GC('Edit','ed2',140,20,100,26,'2'),GC('Button','btn1',20,60,100,30,'Plus'),GC('Text','txt1',20,105,220,24,'Sum: ')])},
 {n:'Window: Quick launcher',d:'A small window with buttons that open apps (UI Designer)',f:()=>[S('func',{n:'OpenNotepad'},[S('run',{p:'notepad.exe'})]),S('func',{n:'OpenCalc'},[S('run',{p:'calc.exe'})])],g:()=>GG('Quick Launcher',260,130,[GC('Text','txt1',20,15,200,22,'Pick an app'),GC('Button','btn1',20,50,100,30,'Notepad','OpenNotepad'),GC('Button','btn2',140,50,100,30,'Calculator','OpenCalc')])},
 {n:'Window: Click counter',d:'A window with a button that counts clicks (UI Designer)',f:()=>[S('func',{n:'AddOne'},[S('incr',{v:'1',n:'count'}),S('settxtx',{c:'txt1',e:'"Clicks: " count'})])],g:()=>GG('Counter',240,130,[GC('Text','txt1',20,20,200,24,'Clicks: 0'),GC('Button','btn1',20,60,100,32,'+1','AddOne')])},
-{n:'Window-only hotkey',d:'A hotkey that only works inside Notepad',f:()=>[S('hotif',{s:'ahk_exe notepad.exe'}),S('hotkey',{key:'F2'},[S('text',{s:'Hello from AHK Blocks'})]),S('hotall')]},
+{n:'Window-only hotkey',d:'A hotkey that only works inside Notepad',f:()=>[S('hotif',{s:'ahk_exe notepad.exe'}),S('hotkey',{key:'F2'},[S('text',{s:'Hello from Nexo Ahks'})]),S('hotall')]},
 {n:'Click an image when it appears',d:'F10 watches the screen for button.png and clicks it',f:()=>[S('hotkey',{key:'F10'},[S('tog',{n:'watching'}),S('while',{c:'watching'},[S('ifimg',{p:'button.png'},[S('clkimg'),S('wait',{ms:'500'})]),S('wait',{ms:'200'})])])]}
 ];
 function tplLoad(i){SET=TABS[cur].set={...DS};root.kids=TPL[i].f();if(TPL[i].g){GUI=TPL[i].g();normGui(GUI)}sel='root';fix(root);render();renderUI()}
@@ -839,7 +882,7 @@ function restore(x){const a=JSON.parse(x);root.kids=a[0];GUI=a[1];normGui(GUI);i
 const uid=()=>'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 let LIB=[],RUN=new Set();
 const snapOf=it=>JSON.stringify([it.kids,it.gui,it.set]);
-const PERSIST=['id','name','kids','gui','set','file','proj','pinned','created','edited','lastRun','runs','startup','snap','startSynced'];
+const PERSIST=['versions','id','name','kids','gui','set','file','proj','pinned','created','edited','lastRun','runs','startup','snap','startSynced'];
 function stash(){const t=TABS[cur];if(!t)return;t.kids=root.kids;t.H=H;t.R=R;t.last=last;t.gui=GUI;t.set=SET}
 function load(i){cur=i;const t=TABS[i];root.kids=t.kids;H=t.H||[];R=t.R||[];GUI=t.gui||(t.gui=newGui());normGui(GUI);SET=t.set=Object.assign({},DS,t.set||{});last=t.last||snapS();sel='root';uSel=null;uPage={};renderTabs();render();renderUI()}
 function addItem(name,kids,x){const it=Object.assign({id:uid(),name:name||'Script '+(LIB.length+1),kids:kids||[],gui:newGui(),created:Date.now(),edited:Date.now(),runs:0},x||{});if(!it.gui)it.gui=newGui();LIB.push(it);saveLibSoon();return it}
@@ -847,7 +890,7 @@ function openItem(it){if(view==='code')setView('blocks');stash();let i=TABS.inde
 function newTab(name,kids,x){const it=addItem(name,kids,x);openItem(it);return it}
 function switchTab(i){openItem(TABS[i])}
 function closeTab(i){if(view==='code')setView('blocks');stash();TABS.splice(i,1);saveLibSoon();if(!TABS.length){cur=-1;setView('home');return}load(Math.min(i<cur?cur-1:cur,TABS.length-1))}
-function importItem(name,text,file){const r=parseAhk(String(text).replace(/^\ufeff/,''));const it=addItem(name,r.kids,{file,gui:r.gui||undefined,set:setFromParse(r.set)});normGui(it.gui);it.set=Object.assign({},DS,it.set);it.snap=snapOf(it);it._r=r;return it}
+function importItem(name,text,file){const emb=unpackBlocks(text);if(emb){const it=addItem(name,emb.kids,{file,gui:emb.gui||undefined,set:emb.set?Object.assign({},DS,emb.set):undefined});normGui(it.gui);it.set=Object.assign({},DS,it.set);it.snap=snapOf(it);it._r={n:cnt({kids:it.kids}),gui:!!(it.gui&&it.gui.ctl&&it.gui.ctl.length),rawN:0};return it}const r=parseAhk(String(text).replace(/^\ufeff/,''));const it=addItem(name,r.kids,{file,gui:r.gui||undefined,set:setFromParse(r.set)});normGui(it.gui);it.set=Object.assign({},DS,it.set);it.snap=r.v1?'v1':snapOf(it);it._r=r;return it}
 function withScript(it,fn){const k=root.kids,g=GUI,s=SET,iss=ISS.slice();try{root.kids=it.kids;GUI=it.gui||newGui();normGui(GUI);SET=it.set||{...DS};return fn()}finally{root.kids=k;GUI=g;SET=s;ISS.length=0;ISS.push(...iss)}}
 const codeOf=it=>withScript(it,()=>build());
 const lintOf=it=>{try{return withScript(it,()=>lint(build()))}catch(e){return[]}};
@@ -869,7 +912,7 @@ async function runItem(it){if(!A)return st('Running scripts works in the desktop
   const r=await A.runScript({id:it.id,name:it.name,code,file});if(bad(r))return;st(String(r));it.lastRun=Date.now();it.runs=(it.runs||0)+1;saveLibSoon()}
 const toggleRun=it=>RUN.has(it.id)?A&&A.stopScript(it.id):runItem(it);
 function dupItem(it){const d=addItem(it.name+' copy',JSON.parse(JSON.stringify(it.kids)),{gui:JSON.parse(JSON.stringify(it.gui)),set:{...it.set}});return d}
-async function removeItem(it){const msg=it.file?'Remove “'+it.name+'” from AHK Blocks?\n\nThe .ahk file on your disk is not deleted.':'Delete “'+it.name+'”?\n\nIt only exists inside AHK Blocks. Export it as .ahk first if you want a copy.';if(!confirm(msg))return;
+async function removeItem(it){const msg=it.file?'Remove “'+it.name+'” from Nexo Ahks?\n\nThe .ahk file on your disk is not deleted.':'Delete “'+it.name+'”?\n\nIt only exists inside Nexo Ahks. Export it as .ahk first if you want a copy.';if(!confirm(msg))return;
   if(RUN.has(it.id)&&A)await A.stopScript(it.id);if(it.startup&&A)A.setStartup({id:it.id,name:it.name,on:false});
   const ti=TABS.indexOf(it);if(ti>=0){if(ti===cur){TABS.splice(ti,1);if(!TABS.length){cur=-1}else load(Math.min(ti,TABS.length-1))}else{TABS.splice(ti,1);if(ti<cur)cur--}}
   LIB.splice(LIB.indexOf(it),1);saveLibSoon();renderTabs();renderHome()}
@@ -877,7 +920,7 @@ function renderHome(){const box=$('#hm-list');if(!box)return;const q=($('#hm-q')
   const L=LIB.filter(it=>!q||it.name.toLowerCase().includes(q)||String(it.file||'').toLowerCase().includes(q)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(sort==='name'?a.name.localeCompare(b.name):sort==='run'?(b.lastRun||0)-(a.lastRun||0):(b.edited||0)-(a.edited||0)));
   const nr=LIB.filter(i=>RUN.has(i.id)).length;$('#hm-sub').textContent=LIB.length+' script'+(LIB.length===1?'':'s')+' · '+nr+' running';$('#hm-stop').disabled=!nr;
   box.replaceChildren();
-  if(!L.length){const e=document.createElement('div');e.className='hm-empty';e.innerHTML=LIB.length?'<h2>No scripts match “'+esc(q)+'”</h2>':'<h2>Welcome to AHK Blocks</h2><p>Make your first script with blocks, start from a template, or bring in .ahk files you already have. Drop an .ahk file anywhere on this window to import it.</p>';box.append(e);return}
+  if(!L.length){const e=document.createElement('div');e.className='hm-empty';e.innerHTML=LIB.length?'<h2>No scripts match “'+esc(q)+'”</h2>':'<img class="hm-logo" src="logo.png" alt=""><h2>Welcome to Nexo Ahks</h2><p>Make your first script with blocks, start from a template, or bring in .ahk files you already have. Drop an .ahk file anywhere on this window to import it.</p>';box.append(e);return}
   L.forEach(it=>box.append(card(it)))}
 function card(it){const run=RUN.has(it.id),c=document.createElement('div');c.className='hc'+(run?' on':'');
   const mkb=(t,tip,fn,cls)=>{const b=document.createElement('button');b.textContent=t;b.title=tip;if(cls)b.className=cls;b.onclick=e=>{e.stopPropagation();fn()};return b};
@@ -890,7 +933,7 @@ function card(it){const run=RUN.has(it.id),c=document.createElement('div');c.cla
   if(run)chip('● Running','ok');chip(it.file?(isPristine(it)?'File · original':'File · edited in blocks'):'Blocks');
   const nerr=lintOf(it).filter(x=>x.sev==='error').length;if(nerr)chip('⛔ '+nerr+' error'+(nerr>1?'s':''),'bad');if(it.startup)chip('⏻ Starts with Windows');
   const meta=document.createElement('div');meta.className='hc-meta';meta.textContent='Edited '+ago(it.edited)+' · Ran '+ago(it.lastRun)+(it.runs?' ('+it.runs+'×)':'');
-  const path=document.createElement('div');path.className='hc-path';path.textContent=it.file||'Stored in AHK Blocks';path.title=it.file||'';
+  const path=document.createElement('div');path.className='hc-path';path.textContent=it.file||'Stored in Nexo Ahks';path.title=it.file||'';
   const acts=document.createElement('div');acts.className='hc-acts';
   acts.append(mkb(run?'■ Stop':'▶ Run',run?'Stop this script':'Run this script now',()=>toggleRun(it),run?'':'pri'),mkb('✎ Edit','Open in the editor',()=>openItem(it)));
   const more=document.createElement('div');more.className='hc-more';
@@ -928,6 +971,10 @@ function renderTabs(){const t=$('#tabs');t.replaceChildren();
     const nm=document.createElement('span');nm.textContent=x.name;nm.title='Double-click to rename';
     nm.ondblclick=()=>{const inp=document.createElement('input');inp.value=x.name;let d=0;const ok=()=>{if(d)return;d=1;x.name=inp.value.trim()||x.name;renderTabs();saveLibSoon()};inp.onblur=ok;inp.onkeydown=ev=>{if(ev.key==='Enter')ok()};inp.onclick=ev=>ev.stopPropagation();nm.replaceWith(inp);inp.focus();inp.select()};
     const cx=document.createElement('button');cx.textContent='×';cx.title='Close tab (the script stays on Home)';cx.onclick=ev=>{ev.stopPropagation();closeTab(i)};
+    e.ondragover=ev=>{if(DRAG&&DRAG.id&&i!==cur){ev.preventDefault();e.classList.add('dropt')}};e.ondragleave=()=>e.classList.remove('dropt');
+    e.ondrop=ev=>{e.classList.remove('dropt');const d=ev.dataTransfer.getData('text');if(!d.startsWith('move:')||i===cur||view==='home')return;ev.preventDefault();
+      const f=find(root,d.slice(5));if(!f)return;const copy=ev.ctrlKey||ev.altKey,c=cl(f.n);if(!copy)f.p.kids.splice(f.i,1);
+      TABS[i].kids.push(c);TABS[i].edited=Date.now();DRAG=null;sel='root';render();snap();code();saveLibSoon();st((copy?'Copied':'Moved')+' the block to “'+TABS[i].name+'”')};
     e.onclick=()=>{if(i!==cur||view==='home')switchTab(i)};e.append(nm,cx);t.append(e)});
   const p=document.createElement('button');p.id='newtab';p.textContent='+';p.title='New script';p.onclick=()=>newTab();t.append(p)}
 /* ---- views + Monaco ---- */
@@ -1052,6 +1099,7 @@ function renderUI(){fixTabOrder(GUI);const b=$('#ui-win-box');paintBox();b.repla
       uSel=c.id;markSel();renderProps();dragStart(ev,c,'m',e)};
     const hd=document.createElement('i');hd.className='rs';hd.onpointerdown=ev=>{ev.stopPropagation();uMulti=new Set();uSel=c.id;markSel();dragStart(ev,c,'r',e)};e.append(hd);b.append(e);elStyle(e,c)});
   if(!real().length&&!uPrev){const em=document.createElement('div');em.className='ui-guide';em.style.cssText='position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;pointer-events:none;opacity:.6;font-size:13px';em.textContent='Your window is empty. Click a control on the left (Button, Edit box…) to add it, then drag it where you want.';b.append(em)}
+  if(!uPrev)addWinHandles(b);
   b.onpointerdown=ev=>{uMulti=new Set();uSel=null;markSel();renderProps();if(uPrev)return;
     const r=b.getBoundingClientRect(),x0=ev.clientX-r.left,y0=ev.clientY-r.top;let m=null,moved=false;
     const mv=e=>{const x=e.clientX-r.left,y=e.clientY-r.top;if(!moved&&Math.abs(x-x0)+Math.abs(y-y0)<4)return;moved=true;
@@ -1121,7 +1169,12 @@ function genGui(){const g=GUI;if(!g||(!g.ctl.length&&!g.imp&&!g.bgc))return[];fi
   if(focus)o.push(focus+'.Focus()');
   const eb=evBlocks(root);eb.forEach(b=>o.push(b.t==='onctl'?vn(b.v.c)+'.OnEvent("'+b.v.ev+'", '+vn(b.v.c)+'_'+b.v.ev+')':V+'.OnEvent("'+b.v.ev+'", '+V+'_'+b.v.ev+')'));
   if(g.close&&!eb.some(b=>b.t==='onwin'&&b.v.ev==='Close'))o.push(V+'.OnEvent("Close", (*) => ExitApp())');
+  const anc=g.ctl.filter(c=>!c.k&&c.n&&!c.anon&&c.t!=='StatusBar'&&(c.aw||c.ah||c.ar||c.ab));
+  if(anc.length)o.push(V+'.OnEvent("Size", '+V+'_Anchor)');
   if(g.show!==false)o.push(V+'.Show('+(g.showr!==undefined?g.showr:q('w'+g.w+' h'+g.h))+')');
+  if(anc.length){const meta={};anc.forEach(c=>{const m={};['aw','ah','ar','ab'].forEach(k=>{if(c[k])m[k]=true});meta[c.n]=m});
+    o.push(V+'_Anchor(g, mm, w, h) {','  ; nexo-anchors '+JSON.stringify(meta),'  if mm = -1','    return','  dx := w - '+g.w,'  dy := h - '+g.h);
+    anc.forEach(c=>{const a=[c.ar?c.x+' + dx':'',c.ab?c.y+' + dy':'',c.aw?c.w+' + dx':'',c.ah?c.h+' + dy':''];while(a.length&&!a[a.length-1])a.pop();o.push('  '+vn(c.n)+'.Move('+a.join(', ')+')')});o.push('}')}
   o.push('; --- end UI ---');return o}
 function effFont(c){const f=Object.assign({},c.fp||{},c.font||{});return{fs:f.fs||(GUI.font?(GUI.fs||10):9),b:f.b,i:f.i,u:f.u,st:f.st,face:f.face||(GUI.font&&GUI.face)||'Segoe UI',c:f.c||(GUI.font&&GUI.fc)||null}}
 function paintBox(){const b=$('#ui-win-box'),w=$('#ui-wrap'),ch=$('#ui-chrome');b.style.width=GUI.w+'px';b.style.height=GUI.h+'px';b.style.background=GUI.bgc?'#'+GUI.bgc:GUI.bg?'#'+GUI.bg:(uPrev?'#f0f0f0':'');w.classList.toggle('prev',uPrev);
@@ -1169,21 +1222,61 @@ function elStyle(e,c){const s=e.style,b=e.querySelector('.pv');['background','co
 const textLabel=ty=>isTab(ty)?'Pages (a|b)':ty==='ListView'?'Columns (a|b)':LISTT.has(ty)?'Items (a|b)':ty==='DateTime'?'Format':ty==='Picture'?'Image file':ty==='Link'?'Text (links: <a href="…">…</a>)':'Text';
 function colorFld(lbl,hex,on){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent=lbl;const box=document.createElement('div');box.style.cssText='display:flex;gap:4px;align-items:center';const i=document.createElement('input');i.type='color';i.value='#'+(hex&&/^[0-9a-f]{6}$/i.test(hex)?hex:'888888');if(!hex)i.style.opacity='.45';const x=document.createElement('button');x.textContent='none';x.title='Use the default';x.style.cssText='padding:0 6px;font-size:11px';i.oninput=()=>{i.style.opacity='1';on(i.value.slice(1).toUpperCase())};x.onclick=()=>{on('');i.value='#888888';i.style.opacity='.45'};box.append(i,x);w.append(s,box);return w}
 function setF(c,k,v){c.font=Object.assign({},c.font||{});if(v===''||v===false||v===undefined||v===null)delete c.font[k];else c.font[k]=v;if(!Object.keys(c.font).length)delete c.font}
+
+/* ---- window resize handles, layout helpers, themes, jumps ---- */
+let uGap=10,uPad=20;
+function winResize(ev,dx,dy){ev.preventDefault();ev.stopPropagation();const sx=ev.clientX,sy=ev.clientY,ow=GUI.w,oh=GUI.h,sn=v=>uSnap?Math.round(v/uSnap)*uSnap:Math.round(v);
+  const mv=e=>{if(dx)GUI.w=Math.max(100,sn(ow+e.clientX-sx));if(dy)GUI.h=Math.max(60,sn(oh+e.clientY-sy));paintBox();refreshAll()};
+  const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);setSize();renderProps();snap()};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+function addWinHandles(b){[['e',1,0,'right:-7px;top:0;bottom:0;width:9px;cursor:ew-resize'],['s',0,1,'bottom:-7px;left:0;right:0;height:9px;cursor:ns-resize'],['se',1,1,'right:-9px;bottom:-9px;width:16px;height:16px;cursor:nwse-resize;border-radius:3px;background:var(--acc);opacity:.85']].forEach(([n,x,y,css])=>{
+  const h=document.createElement('div');h.className='win-rs ui-keep';h.title='Drag to resize the window';h.style.cssText='position:absolute;z-index:70;'+css;h.onpointerdown=ev=>winResize(ev,x,y);b.append(h)})}
+const kidsOf=(c,skip)=>isTab(c.t)?real().filter(k=>k.tabOf===c.id&&!skip.has(k)):[];
+function layoutList(){const m=multi();return m.length?m:real().filter(c=>!c.tabOf&&c.t!=='StatusBar')}
+function stackCtls(dir,gap){const L=layoutList().slice();if(L.length<2)return st('Select two or more controls first');const S0=new Set(L);
+  L.sort(dir==='v'?(a,b)=>a.y-b.y||a.x-b.x:(a,b)=>a.x-b.x||a.y-b.y);const x0=Math.min(...L.map(c=>c.x)),y0=Math.min(...L.map(c=>c.y));let pos=dir==='v'?y0:x0;
+  L.forEach(c=>{const nx=dir==='v'?x0:pos,ny=dir==='v'?pos:y0,dx=nx-c.x,dy=ny-c.y;c.x=nx;c.y=ny;kidsOf(c,S0).forEach(k=>{k.x=Math.max(0,k.x+dx);k.y=Math.max(0,k.y+dy)});pos+=(dir==='v'?c.h:c.w)+gap});
+  renderUI();snap();code()}
+function fitWindow(pad){const all=real().filter(c=>c.t!=='StatusBar');if(!all.length)return st('Add some controls first');
+  const dx=pad-Math.min(...all.map(c=>c.x)),dy=pad-Math.min(...all.map(c=>c.y));all.forEach(c=>{c.x+=dx;c.y+=dy});
+  const sb=real().some(c=>c.t==='StatusBar')?24:0;GUI.w=Math.max(100,Math.max(...all.map(c=>c.x+c.w))+pad);GUI.h=Math.max(60,Math.max(...all.map(c=>c.y+c.h))+pad+sb);
+  renderUI();setSize();snap();code()}
+const THEMES={'':['Windows default (light)',null],dark:['Dark',{bg:'1c1d23',fc:'e9eaf0',ib:'2a2c35',ic:'f2f3f8',title:1}],midnight:['Midnight blue',{bg:'0f172a',fc:'e2e8f0',ib:'1e293b',ic:'f1f5f9',title:1}],nexo:['Nexo purple',{bg:'0d0f15',fc:'eef0ff',ib:'1a1e2c',ic:'ffffff',title:1}],soft:['Soft light',{bg:'f4f5f9',fc:'1f2937',ib:'ffffff',ic:'111827'}],contrast:['High contrast',{bg:'000000',fc:'ffffff',ib:'000000',ic:'ffff00',title:1}]};
+const FONTPACKS={modern:['Modern · Segoe UI 10',['Segoe UI',10]],large:['Large · Segoe UI 12',['Segoe UI',12]],code:['Code · Consolas 10',['Consolas',10]],friendly:['Friendly · Calibri 11',['Calibri',11]],classic:['Classic · Verdana 9',['Verdana',9]],compact:['Compact · Segoe UI 9',['Segoe UI',9]]};
+const INPUT_T=['Edit','ComboBox','DropDownList','ListBox','ListView','TreeView','DateTime'];
+function themeInput(c){const th=GUI.theme&&THEMES[GUI.theme]&&THEMES[GUI.theme][1];if(!th||!INPUT_T.includes(c.t)||c.pp)return;const pp='Background'+th.ib+' c'+th.ic;c.opt=((c.opt||'')+' '+pp).trim();c.pp=pp}
+function applyTheme(key){const th=THEMES[key]&&THEMES[key][1];
+  GUI.ctl=GUI.ctl.filter(x=>!(x.k&&/DwmSetWindowAttribute/.test(x.s||'')));
+  real().forEach(c=>{if(c.pp&&c.opt)c.opt=c.opt.replace(c.pp,'').replace(/\s+/g,' ').trim();c.pp=undefined});
+  if(!th){GUI.bgc=undefined;GUI.fc=undefined;GUI.theme=undefined}
+  else{GUI.bgc=th.bg;GUI.font=true;GUI.fc=th.fc;GUI.theme=key;real().forEach(themeInput);
+    if(th.title)GUI.ctl.unshift({k:'line',s:'DllCall("dwmapi\\DwmSetWindowAttribute", "ptr", '+(GUI.v||'myGui')+'.Hwnd, "int", 20, "int*", true, "int", 4)'})}
+  paintBox();renderUI();snap();code()}
+function applyFontPack(key){const f=FONTPACKS[key];if(!f)return;GUI.font=true;GUI.face=f[0];GUI.fs=f[1];refreshAll();snap();code()}
+function jumpCtl(name){const c=real().find(x=>x.n===name);if(!c)return st('There is no control called “'+name+'” in the UI Designer');uMulti=new Set();uSel=c.id;setView('ui');markSel();renderProps()}
+function goFunc(name){let b=null;(function w(n){n.kids.forEach(k=>{if((k.t==='func'||k.t==='funcp')&&vn(k.v.n)===vn(name))b=k;w(k)})})(root);if(!b)return st('No “Define function '+name+'” block yet');setView('blocks');setTimeout(()=>goBlock(b.id),60)}
 function makeHandler(c){const ev=evOf(c);let b=null;(function f(n){n.kids.forEach(k=>{if(k.t==='onctl'&&k.v.c===c.n&&k.v.ev===ev)b=k;f(k)})})(root);if(!b){b=mk('onctl',{c:c.n,ev});root.kids.push(b);snap()}setView('blocks');setTimeout(()=>goBlock(b.id),60)}
 function renderProps(){const P=$('#ui-props');P.replaceChildren();const c=real().find(x=>x.id===uSel);
   const H3=t=>{const h=document.createElement('h3');h.textContent=t;P.append(h)},tip=t=>{const p=document.createElement('p');p.className='tip';p.textContent=t;P.append(p)},btn=(t,tt,fn)=>{const b=document.createElement('button');b.textContent=t;if(tt)b.title=tt;b.onclick=fn;return b};
   const chk=(l,on,get)=>P.append(fld(l,get,on,'checkbox'));
-  const mm=multi();if(mm.length){H3(mm.length+' controls selected');tip('Shift/Ctrl-click adds or removes one. Drag to move them together, arrow keys nudge them. Drag on empty space to box-select.');
+  let row2;const mm=multi();if(mm.length){H3(mm.length+' controls selected');tip('Shift/Ctrl-click adds or removes one. Drag to move them together, arrow keys nudge them. Drag on empty space to box-select.');
     const row=items=>{const d=document.createElement('div');d.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:4px 0';items.forEach(([t,tt,k])=>d.append(btn(t,tt,()=>alignSel(k))));P.append(d)};
     row([['⇤ Left','Line up left edges','l'],['↔ Center','Center horizontally','hc'],['⇥ Right','Line up right edges','r']]);
     row([['⤒ Top','Line up top edges','t'],['↕ Middle','Center vertically','vc'],['⤓ Bottom','Line up bottom edges','b']]);
     row([['Space across','Even gaps, left to right (3+ controls)','dh'],['Space down','Even gaps, top to bottom (3+ controls)','dv']]);
     row([['Same width','Match the width of the last one you clicked','sw'],['Same height','Match the height of the last one you clicked','sh']]);
+    P.append(fld('Spacing',uGap,v=>{uGap=Math.max(0,v||0)},'number'));
+    row2=document.createElement('div');row2.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:4px 0';row2.append(btn('Stack vertically','One column, even spacing',()=>stackCtls('v',uGap)),btn('Stack horizontally','One row, even spacing',()=>stackCtls('h',uGap)));P.append(row2);
     P.append(btn('Delete all','Remove the selected controls',delCtl));return}
   if(!c){H3('Window');
     P.append(fld('Title',GUI.title,v=>{GUI.title=v;GUI.ctor=undefined;paintBox();code()}),fld('Width',GUI.w,v=>{GUI.w=Math.max(100,v||100);setSize();refreshAll()},'number'),fld('Height',GUI.h,v=>{GUI.h=Math.max(60,v||60);setSize();refreshAll()},'number'),colorFld('Background',GUI.bgc||'',v=>{GUI.bgc=v||undefined;paintBox();refreshAll();code()}));
     H3('Default text');
     P.append(fld('Size',GUI.fs||10,v=>{GUI.font=true;GUI.fs=Math.max(6,v||10);refreshAll();code()},'number'),selFld('Font',FONTS.concat(FONTS.includes(GUI.face||'Segoe UI')?[]:[GUI.face]).map(x=>[x,x]),GUI.face||'Segoe UI',v=>{GUI.font=true;GUI.face=v;refreshAll();code()}),colorFld('Color',GUI.fc||'',v=>{GUI.font=true;GUI.fc=v||undefined;refreshAll();code()}));
+    H3('Look');
+    P.append(selFld('Theme',Object.keys(THEMES).map(k=>[k,THEMES[k][0]]),GUI.theme||'',v=>{applyTheme(v);renderProps()}),selFld('Font pack',[['','(keep current)'],...Object.keys(FONTPACKS).map(k=>[k,FONTPACKS[k][0]])],'',v=>{if(v){applyFontPack(v);renderProps()}}));
+    tip('Dark themes color the window, text and input boxes, and turn the title bar dark on Windows 10/11. Buttons keep the system look (a Windows limitation).');
+    H3('Layout');
+    P.append(fld('Spacing',uGap,v=>{uGap=Math.max(0,v||0)},'number'),fld('Edge padding',uPad,v=>{uPad=Math.max(0,v||0)},'number'));
+    P.append(btn('Stack everything vertically','Put all controls in one column using the spacing',()=>{uMulti=new Set();stackCtls('v',uGap);fitWindow(uPad)}),btn('Fit window to controls','Make the margin the same on every side',()=>fitWindow(uPad)));
     H3('Window options');OPTS.forEach(([t,l])=>chk(l,v=>{optToggle(GUI,t,v);paintBox();code()},optHas(GUI,t)));chk('Quit the script when it is closed',v=>{GUI.close=v;code()},GUI.close);
     P.append(btn('Remove all controls','',()=>{if(real().length&&confirm('Remove every control?')){GUI.ctl=GUI.ctl.filter(x=>x.k);renderUI();snap();code()}}));
     tip(GUI.imp?'This UI came from your script. Lines the designer can’t edit are kept exactly as they were.':'The UI code lives in your script. It sits where the “UI window here” block is, or at the top if there is none.');return}
@@ -1212,10 +1305,15 @@ function renderProps(){const P=$('#ui-props');P.replaceChildren();const c=real()
   if(ty==='Edit'){chk('Read only',v=>{setTok(c,'ReadOnly',v);up()},tokOn(c,'ReadOnly'));chk('Password dots',v=>{setTok(c,'Password',v);up()},tokOn(c,'Password'));chk('Numbers only',v=>{setTok(c,'Number',v);up()},tokOn(c,'Number'));chk('Several lines',v=>{setTok(c,'Multi',v);up()},tokOn(c,'Multi'));chk('Force UPPERCASE',v=>{setTok(c,'Uppercase',v);up()},tokOn(c,'Uppercase'));
     P.append(fld('Max length',tokVal(c,/^Limit(\d+)$/)||'',v=>{setPre(c,'Limit',/^Limit\d*$/i,v>0?String(v):'');up()},'number'),fld('Hint text',c.ph||'',v=>{c.ph=v||undefined;up()}),fld('Arrows (min-max)',c.spin||'',v=>{c.spin=v.trim()||undefined;up()}))}
   if(!['Text','GroupBox','Picture','StatusBar','Progress','Link'].includes(ty))chk('Has the cursor when the window opens',v=>{real().forEach(x=>{delete x.focus});if(v)c.focus=true;code()},!!c.focus);
+  if(ty!=='StatusBar'&&!c.anon&&c.n){H3('When the window is resized');
+    const an=()=>{if(c.aw)c.hw=1;if(c.ah)c.hh=1;if(real().some(x=>x.aw||x.ah||x.ar||x.ab))optToggle(GUI,'+Resize',true);paintBox();code();renderProps()};
+    chk('Stretch wider',v=>{c.aw=v||undefined;if(v)c.ar=undefined;an()},!!c.aw);chk('Stretch taller',v=>{c.ah=v||undefined;if(v)c.ab=undefined;an()},!!c.ah);
+    chk('Stay on the right edge',v=>{c.ar=v||undefined;if(v)c.aw=undefined;an()},!!c.ar);chk('Stay on the bottom edge',v=>{c.ab=v||undefined;if(v)c.ah=undefined;an()},!!c.ab);
+    tip('Pick how this control follows the window when the user drags its edge. This also turns on “User can resize the window”.')}
   H3('When used');
   if(ty!=='Text'||/0x100/.test(c.opt||'')){if(!c.anon){const w=document.createElement('label');w.className='fld';const s=document.createElement('span');s.textContent=evOf(c)==='Click'?'On click':'On change';
     const sel=document.createElement('select'),names=['',...allFuncs()];if(c.fn&&!names.includes(c.fn))names.push(c.fn);names.forEach(n=>sel.add(new Option(n||'(nothing)',n)));sel.value=c.fn||'';sel.onchange=()=>{c.fn=sel.value;code()};w.append(s,sel);P.append(w);
-    P.append(btn('✨ Make it do something','Adds a “When control event happens” block to your script and takes you there',()=>makeHandler(c)));
+    P.append(btn('✨ Make it do something','Adds a “When control event happens” block to your script and takes you there',()=>makeHandler(c)));if(c.fn)P.append(btn('↪ Go to function “'+c.fn+'”','Jump to the Define function block',()=>goFunc(c.fn)));
     tip('This puts a block in your script that runs when it is '+(evOf(c)==='Click'?'clicked':'changed')+'. Inside it, use the {} button on a block to get what the user typed or picked.')}}
   if(c.evs&&c.evs.length)tip('Also has '+c.evs.length+' custom event line(s) kept from your script.');
   const row=document.createElement('div');row.className='bar2';row.style.flexWrap='wrap';row.style.marginTop='8px';
@@ -1227,12 +1325,12 @@ function addCtl(t,pst){const pr=pst?PRESET[pst]:null,ty=pr?pr.t:t,d=pr||CT[ty],p
   const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),t:ty,n:pre+i,x:20,y:20+((real().length*40)%Math.max(60,GUI.h-60)),w:ty==='StatusBar'?GUI.w:d.w,h:d.h,hw:1,hh:1,text:pr?pr.text:d.t,opt:pr?pr.opt:(DOPT[ty]||''),fn:'',evs:[],imp:0};if(pst)c.preset=pst;c.arg=ctlArg(c);
   const sc=real().find(x=>x.id===uSel),tb=sc&&!isTab(ty)&&ty!=='StatusBar'?(isTab(sc.t)?sc:real().find(x=>x.id===sc.tabOf)):null;
   if(tb){const pg=Math.min(uPage[tb.id]||1,String(tb.text).split('|').length),n0=real().filter(x=>x.tabOf===tb.id&&(x.pg||1)===pg).length;c.tabOf=tb.id;c.pg=pg;c.x=tb.x+16;c.y=tb.y+40+((n0*34)%Math.max(40,tb.h-80));c.w=Math.min(c.w,Math.max(40,tb.w-32))}
-  GUI.ctl.push(c);uSel=c.id;uMulti=new Set();renderUI();snap();code()}
+  themeInput(c);GUI.ctl.push(c);uSel=c.id;uMulti=new Set();renderUI();snap();code()}
 /* ---- recorder ---- */
-function recToBlocks(txt,o){const out=[],MD={LControl:'^',RControl:'^',Control:'^',LShift:'+',RShift:'+',Shift:'+',LAlt:'!',RAlt:'!',Alt:'!',LWin:'#',RWin:'#'},held=new Map(),down=new Set();let buf='',first=true;
+function recToBlocks(txt,o){const out=[],MD={LControl:'^',RControl:'^',Control:'^',LShift:'+',RShift:'+',Shift:'+',LAlt:'!',RAlt:'!',Alt:'!',LWin:'#',RWin:'#'},held=new Map(),down=new Set();let buf='',first=true,pend=null;
   const flush=()=>{if(buf){out.push(mk('send',{k:buf}));buf=''}},esc1=c=>'+^!#{}'.includes(c)?'{'+c+'}':c;
   for(const ln of txt.split(/\r?\n/)){const p=ln.split('|');if(p.length<2)continue;const d=+p[0]||0,t=p[1],k=p[2];
-    if(t!=='KU'){if(o.delay&&!first&&d>=250&&k!=='F10'){flush();out.push(mk('wait',{ms:String(Math.round(d/50)*50)}))}first=false}
+    if(t!=='KU'&&t!=='U'){if(o.delay&&!first&&d>=250&&k!=='F10'){flush();let ms=Math.round(d/50)*50;if(o.cap)ms=Math.min(ms,o.cap);const l=out[out.length-1];if(l&&l.t==='wait')l.v.ms=String(+l.v.ms+ms);else out.push(mk('wait',{ms:String(ms)}))}first=false}
     if(t==='KD'){if(down.has(k))continue;down.add(k);if(MD[k]){held.set(k,MD[k]);continue}if(k==='F10')continue;
       const m=[...new Set(held.values())].join('');
       if(k==='Space'&&!m)buf+=' ';
@@ -1240,12 +1338,16 @@ function recToBlocks(txt,o){const out=[],MD={LControl:'^',RControl:'^',Control:'
       else if(k.length===1&&!m)buf+=esc1(k);
       else{flush();out.push(mk('send',{k:m+(k.length===1?esc1(k):'{'+k+'}')}))}}
     else if(t==='KU'){down.delete(k);held.delete(k)}
+    else if(t==='D'){flush();pend={b:k,x:+p[3],y:+p[4]}}
+    else if(t==='U'){if(pend&&pend.b===k){const x=+p[3],y=+p[4];flush();
+      if(Math.hypot(x-pend.x,y-pend.y)>8)out.push(mk('drag',{b:k,x1:String(pend.x),y1:String(pend.y),x2:String(x),y2:String(y)}));
+      else out.push(mk('click',{b:k,x:String(pend.x),y:String(pend.y)}));pend=null}}
     else if(t==='C'){flush();out.push(mk('click',{b:k,x:p[3],y:p[4]}))}
     else if(t==='W'){flush();const l=out[out.length-1];if(l&&l.t==='scroll'&&l.v.d===k)l.v.n=String(+l.v.n+1);else out.push(mk('scroll',{d:k,n:'1'}))}}
   flush();return out}
 $('#rec').onclick=()=>{if(!A)return st('Recording works in the desktop app');$('#recd').showModal()};
 $('#rc-x').onclick=()=>$('#recd').close();
-$('#rc-go').onclick=async()=>{$('#recd').close();const o={delay:$('#rc-d').checked,wrap:$('#rc-w').checked};const r=await A.recStart();if(r.err)return st(r.err);
+$('#rc-go').onclick=async()=>{$('#recd').close();const o={delay:$('#rc-d').checked,wrap:$('#rc-w').checked,cap:+$('#rc-t').value||0};const r=await A.recStart();if(r.err)return st(r.err);
   const out=recToBlocks(r.text||'',o);if(!out.length)return st('Nothing was recorded');
   let add=out;if(o.wrap){const h=mk('hotkey',{key:'F1'});h.kids=out;add=[h]}
   const pr=sel==='root'?root:(find(root,sel)||{}).n||root;pr.kids.push(...add);render();st('Recorded '+out.length+' blocks')};
@@ -1299,10 +1401,134 @@ function valuesMenu(el,mode){document.querySelectorAll('.vmenu').forEach(x=>x.re
   document.body.append(m);setTimeout(()=>addEventListener('pointerdown',function f(ev){if(!m.contains(ev.target)){m.remove();removeEventListener('pointerdown',f,true)}},true),0)}
 const bad=r=>r&&typeof r==='object'&&r.err?(st('Error: '+r.err),true):false;
 const safePath=f=>{try{return A&&A.pathOf?A.pathOf(f):undefined}catch(e){return undefined}};
+
+/* ---- variables panel: list + rename everywhere ---- */
+let _EF=null;
+function exprFields(){if(_EF)return _EF;_EF={};for(const k in T){const t=T[k],set=new Set();for(const f in t.f){if(t.f[f].o)continue;const v={};for(const g in t.f)v[g]=t.f[g].d;v[f]='QZVQ';let g;try{g=String(t.gen(v))}catch(e){continue}
+  let inq=false;for(let i=0;i<g.length;i++){const ch=g[i];if(ch==='`'){i++;continue}if(ch==='"'){inq=!inq;continue}if(!inq&&g.startsWith('QZVQ',i)){set.add(f);break}}}_EF[k]=set}return _EF}
+function reOut(str,o,n){const re=new RegExp('(?<![\\w.])'+o.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?!\\w)','g');let out='',buf='',inq=false;
+  for(let i=0;i<str.length;i++){const ch=str[i];if(ch==='`'&&i+1<str.length){buf+=ch+str[++i];continue}if(ch==='"'){out+=inq?buf:buf.replace(re,n);buf='';out+='"';inq=!inq;continue}buf+=ch}
+  return out+(inq?buf:buf.replace(re,n))}
+function varRefs(o,n,apply){let count=0,first=null;const ef=exprFields();
+  (function w(node){node.kids.forEach(b=>{const v=b.v||{};let hit=false;for(const f in v){const val=v[f];if(typeof val!=='string'||!val)continue;let x=val;
+      x=x.replace(new RegExp('\\{'+o.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\}','g'),'{'+n+'}');
+      if(ef[b.t]&&ef[b.t].has(f))x=reOut(x,o,n);
+      if(x!==val){hit=true;if(apply)v[f]=x}}
+    if(hit){count++;if(!first)first=b.id}w(b)})})(root);return{count,first}}
+const VNAME=/^[A-Za-z_]\w*$/;
+function renameVar(o,n){n=String(n).trim();if(!VNAME.test(n))return st('A name can only use letters, numbers and _, and cannot start with a number');
+  if(RES.has(n.toLowerCase())||/^A_/i.test(n))return st('“'+n+'” is reserved. Pick another name');
+  if(n===o)return;if([...vars(root)].some(x=>x.toLowerCase()===n.toLowerCase()))return st('You already have a variable called “'+n+'”');
+  const r=varRefs(o,n,true);render();snap();code();renderVars();st('Renamed '+o+' to '+n+' in '+r.count+' block'+(r.count===1?'':'s'))}
+function renderVars(){const L=$('#varl');L.replaceChildren();const vs=[...vars(root)].sort((a,b)=>a.localeCompare(b));
+  if(!vs.length){const p=document.createElement('p');p.className='tip';p.textContent='No variables yet. Add a “Set variable” block and it will show up here.';L.append(p);return}
+  vs.forEach(o=>{const r=varRefs(o,o+'__x',false),row=document.createElement('div');row.className='vrow';
+    const nm=document.createElement('code');nm.textContent=o;const u=document.createElement('small');u.textContent=r.count+' block'+(r.count===1?'':'s');
+    const inp=document.createElement('input');inp.placeholder='New name';inp.onkeydown=e=>{if(e.key==='Enter')go.click()};
+    const go=document.createElement('button');go.textContent='Rename';go.onclick=()=>{if(inp.value.trim())renameVar(o,inp.value)};
+    const jm=document.createElement('button');jm.textContent='Show';jm.title='Jump to the first block that uses it';jm.onclick=()=>{$('#vard').close();if(r.first)goBlock(r.first)};
+    row.append(nm,u,inp,go,jm);L.append(row)})}
+$('#vbtn').onclick=()=>{if(!TABS[cur]||view==='home')return st('Open a script first');if(view==='code')syncCode();renderVars();$('#vard').showModal()};
+$('#varx').onclick=()=>$('#vard').close();
+
+/* ---- versions ---- */
+function takeVersion(label,auto){const t=TABS[cur];if(!t||view==='home')return;stash();const d=JSON.stringify([root.kids,GUI,SET]);t.versions=t.versions||[];const lv=t.versions[t.versions.length-1];
+  if(lv&&lv.d===d){if(label&&!auto){lv.l=label;lv.a=false;saveLibSoon()}return}
+  t.versions.push({t:Date.now(),l:label||'',a:!!auto,d});while(t.versions.length>30){const i=t.versions.findIndex(v=>v.a);t.versions.splice(i<0?0:i,1)}saveLibSoon()}
+function renderVersions(){const L=$('#verl');L.replaceChildren();const t=TABS[cur],vs=(t&&t.versions)||[];
+  if(!vs.length){const p=document.createElement('p');p.className='tip';p.textContent='No versions yet.';L.append(p);return}
+  [...vs].reverse().forEach(v=>{const row=document.createElement('div');row.className='verrow';let n=0;try{n=cnt({kids:JSON.parse(v.d)[0]})}catch(e){}
+    const sp=document.createElement('span');sp.textContent=(v.l||(v.a?'Automatic':'Saved by you'));const sm=document.createElement('small');sm.textContent=ago(v.t)+' · '+n+' blocks';sp.append(sm);
+    const rn=document.createElement('button');rn.textContent='Name';rn.onclick=()=>{const x=prompt('Name this version',v.l||'');if(x!==null){v.l=x.trim();v.a=false;saveLibSoon();renderVersions()}};
+    const rs=document.createElement('button');rs.className='pri';rs.textContent='Restore';rs.onclick=()=>{takeVersion('Before restore',true);restore(v.d);stash();snap();code();$('#verd').close();st('Restored the version from '+ago(v.t))};
+    const dl=document.createElement('button');dl.textContent='×';dl.title='Delete this version';dl.onclick=()=>{t.versions.splice(t.versions.indexOf(v),1);saveLibSoon();renderVersions()};
+    row.append(sp,rn,rs,dl);L.append(row)})}
+$('#verbtn').onclick=()=>{if(!TABS[cur]||view==='home')return st('Open a script first');if(view==='code')syncCode();takeVersion('',true);renderVersions();$('#verd').showModal()};
+$('#vernew').onclick=()=>{const x=prompt('Name this version (optional)','');if(x===null)return;takeVersion(x.trim()||'Saved by you',false);renderVersions()};
+$('#verx').onclick=()=>$('#verd').close();
+['#run','#cmp'].forEach(id=>{const b=$(id),o=b.onclick;b.onclick=function(...a){if(TABS[cur]&&view!=='home'){if(view==='code')syncCode();takeVersion('',true)}return o.apply(this,a)}});
+{const o=$('#sv').onclick;$('#sv').onclick=function(...a){if(TABS[cur]&&view!=='home'){syncCode();takeVersion('',true)}return o.apply(this,a)}}
+
+/* ---- share: .ahk that also carries the blocks ---- */
+const SHARE_RE=/;\s*===NEXO-AHKS-BLOCKS[^\n]*\n((?:;[ \t]*[A-Za-z0-9+\/=]+[ \t]*\r?\n)+);\s*===END===/;
+function unpackBlocks(text){const m=SHARE_RE.exec(String(text));if(!m)return null;try{const b64=m[1].split(/\r?\n/).map(l=>l.replace(/^;\s*/,'').trim()).join('');const o=JSON.parse(decodeURIComponent(escape(atob(b64))));if(!o||!Array.isArray(o.kids))return null;fix(o);return o}catch(e){return null}}
+$('#shr').onclick=async()=>{if(!TABS[cur]||view==='home')return st('Open a script first');syncCode();
+  const pack=JSON.stringify({v:1,name:TABS[cur].name,kids:root.kids,gui:GUI,set:SET}),b64=btoa(unescape(encodeURIComponent(pack))),lines=b64.match(/.{1,110}/g)||[];
+  const txt=src().replace(/\s*$/,'')+'\n\n; ===NEXO-AHKS-BLOCKS v1 (open this file in Nexo Ahks to edit it as blocks)===\n'+lines.map(l=>'; '+l).join('\n')+'\n; ===END===\n';
+  const nm=(TABS[cur].name||'script').replace(/[\\/:*?"<>|]/g,'_')+'.ahk';
+  if(A){const r=await A.exportAhk(txt,nm);if(bad(r)||!r)return;st('Shared as '+r.split(/[\\/]/).pop()+'. Anyone with Nexo Ahks can open it as blocks.')}
+  else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=nm;a.click()}};
+
+/* ---- first-run tour: make a clicker in 2 minutes ---- */
+const palBtn=n=>[...document.querySelectorAll('#pal .pb')].find(b=>b.textContent===n);
+const hkOf=()=>root.kids.find(k=>k.t==='hotkey');
+let tutRan=false,tutI=-1,tutT=0;
+const TUT=[
+ {h:'Welcome to Nexo Ahks',t:'In about two minutes you will build a <b>clicker</b>: press a key and it clicks the mouse for you. You never have to write code. Blocks snap together like Lego.',tg:()=>null},
+ {h:'1. Choose the key',t:'Click <b>When key pressed</b> in the block list on the left. This is the trigger: everything you put inside it runs when you press that key.',tg:()=>palBtn('When key pressed'),done:()=>!!hkOf()},
+ {h:'2. Add the click',t:'Now click <b>Click</b> in the list. It lands <i>inside</i> your key block, because that one is selected.',tg:()=>palBtn('Click'),done:()=>!!(hkOf()&&hkOf().kids.some(k=>k.t==='click'))},
+ {h:'3. Add a short pause',t:'Click <b>Wait</b> so it does not click faster than the game or app can take. Then change the number in the block if you want (100 = a tenth of a second).',tg:()=>palBtn('Wait'),done:()=>!!(hkOf()&&hkOf().kids.some(k=>k.t==='wait'))},
+ {h:'4. Pick your key',t:'The block says <b>F1</b> by default. Press the little <b>⌨</b> button next to it and hit any key you like. You can also just keep F1.',tg:()=>document.querySelector('.blk .mb'),},
+ {h:'5. Run it',t:'Press <b>▶ Run</b>. Then switch to any window and press your key. Press <b>Ctrl+Alt+Q</b> at any time to stop everything.',tg:()=>$('#run'),done:()=>tutRan},
+ {h:'You did it! 🎉',t:'That is a real AutoHotkey script. Peek at it with the <b>Code</b> tab, press <b>Compile to EXE</b> to share it, or try <b>⏺ Record</b> to build blocks just by doing the actions. Open the <b>?</b> help any time to restart this tour.',tg:()=>null,last:1}];
+function tutClear(){document.querySelectorAll('.tut-hl').forEach(e=>e.classList.remove('tut-hl'))}
+function tutShow(){let c=$('#tut');if(!c){c=document.createElement('div');c.id='tut';document.body.append(c)}
+  const st0=TUT[tutI];tutClear();const tg=st0.tg();if(tg){tg.classList.add('tut-hl');if(tg.scrollIntoView)tg.scrollIntoView({block:'nearest'})}
+  c.innerHTML='<div class="ts">Tour · step '+(tutI+1)+' of '+TUT.length+'</div><h3 style="margin:0 0 4px;font-size:15px;text-transform:none;letter-spacing:0">'+st0.h+'</h3><div>'+st0.t+'</div><div class="dots">'+TUT.map((_,i)=>'<i class="'+(i<=tutI?'on':'')+'"></i>').join('')+'</div><div class="tb"></div>';
+  const tb=c.querySelector('.tb'),mk2=(l,f,p)=>{const b=document.createElement('button');b.textContent=l;if(p)b.className='pri';b.onclick=f;tb.append(b)};
+  if(!st0.last)mk2('Skip tour',tutEnd);if(tutI>0&&!st0.last)mk2('Back',()=>{tutI--;tutShow()});
+  mk2(st0.last?'Finish':(st0.done?'Next':'Next'),()=>{if(st0.last)tutEnd();else{tutI++;tutShow()}},1)}
+function tutEnd(){tutI=-1;clearInterval(tutT);tutT=0;tutClear();const c=$('#tut');if(c)c.remove()}
+function tutTick(){if(tutI<0)return;const st0=TUT[tutI];if(st0.done&&st0.done()){tutI++;tutShow()}else if(st0.tg){const t=st0.tg();if(t&&!t.classList.contains('tut-hl')){tutClear();t.classList.add('tut-hl')}}}
+function startTutorial(){try{localStorage.setItem('nexoTutSeen','1')}catch(e){}tutRan=false;if($('#hlp').open)$('#hlp').close();newTab('My first clicker');setView('blocks');root.kids.length=0;sel='root';render();code();tutI=0;tutShow();clearInterval(tutT);tutT=setInterval(tutTick,300)}
+$('#run').addEventListener('click',()=>{if(tutI>=0)tutRan=true});
+$('#tut-go').onclick=startTutorial;
+
+/* ---- plain-English summary and "test this block" ---- */
+const fillT=b=>String(T[b.t].t||b.t).replace(/\{(\w+)\}/g,(m,f)=>{const x=b.v&&b.v[f];return x===undefined||x===''?'…':x});
+function plain(b){const k=b.kids||[];return k.length?k.map(x=>fillT(x)+(x.kids&&x.kids.length?' ('+plain(x)+')':'')).join(' → '):'nothing yet'}
+function testCode(b){const keep=root.kids;try{root.kids=[S('rawl',{s:'ToolTip "Nexo Ahks test: starting in 3 seconds…"'}),S('rawl',{s:'Sleep 3000'}),S('rawl',{s:'ToolTip()'}),...b.kids,S('rawl',{s:'ExitApp'})];return build()}finally{root.kids=keep}}
+async function testBlock(b){if(!A)return st('Testing works in the desktop app');
+  const code=testCode(b);const r=await A.runScript({id:'test_'+b.id,name:'Test: '+fillT(b),code,file:null});if(bad(r))return;st('Testing “'+fillT(b)+'” once. It starts in 3 seconds, so switch to your window. Ctrl+Alt+Q stops it.')}
+$('#expl').onclick=()=>{document.body.classList.toggle('explain');lsSet('nexoExplain',document.body.classList.contains('explain'))};
+if(lsGet('nexoExplain',false))document.body.classList.add('explain');
+
+/* ---- AutoHotkey v1 -> v2 (common commands) ---- */
+function looksV1(t){if(/#Requires\s+AutoHotkey\s+v?2/i.test(t))return false;return /^\s*#NoEnv|^\s*#Persistent|^\s*SetWorkingDir\b|^\s*#SingleInstance\s*,|^\s*#If(Win)?(Not)?(Active|Exist)?\b|^\s*(Send|SendInput|SendRaw|SendEvent|Sleep|MsgBox|Run|ToolTip|MouseMove|MouseClick|Click|SoundBeep|Loop|WinActivate|WinWait|WinClose)\s*,|%[A-Za-z_]\w*%/im.test(t)}
+function v1to2(text){
+  const qv=x=>{const parts=[];let last=0,m;const re=/%([A-Za-z_]\w*)%/g;const q=z=>'"'+z.replace(/`,/g,',').replace(/`%/g,'%').replace(/"/g,'`"')+'"';
+    while((m=re.exec(x))){if(m.index>last)parts.push(q(x.slice(last,m.index)));parts.push(m[1]);last=m.index+m[0].length}
+    if(last<x.length||!parts.length)parts.push(q(x.slice(last)));return parts.join(' ')};
+  const ex=x=>x.trim().replace(/^%\s+/,'').replace(/%([A-Za-z_]\w*)%/g,'$1');
+  const split=a=>{const o=[];let cur='';for(let i=0;i<a.length;i++){const c=a[i];if(c==='`'&&i+1<a.length){cur+=c+a[++i];continue}if(c===','){o.push(cur);cur='';continue}cur+=c}o.push(cur);return o.map(x=>x.trim())};
+  const TB={send:['Send',['t']],sendinput:['SendInput',['t']],sendevent:['SendEvent',['t']],sendplay:['SendPlay',['t']],sendraw:['SendText',['t']],sleep:['Sleep',['e']],run:['Run',['t','t','t']],tooltip:['ToolTip',['t','e','e']],mousemove:['MouseMove',['e','e','e','t']],soundbeep:['SoundBeep',['e','e']],
+    winactivate:['WinActivate',['t']],winclose:['WinClose',['t']],winwait:['WinWait',['t']],winwaitactive:['WinWaitActive',['t']],winminimize:['WinMinimize',['t']],winmaximize:['WinMaximize',['t']],winrestore:['WinRestore',['t']],blockinput:['BlockInput',['t']],clipwait:['ClipWait',['e']],mouseclick:['MouseClick',['t','e','e','e','e','t','t']]};
+  const conv=(ind,name,rest)=>{const k=name.toLowerCase();
+    if(k==='msgbox'){const a=split(rest);if(a.length>=3&&/^\d+$/.test(a[0]))return ind+'MsgBox '+qv(a.slice(2).join(', '))+', '+qv(a[1])+', '+a[0];return ind+'MsgBox '+qv(rest.trim())}
+    if(k==='click'){const a=split(rest).filter(Boolean);if(!a.length)return ind+'Click';return ind+'Click '+qv(a.join(' '))}
+    if(k==='loop'){if(/^(parse|read|files|reg)\b/i.test(rest.trim()))return null;return ind+'Loop'+(rest.trim()?' '+ex(rest):'')}
+    const d=TB[k];if(!d)return null;const a=split(rest);const out=a.map((x,i)=>x===''?'':(d[1][i]==='e'?ex(x):qv(x)));while(out.length&&out[out.length-1]==='')out.pop();
+    return ind+d[0]+(out.length?' '+out.join(', '):'')};
+  const lines=String(text).split(/\r?\n/),out=['#Requires AutoHotkey v2.0'];let inHK=false,todo=0;
+  const closeHK=()=>{if(inHK){out.push('}');inHK=false}};
+  for(let raw of lines){const ln=raw,t=ln.trim();let m;
+    if(/^#(NoEnv|Persistent|KeyHistory)\b/i.test(t)||/^(SendMode|SetBatchLines|SetWorkingDir|ListLines|SetTitleMatchMode\s*,?\s*(fast|slow))\b/i.test(t)||/^#Requires/i.test(t))continue;
+    if((m=t.match(/^#SingleInstance\s*,?\s*(\w*)/i))){out.push('#SingleInstance '+(m[1]?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():'Force'));continue}
+    if((m=t.match(/^#If(Win)(Not)?(Active|Exist)\s*,?\s*(.*)$/i))){closeHK();out.push(m[4]?'#HotIf '+(m[2]?'!':'')+'Win'+m[3]+'('+qv(m[4])+')':'#HotIf');continue}
+    if((m=t.match(/^(\S+?)::\s*$/))&&!/^:/.test(t)){closeHK();out.push(m[1]+'::{');inHK=true;continue}
+    if(inHK&&/^return\s*$/i.test(t)){closeHK();continue}
+    if((m=t.match(/^(\S+?::)\s*(\w+)\s*,\s*(.*)$/))&&!/^:/.test(t)){const c=conv('',m[2],m[3]);if(c){out.push(m[1]+c);continue}}
+    if((m=ln.match(/^(\s*)(\w+)\s*(?:,\s*|\s+|$)(.*)$/))&&(TB[m[2].toLowerCase()]||/^(msgbox|click|loop)$/i.test(m[2]))&&!/^\s*:?=/.test(m[3])&&!/^\w+\s*[:+\-*\/.|&^]?=/.test(m[2]+' '+m[3])){const c=conv(m[1],m[2],m[3].replace(/\s+;.*$/,'').replace(/\s*\{\s*$/,''));if(c){out.push(c+(/\{\s*$/.test(m[3])?' {':''));continue}}
+    if((m=ln.match(/^(\s*)([A-Za-z_]\w*)\s*=\s*(.*)$/))&&!/^(if|while|else|loop)$/i.test(m[2])){out.push(m[1]+m[2]+' := '+(/^-?\d+(\.\d+)?$/.test(m[3].trim())?m[3].trim():qv(m[3].trim())));continue}
+    if(/^\s*return\s*$/i.test(ln)){out.push(ln.replace(/return/i,'return'));continue}
+    out.push(ln.replace(/^(\s*)(Loop)\s*,\s*/i,'$1$2 '));
+    if(/^\s*\w+\s*,/.test(ln)||/^\s*\w+:\s*$/.test(ln)||/^\s*(StringReplace|StringLeft|StringRight|IfEqual|IfNotEqual|IfInString|Gosub|Goto|SetTimer\s*,)/i.test(ln))todo++}
+  closeHK();return{text:out.join('\n'),todo}}
+
 function openText(name,text,file){text=String(text).replace(/^\ufeff/,'');
   if(/\.ahkb$/i.test(name)){try{const o=JSON.parse(text);o.kids=o.kids||[];fix(o);newTab(o.name||name.replace(/\.ahkb$/i,''),o.kids,{gui:o.gui,proj:file,set:o.set?Object.assign({},DS,o.set):undefined});return st('Opened '+name)}catch(e){return st('Not a valid project file')}}
   const it=importItem(name.replace(/\.ahk$/i,''),text,file);openItem(it);const r=it._r;
-  st('Imported '+r.n+' blocks'+(r.gui?' and a UI':'')+(r.rawN?' · '+r.rawN+' raw lines':''))}
+  st('Imported '+r.n+' blocks'+(r.gui?' and a UI':'')+(r.v1?' · converted from AutoHotkey v1'+(r.v1.todo?' ('+r.v1.todo+' line'+(r.v1.todo>1?'s':'')+' need a look)':''):'')+(r.rawN?' · '+r.rawN+' raw lines':''))}
 addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()});
 addEventListener('drop',async e=>{const fl=[...(e.dataTransfer?e.dataTransfer.files:[])];if(!fl.length)return;e.preventDefault();for(const f of fl)if(/\.(ahk|ahkb)$/i.test(f.name))openText(f.name,await f.text(),safePath(f))});
 async function pickC(b){if(!A)return st('Picking works in the desktop app');st('Move the mouse over the color, then press F8 (Esc cancels)');const r=await A.pick();if(!r)return st('Pick cancelled');b.v.c=r.c;render();st('Picked '+r.c)}
@@ -1316,7 +1542,8 @@ pal();
     TABS=(d.open||[]).map(id=>LIB.find(x=>x.id===id)).filter(Boolean);if(TABS.length)load(Math.max(0,TABS.findIndex(t=>t.id===d.cur)));else cur=-1}
   if(!TABS.length)cur=-1;
   if(A){try{RUN=new Set(await A.running()||[]);const pf=await A.getPrefs();$('#hm-tray').checked=!!pf.closeToTray;$('#hm-keep').checked=!!pf.keepRunning}catch(e){}}
-  renderTabs();setView('home');saveLibSoon()})();
+  renderTabs();setView('home');saveLibSoon();
+  try{if(!localStorage.getItem('nexoTutSeen')&&!LIB.length)setTimeout(startTutorial,700)}catch(e){}})();
 </script>
 </body>
 </html>

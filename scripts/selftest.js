@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 const fs = require('fs');
 const html = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'index.html'), 'utf8');
 const errs = [];
-const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'file:///x/index.html', pretendToBeVisual: true, beforeParse(w) {
+const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/index.html', pretendToBeVisual: true, beforeParse(w) {
   w.matchMedia = () => ({ matches: false, addListener() {}, addEventListener() {} });
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true };
   w.HTMLDialogElement.prototype.close = function () { this.open = false };
@@ -68,6 +68,54 @@ setTimeout(() => {
   const after = ev(`real().map(c=>c.y)`); ok(after.every((y, i) => y === before[i] + 30), 'group drag moved all: ' + before + ' -> ' + after);
   ev(`delCtl()`); ok(ev(`real().length`) === 0, 'delete group');
   ev(`setView('blocks')`);
+  ev(`tutEnd()`);
+  // 8. one-click lint fixes
+  ev(`newTab('F');root.kids=[S('hotkey',{key:'F1'},[S('wait',{ms:'1'})]),S('hotkey',{key:'F1'},[S('call',{n:'Nope'})]),S('hotkey',{key:''},[S('wait')]),S('hotkey',{key:'Ctrl + J'},[S('wait')]),S('hotkey',{key:'F5'},[]),S('click'),S('func',{n:'A'}),S('func',{n:'A'}),S('set',{n:'1bad',v:'3'}),S('forever',{},[S('click')])];fixAll()`);
+  ok(ev(`lint(build()).filter(x=>x.sev==='error').length`) === 0, 'Fix all clears every error');
+  // 9. variables: rename everywhere (text in quotes stays)
+  ev(`root.kids.splice(0,root.kids.length,S('hotkey',{key:'F1'},[S('set',{n:'count',v:'0'}),S('incr',{n:'count'}),S('msg',{s:'Total {count} of count'}),S('if',{c:'count > 3'},[S('text',{s:'count stays text'})])]));renameVar('count','clicks')`);
+  const vj = ev(`JSON.stringify(root.kids)`);
+  ok(/"n":"clicks"/.test(vj) && /\{clicks\}/.test(vj) && /clicks > 3/.test(vj) && /count stays text/.test(vj) && /of count/.test(vj), 'rename variable everywhere');
+  // 10. versions + share round trip + drag block to another tab
+  ev(`takeVersion('v1',false);root.kids.push(S('hotkey',{key:'F2'},[S('wait')]));takeVersion('',true)`);
+  ev(`restore(TABS[cur].versions[0].d)`); ok(ev(`root.kids.length`) === 1, 'restore version');
+  ok(ev(`(()=>{const p=JSON.stringify({kids:root.kids,gui:GUI,set:SET});const b=btoa(unescape(encodeURIComponent(p)));const t=build()+'\\n; ===NEXO-AHKS-BLOCKS v1 (x)===\\n'+b.match(/.{1,110}/g).map(l=>'; '+l).join('\\n')+'\\n; ===END===\\n';return JSON.stringify(unpackBlocks(t).kids)===JSON.stringify(root.kids)})()`) === true, 'share round trip');
+  ev(`newTab('Other');root.kids.splice(0,root.kids.length,S('hotkey',{key:'F9'},[S('wait')]));render();renderTabs()`);
+  const bid = ev(`root.kids[0].id`), tabEls = [...w.document.querySelectorAll('#tabs .tab:not(.home)')];
+  const de = new w.Event('drop', { bubbles: true, cancelable: true }); de.dataTransfer = { getData: () => 'move:' + bid }; ev(`DRAG={id:'${bid}',t:'hotkey'}`);
+  tabEls[ev(`cur`) === 0 ? 1 : 0].dispatchEvent(de);
+  ok(ev(`root.kids.length`) === 0 && ev(`TABS.some((t,i)=>i!==cur&&t.kids.some(k=>k.v&&k.v.key==='F9'))`), 'drag block to another tab');
+  // 11. recorder: drags become drag blocks, long pauses are trimmed
+  const rc = ev(`recToBlocks(['0|D|Left|100|100','30|U|Left|100|100','4000|D|Left|200|200','200|U|Left|420|300'].join('\\n'),{delay:true,cap:2000}).map(b=>b.t+(b.v.ms||'')).join()`);
+  ok(rc === 'click,wait2000,drag', 'recorder: ' + rc);
+  // 12. UI designer: anchors, themes, layout, resize handles, jumps
+  ev(`newTab('U');setView('ui');addCtl('Edit');addCtl('Button');addCtl('Button')`);
+  ev(`(()=>{const r=real();r[0].n='name1';r[1].n='go';r[2].n='cancel';r[0].x=20;r[0].y=20;r[0].w=300;r[1].x=220;r[1].y=240;r[2].x=300;r[2].y=100;r[0].aw=true;r[0].hw=1;r[1].ar=true;r[1].ab=true;optToggle(GUI,'+Resize',true);renderUI();code()})()`);
+  let ac = ev(`build()`); ok(/name1\.Move\(, , 300 \+ dx\)/.test(ac) && /go\.Move\(220 \+ dx, 240 \+ dy\)/.test(ac), 'anchors generate code');
+  ev(`(()=>{const r=parseAhk(build());root.kids=r.kids;GUI=r.gui;normGui(GUI);SET=setFromParse(r.set)})()`);
+  ac = ev(`build()`); ok((ac.match(/_Anchor\(g, mm, w, h\)/g) || []).length === 1 && /name1\.Move\(, , 300 \+ dx\)/.test(ac), 'anchors survive import without duplicates');
+  ev(`applyTheme('dark');applyTheme('dark')`); ac = ev(`build()`);
+  ok(/BackColor := "1c1d23"/.test(ac) && (ac.match(/DwmSetWindowAttribute/g) || []).length === 1, 'dark theme');
+  ev(`applyTheme('')`); ok(!/DwmSet|BackColor/.test(ev(`build()`)), 'theme removed'); ev(`applyFontPack('code')`); ok(/Consolas/.test(ev(`build()`)), 'font pack');
+  ev(`uMulti=new Set();stackCtls('v',10)`); const sy = ev(`real().map(c=>c.y).sort((a,b)=>a-b)`); ok(sy[1] > sy[0] && sy[2] > sy[1], 'stack vertically');
+  ev(`fitWindow(20)`); ok(ev(`Math.min(...real().map(c=>c.x))`) === 20 && ev(`GUI.w`) === ev(`Math.max(...real().map(c=>c.x+c.w))+20`), 'equal padding');
+  ev(`GUI.w=400;GUI.h=300;renderUI()`); const hh = w.document.querySelectorAll('.win-rs'); ok(hh.length === 3, 'resize handles');
+  hh[2].dispatchEvent(new w.MouseEvent('pointerdown', { clientX: 0, clientY: 0, bubbles: true, cancelable: true }));
+  w.dispatchEvent(new w.MouseEvent('pointermove', { clientX: 50, clientY: 30 })); w.dispatchEvent(new w.MouseEvent('pointerup', {}));
+  ok(ev(`GUI.w`) >= 440 && ev(`GUI.h`) >= 320, 'drag window corner');
+  ev(`setView('blocks');root.kids.push(S('setctl',{c:'go'}));render();jumpCtl('go')`); ok(ev(`view`) === 'ui', 'jump block -> control');
+  // 13. tour
+  ev(`startTutorial()`); const pbt = n => [...w.document.querySelectorAll('#pal .pb')].find(b => b.textContent === n);
+  ev(`tutI=1;tutShow()`); pbt('When key pressed').click(); ev(`tutTick()`); pbt('Click').click(); ev(`tutTick()`); pbt('Wait').click(); ev(`tutTick()`);
+  ok(ev(`tutI`) === 4, 'tour follows your clicks'); ev(`tutEnd()`);
+  // 14. favorites, recent, plain-English summary, test block, v1 import
+  ev(`toggleFav('wait')`); ok(ev(`FAVS.includes('wait')`) && w.document.querySelector('#paltop .pb.fav'), 'favorite pinned');
+  ev(`toggleFav('wait')`); ok(!ev(`FAVS.includes('wait')`), 'favorite removed');
+  ev(`newTab('P');root.kids.splice(0,root.kids.length,S('hotkey',{key:'F4'},[S('click'),S('wait',{ms:'50'})]));render()`);
+  ok(/F4/.test(ev(`plain(root.kids[0])`)) === false && /Wait 50 ms/.test(ev(`plain(root.kids[0])`)), 'plain English: ' + ev(`plain(root.kids[0])`));
+  ok(/Sleep 3000/.test(ev(`testCode(root.kids[0])`)) && !/F4::/.test(ev(`testCode(root.kids[0])`)) && ev(`root.kids.length`) === 1, 'test block code');
+  const v1c = ev(`v1to2('#NoEnv\\nF1::\\n  Send, Hello\\n  Sleep, 100\\nreturn\\n').text`);
+  ok(/F1::\{\n  Send "Hello"\n  Sleep 100\n\}/.test(v1c), 'v1 -> v2: ' + v1c);
   console.log(errs.concat(fail).length ? 'FAILED\n - ' + errs.concat(fail).join('\n - ') : 'All self-tests passed (' + ev('Object.keys(T).length') + ' blocks)');
   process.exit(errs.concat(fail).length ? 1 : 0);
 }, 900);

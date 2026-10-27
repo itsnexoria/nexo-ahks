@@ -1,4 +1,4 @@
-# AHK Blocks
+# Nexo Ahks
 Block-based AutoHotkey v2 script builder (Electron).
 
 ## Run
@@ -96,3 +96,20 @@ Block-based AutoHotkey v2 script builder (Electron).
 - **Multi-select**: Shift/Ctrl-click controls, drag a box on empty space, or Ctrl+A. Drag moves the whole group; arrow keys nudge it; Delete removes it.
 - **Align / distribute / match size** tools appear when 2+ controls are selected (left, center, right, top, middle, bottom, even spacing, same width/height).
 - **Ctrl+C / Ctrl+V** on the block canvas copies a block (with everything inside it), even into another tab.
+
+## v8.0 — Nexo Ahks
+- Renamed to **Nexo Ahks**, new logo, app/installer icon, installer sidebar. Your old projects and settings carry over automatically.
+- **One-click fixes** on lint problems (🔧 button), plus **Fix all**.
+- **Variables panel**: every variable, how many blocks use it, rename everywhere (text in quotes is left alone).
+- **Versions**: snapshots saved automatically on run/save/compile, name them, restore any time.
+- **Share**: `↗ Share` saves a normal `.ahk` that also carries your blocks. Opening it in Nexo Ahks gives back the exact blocks.
+- **Drag a block onto another tab** to move it (hold Ctrl to copy).
+- **Recorder**: captures mouse drags, scrolling, and trims long pauses.
+- **UI Designer**: drag the window edges/corner to resize, stack vertically/horizontally, fit window with equal padding, anchors (stretch / stay on the edge when the window resizes), dark/midnight/Nexo/high-contrast themes (incl. dark title bar), font packs, jump from a control to its function and from a block to its control.
+- **First-run tour**: a 6-step "make your first clicker" walkthrough (also under `?`).
+
+## v8.1
+- **Favorites and Recent**: right-click any block in the list to pin it. The last blocks you used show up at the top.
+- **💬 Explain**: a plain-English sentence under every block that has blocks inside ("When I press F1: Click → Wait 50 ms"). It is always shown when a block is collapsed.
+- **▶ Test this block**: on key/hotstring blocks. Runs just that block once, after a 3 second countdown so you can switch windows.
+- **AutoHotkey v1 import**: opening an old v1 script converts the common commands (Send, Sleep, MsgBox, Click, Run, ToolTip, MouseMove, Loop, `X::` + `return` hotkeys, `%var%`, `#IfWinActive`, `#NoEnv`…) to v2. Lines it cannot convert are kept as they were and counted in the status bar.

@@ -5,6 +5,9 @@ let win, rec = null, tray = null, libList = [], quitting = false;
 const procs = new Map(); // script id -> running AutoHotkey process
 const TRAY_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABIElEQVR42sXXW08CMRAF4POHFQQRBBEEEUQIxmgkRGP8g9zkJhePgQRSlnRpu8vOSb6XdjLTxw6gSaxJhgmmiT/98ZS0gxP1FaN08IDk44pR2hueqi0pYfeAdHVJCZvhmYcFJSFbWVAScvdzSkK+PKerbYL0QKH0SxfeuPZB8W5GW7q49EKpOKMNNX5nplAuTGlKjc2dH1RupzShJkiNF6r5CY9RE2btGmo3Ex6jJszaNdRzY5pQE6TGC43smKbU2Nz5QfN6RBtq/M5MoZUZ0ZYuLr3wnP6hC29c++DlakhX2wTpgdfUkJLwdjmgJLwnB5S0+Re2E31K2P2KOxd9StjbDT7iPUbpYDP6jPUYJe2O+HXe5SkZb8nfZ12GSTfnH7M8b3rr+yReAAAAAElFTkSuQmCC';
 
+// keep existing projects/settings from the old "AHK Blocks" folder
+try { const ad = app.getPath('appData'), oldD = path.join(ad, 'AHK Blocks'), newD = path.join(ad, 'Nexo Ahks'); app.setPath('userData', fs.existsSync(oldD) && !fs.existsSync(newD) ? oldD : newD); } catch (e) {}
+app.setName('Nexo Ahks');
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
 
@@ -41,7 +44,7 @@ async function ensureAhk() {
   setCfg({ ahk: r.filePaths[0] }); return r.filePaths[0];
 }
 const tmpFile = (code, name = 'run.ahk') => {
-  const d = path.join(os.tmpdir(), 'ahk-blocks'); fs.mkdirSync(d, { recursive: true });
+  const d = path.join(os.tmpdir(), 'nexo-ahks'); fs.mkdirSync(d, { recursive: true });
   const f = path.join(d, name); fs.writeFileSync(f, code); return f;
 };
 const NOAHK = 'AutoHotkey v2 not found. Install it from autohotkey.com (Windows only).';
@@ -55,13 +58,13 @@ const ES = e => 'Error: ' + String((e && e.message) || e);
 handle('save-project', async (s, def, as) => {
   let f = def;
   if (!f || as) {
-    const r = await dialog.showSaveDialog(win, { defaultPath: def || 'my-script.ahkb', filters: [{ name: 'AHK Blocks project', extensions: ['ahkb'] }] });
+    const r = await dialog.showSaveDialog(win, { defaultPath: def || 'my-script.ahkb', filters: [{ name: 'Nexo Ahks project', extensions: ['ahkb'] }] });
     if (r.canceled) return null; f = r.filePath;
   }
   fs.writeFileSync(f, s); return f;
 }, E);
 handle('open-project', async () => {
-  const r = await dialog.showOpenDialog(win, { filters: [{ name: 'AHK Blocks project', extensions: ['ahkb'] }], properties: ['openFile'] });
+  const r = await dialog.showOpenDialog(win, { filters: [{ name: 'Nexo Ahks project', extensions: ['ahkb'] }], properties: ['openFile'] });
   if (r.canceled) return null;
   const file = r.filePaths[0]; return { name: path.basename(file), file, text: readText(file) };
 }, E);
@@ -80,13 +83,13 @@ const send = (ch, d) => { try { if (win && !win.isDestroyed()) win.webContents.s
 function trayMenu() {
   const items = libList.slice(0, 14).map(it => ({ label: (procs.has(it.id) ? '■  Stop   ' : '▶  Run   ') + it.name, click: () => send('tray-cmd', { cmd: 'toggle', id: it.id }) }));
   return Menu.buildFromTemplate([
-    { label: 'Open AHK Blocks', click: showWin }, { type: 'separator' },
+    { label: 'Open Nexo Ahks', click: showWin }, { type: 'separator' },
     ...(items.length ? items : [{ label: 'No scripts yet', enabled: false }]), { type: 'separator' },
     { label: 'Stop all scripts', enabled: procs.size > 0, click: () => stopAll() },
     { label: 'Quit', click: () => { quitting = true; app.quit(); } }
   ]);
 }
-function updateTray() { if (!tray) return; try { tray.setContextMenu(trayMenu()); tray.setToolTip('AHK Blocks · ' + procs.size + ' running'); } catch (e) {} }
+function updateTray() { if (!tray) return; try { tray.setContextMenu(trayMenu()); tray.setToolTip('Nexo Ahks · ' + procs.size + ' running'); } catch (e) {} }
 function showWin() { if (!win) return; if (win.isMinimized()) win.restore(); win.show(); win.focus(); }
 function stopOne(id) {
   const c = procs.get(id); if (!c) return false;
@@ -138,12 +141,12 @@ handle('set-startup', async o => {
   const exe = await ensureAhk(); if (!exe) return { err: NOAHK };
   const dir = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup');
   const safe = String(o.name || 'script').replace(/[\\/:*?"<>|]/g, '_');
-  const lnk = path.join(dir, 'AHK Blocks - ' + safe + '.lnk');
+  const lnk = path.join(dir, 'Nexo Ahks - ' + safe + '.lnk');
   const mine = path.join(app.getPath('userData'), 'startup', String(o.id).replace(/\W/g, '') + '.ahk');
   if (!o.on) { try { fs.unlinkSync(lnk); } catch (e) {} try { fs.unlinkSync(mine); } catch (e) {} return { ok: true }; }
   let script = o.file;
   if (!script) { fs.mkdirSync(path.dirname(mine), { recursive: true }); fs.writeFileSync(mine, o.code || ''); script = mine; }
-  shell.writeShortcutLink(lnk, 'create', { target: exe, args: '"' + script + '"', cwd: path.dirname(script), description: 'AHK Blocks: ' + safe });
+  shell.writeShortcutLink(lnk, 'create', { target: exe, args: '"' + script + '"', cwd: path.dirname(script), description: 'Nexo Ahks: ' + safe });
   return { ok: true, path: lnk };
 }, E);
 
@@ -205,8 +208,8 @@ const REC = [
   'ih.OnKeyDown := (h, vk, sc) => Rec("KD|" GetKeyName(Format("vk{:X}sc{:03X}", vk, sc)))',
   'ih.OnKeyUp := (h, vk, sc) => Rec("KU|" GetKeyName(Format("vk{:X}sc{:03X}", vk, sc)))',
   'ih.Start()',
-  'Btn(b) {', '  MouseGetPos &x, &y', '  Rec("C|" b "|" x "|" y)', '}',
-  '~*LButton::Btn("Left")', '~*RButton::Btn("Right")', '~*MButton::Btn("Middle")',
+  'Btn(b, st) {', '  MouseGetPos &x, &y', '  Rec(st "|" b "|" x "|" y)', '}',
+  '~*LButton::Btn("Left", "D")', '~*LButton Up::Btn("Left", "U")', '~*RButton::Btn("Right", "D")', '~*RButton Up::Btn("Right", "U")', '~*MButton::Btn("Middle", "D")', '~*MButton Up::Btn("Middle", "U")',
   '~*WheelUp::Rec("W|Up")', '~*WheelDown::Rec("W|Down")', 'F10::ExitApp'
 ].join('\r\n');
 handle('rec-start', async () => {
@@ -237,7 +240,7 @@ app.whenReady().then(() => {
   const onScreen = b.x !== undefined && screen.getAllDisplays().some(d => b.x >= d.bounds.x - 50 && b.x < d.bounds.x + d.bounds.width - 100 && b.y >= d.bounds.y - 50 && b.y < d.bounds.y + d.bounds.height - 100);
   win = new BrowserWindow({
     width: Math.max(900, b.width || 1440), height: Math.max(560, b.height || 880), ...(onScreen ? { x: b.x, y: b.y } : {}),
-    minWidth: 900, minHeight: 560, backgroundColor: '#0d0f15', autoHideMenuBar: true, title: 'AHK Blocks',
+    minWidth: 900, minHeight: 560, backgroundColor: '#0d0f15', autoHideMenuBar: true, title: 'Nexo Ahks', icon: path.join(__dirname, 'renderer', 'logo.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -246,7 +249,7 @@ app.whenReady().then(() => {
     try { setCfg({ bounds: win.getBounds() }); } catch (x) {}
     if (!quitting && prefs().closeToTray) { e.preventDefault(); win.hide(); }
   });
-  try { tray = new Tray(nativeImage.createFromDataURL(TRAY_ICON)); tray.on('click', showWin); updateTray(); } catch (e) {}
+  try { let ti = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'tray.png')); if (ti.isEmpty()) ti = nativeImage.createFromDataURL(TRAY_ICON); tray = new Tray(ti.resize({ width: 16, height: 16 })); tray.on('click', showWin); updateTray(); } catch (e) {}
   win.webContents.once('did-finish-load', () => setTimeout(() => openArg(process.argv), 500));
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 });
