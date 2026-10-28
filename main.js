@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu, Tray, nativeImage, shell, globalShortcut, screen, desktopCapturer } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, Tray, nativeImage, shell, globalShortcut, screen, desktopCapturer, net } = require('electron');
 const fs = require('fs'), os = require('os'), path = require('path');
 const { spawn, spawnSync } = require('child_process');
 let win, rec = null, tray = null, libList = [], quitting = false;
@@ -6,10 +6,26 @@ const procs = new Map(); // script id -> running AutoHotkey process
 const TRAY_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABIElEQVR42sXXW08CMRAF4POHFQQRBBEEEUQIxmgkRGP8g9zkJhePgQRSlnRpu8vOSb6XdjLTxw6gSaxJhgmmiT/98ZS0gxP1FaN08IDk44pR2hueqi0pYfeAdHVJCZvhmYcFJSFbWVAScvdzSkK+PKerbYL0QKH0SxfeuPZB8W5GW7q49EKpOKMNNX5nplAuTGlKjc2dH1RupzShJkiNF6r5CY9RE2btGmo3Ex6jJszaNdRzY5pQE6TGC43smKbU2Nz5QfN6RBtq/M5MoZUZ0ZYuLr3wnP6hC29c++DlakhX2wTpgdfUkJLwdjmgJLwnB5S0+Re2E31K2P2KOxd9StjbDT7iPUbpYDP6jPUYJe2O+HXe5SkZb8nfZ12GSTfnH7M8b3rr+yReAAAAAElFTkSuQmCC';
 
 // keep existing projects/settings from the old "AHK Blocks" folder
-try { const ad = app.getPath('appData'), oldD = path.join(ad, 'AHK Blocks'), newD = path.join(ad, 'Nexo Ahks'); app.setPath('userData', fs.existsSync(oldD) && !fs.existsSync(newD) ? oldD : newD); } catch (e) {}
+try { const ad = app.getPath('appData'), newD = path.join(ad, 'Nexo Ahks'), oldD = ['AHK Blocks', 'ahk-blocks'].map(n => path.join(ad, n)).find(d => fs.existsSync(d)); app.setPath('userData', oldD && !fs.existsSync(newD) ? oldD : newD); } catch (e) {}
 app.setName('Nexo Ahks');
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
+
+// ---------- update check (needs "repository" in package.json to point at your GitHub repo) ----------
+const pkg = (() => { try { return require('./package.json'); } catch (e) { return {}; } })();
+const newer = (a, b) => { const x = String(a).replace(/^v/i, '').split('.').map(n => parseInt(n) || 0), y = String(b).replace(/^v/i, '').split('.').map(n => parseInt(n) || 0); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+async function checkUpdate() {
+  try {
+    if (cfg().updateCheck === false) return;
+    const m = String((pkg.repository && (pkg.repository.url || pkg.repository)) || '').match(/github(?:\.com)?[/:]([^/\s]+\/[^/\s.]+)/i);
+    if (!m) return;
+    const r = await net.fetch('https://api.github.com/repos/' + m[1] + '/releases/latest', { headers: { 'User-Agent': 'Nexo-Ahks', Accept: 'application/vnd.github+json' } });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j && j.tag_name && newer(j.tag_name, app.getVersion())) send('update-available', { version: String(j.tag_name).replace(/^v/i, ''), url: j.html_url });
+  } catch (e) {}
+}
+handle('open-url', u => { if (/^https:\/\/github\.com\//i.test(String(u))) shell.openExternal(String(u)); return true; }, E);
 
 // ---------- config + AutoHotkey discovery ----------
 const cfgFile = () => path.join(app.getPath('userData'), 'config.json');
@@ -250,7 +266,7 @@ app.whenReady().then(() => {
     if (!quitting && prefs().closeToTray) { e.preventDefault(); win.hide(); }
   });
   try { let ti = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'tray.png')); if (ti.isEmpty()) ti = nativeImage.createFromDataURL(TRAY_ICON); tray = new Tray(ti.resize({ width: 16, height: 16 })); tray.on('click', showWin); updateTray(); } catch (e) {}
-  win.webContents.once('did-finish-load', () => setTimeout(() => openArg(process.argv), 500));
+  win.webContents.once('did-finish-load', () => { setTimeout(() => openArg(process.argv), 500); setTimeout(checkUpdate, 4000); });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 });
 app.on('before-quit', () => { quitting = true; if (!prefs().keepRunning) procs.forEach(c => { try { c.kill(); } catch (e) {} }); });

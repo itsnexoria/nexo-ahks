@@ -25,5 +25,7 @@ contextBridge.exposeInMainWorld('api', {
   pathOf: f => { try { return webUtils.getPathForFile(f); } catch (e) { return undefined; } },
   onScriptState: f => i.on('script-state', (_, d) => f(d)),
   onTray: f => i.on('tray-cmd', (_, d) => f(d)),
+  openUrl: u => i.invoke('open-url', u),
+  onUpdate: f => i.on('update-available', (_, d) => f(d)),
   onOpen: f => i.on('open-file', (_, d) => f(d))
 });

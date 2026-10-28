@@ -113,3 +113,20 @@ Block-based AutoHotkey v2 script builder (Electron).
 - **💬 Explain**: a plain-English sentence under every block that has blocks inside ("When I press F1: Click → Wait 50 ms"). It is always shown when a block is collapsed.
 - **▶ Test this block**: on key/hotstring blocks. Runs just that block once, after a 3 second countdown so you can switch windows.
 - **AutoHotkey v1 import**: opening an old v1 script converts the common commands (Send, Sleep, MsgBox, Click, Run, ToolTip, MouseMove, Loop, `X::` + `return` hotkeys, `%var%`, `#IfWinActive`, `#NoEnv`…) to v2. Lines it cannot convert are kept as they were and counted in the status bar.
+
+## v8.2
+- **29 new blocks**: regex (match / replace / if matches), lists (make, add, get, length, take last, random), maps (make, set, get, if has), for each file, for each piece of text, skip to next repeat, wait a random time, click a random spot, run a command and keep its output, stopwatch (start / read), registry read/write, environment value, screen size, window class / program, click-through windows, and "when the script is closing".
+- **13 new UI elements**: heading, helper text, badge, card, green/red/purple buttons, toggle button, read-only box, log box, vertical line / slider / progress bar.
+- Bug fixes: text containing new lines or tabs made the generated script invalid (window titles, control text, messages). Now escaped and read back correctly. The two copies of the "which blocks make variables" list are now one list.
+- Your data folder is also found for people who ran it from source (`ahk-blocks` folder).
+
+## v8.3
+- **11 new templates** in the gallery: random-spot clicker, paste clipboard as clean text, random item from a list, click-through window, run a command and show the result, count files in a folder, show screen size, stopwatch, say goodbye on exit, a **dark sign-in form** and a **log box** window.
+
+## v8.4
+- **Select several blocks**: Ctrl-click (or Shift-click) to add blocks, or Ctrl+A for everything at that level. Delete, Ctrl+D, Ctrl+C / Ctrl+V and Alt+Up/Down then work on all of them. **▾▸ Fold all** collapses or expands every container.
+- **Update check**: on start the app asks GitHub for the latest release of the repo named in `package.json` → `repository` (currently `itsnexoria/nexo-ahks`, change it to your real repo) and shows a "Download" toast when a newer version exists. Switch it off by putting `"updateCheck": false` in `config.json` in the app's data folder.
+
+## v8.5
+- **Find a block**: Ctrl+Shift+F opens a search over every block in the script (by its text or its code). Click a result or press Enter to jump to it.
+- **Copy / paste controls** in the UI Designer: Ctrl+C / Ctrl+V works on one or many controls (tabs bring their children), also between scripts. Names stay unique automatically.

@@ -116,6 +116,38 @@ setTimeout(() => {
   ok(/Sleep 3000/.test(ev(`testCode(root.kids[0])`)) && !/F4::/.test(ev(`testCode(root.kids[0])`)) && ev(`root.kids.length`) === 1, 'test block code');
   const v1c = ev(`v1to2('#NoEnv\\nF1::\\n  Send, Hello\\n  Sleep, 100\\nreturn\\n').text`);
   ok(/F1::\{\n  Send "Hello"\n  Sleep 100\n\}/.test(v1c), 'v1 -> v2: ' + v1c);
+  // 15. text with quotes / new lines survives export -> import; new UI presets; new blocks
+  ev(`root.kids=[S('hotkey',{key:'F1'},[S('msg',{s:'a\\nb\\tc "q"'})])]`);
+  ok(ev(`(()=>{const r=parseAhk(build());return r.kids[0].kids[0].t==='msg'&&r.kids[0].kids[0].v.s==='a\\nb\\tc "q"'})()`), 'new lines and quotes round trip');
+  ok(ev(`(()=>{GUI=newGui();GUI.ctl=[];root.kids=[S('guislot')];GUI.title='Say "hi"\\nnow';addCtl('Text');real()[0].text='x"y\\nz';real()[0].arg=ctlArg(real()[0]);return !/\\n\\s*now/.test(build())})()`), 'window and control text with new lines stays on one line');
+  ev(`newTab('Q');setView('ui');PAL.forEach(p=>addCtl(p[1],p[2]))`);
+  ok(ev(`real().length`) >= 30 && !/undefined|NaN/.test(ev(`build()`)), 'every UI element can be added');
+  ev(`setView('blocks')`);
+  ok(ev(`['regex','arrnew','mapset','loopfiles','clickrand','onexit','cmdout'].every(k=>T[k]&&LBL[k])`), 'new blocks are registered');
+  // 16. the new window templates keep their styling in the generated code
+  const dk = ev(`(()=>{newTab('D');const t=TPL.find(x=>x.n==='Window: Dark sign-in form');SET={...DS};root.kids=t.f();GUI=t.g();normGui(GUI);return build()})()`);
+  ok(/ed2 := myGui\.Add\("Edit", "[^"]*Password/.test(dk) && /BackColor := "1c1d23"/.test(dk) && /Background2FAE78/.test(dk), 'dark sign-in template keeps its options');
+  // 17. select several blocks at once
+  ev(`tutEnd();newTab('M');addBlock(mk('hotkey'));addBlock(mk('click'));addBlock(mk('wait'));addBlock(mk('beep'))`);
+  const sh2 = () => ev(`root.kids.map(k=>k.t+'['+k.kids.map(x=>x.t)+']').join(',')`);
+  const bel = t => w.document.querySelector('.blk[data-id="' + ev(`root.kids[0].kids.find(k=>k.t==='${t}').id`) + '"]');
+  const clk = (e, ctrl) => e.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: ctrl }));
+  const key = (k, o = {}) => w.document.body.dispatchEvent(new w.KeyboardEvent('keydown', Object.assign({ key: k, bubbles: true, cancelable: true }, o)));
+  clk(bel('click'), false); clk(bel('wait'), true); ok(ev(`selSet.size`) === 2, 'Ctrl-click selects two blocks');
+  key('ArrowDown', { altKey: true }); ok(sh2() === 'hotkey[beep,click,wait]', 'move both: ' + sh2());
+  key('d', { ctrlKey: true }); ok(sh2() === 'hotkey[beep,click,click,wait,wait]', 'duplicate both: ' + sh2());
+  key('c', { ctrlKey: true }); key('v', { ctrlKey: true }); ok(ev(`root.kids[0].kids.length`) === 7, 'paste both');
+  key('Delete'); ok(ev(`root.kids[0].kids.length`) === 5, 'delete both');
+  ev(`document.querySelector('#colall').click()`); ok(ev(`root.kids[0].col`) === true, 'fold all'); ev(`document.querySelector('#colall').click()`);
+  // 18. find a block, copy/paste controls between tabs
+  ev(`tutEnd();newTab('Z');addBlock(mk('hotkey'));addBlock(mk('wait',{ms:'777'}))`);
+  key('f', { ctrlKey: true, shiftKey: true }); const fb = w.document.querySelector('#bfind'); ok(!!fb, 'find bar opens');
+  const fi = fb.querySelector('input'); fi.value = '777'; fi.dispatchEvent(new w.Event('input')); ok(/777/.test(fb.textContent), 'find by value');
+  fi.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' })); ok(!w.document.querySelector('#bfind'), 'Esc closes find');
+  ev(`newTab('U1');setView('ui');addCtl('Edit');addCtl('Button');uMulti=new Set(real().map(c=>c.id));uSel=real()[1].id`);
+  key('c', { ctrlKey: true }); ev(`newTab('U2');setView('ui')`); key('v', { ctrlKey: true }); key('v', { ctrlKey: true });
+  ok(ev(`real().length`) === 4 && new Set(ev(`real().map(c=>c.n)`)).size === 4, 'paste controls twice keeps unique names');
+  ev(`setView('blocks')`);
   console.log(errs.concat(fail).length ? 'FAILED\n - ' + errs.concat(fail).join('\n - ') : 'All self-tests passed (' + ev('Object.keys(T).length') + ' blocks)');
   process.exit(errs.concat(fail).length ? 1 : 0);
 }, 900);

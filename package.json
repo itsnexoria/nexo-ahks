@@ -1,6 +1,6 @@
 {
   "name": "nexo-ahks",
-  "version": "8.1.0",
+  "version": "8.5.0",
   "description": "Nexo Ahks \u2014 block-based AutoHotkey v2 script builder",
   "main": "main.js",
   "author": "Nexoria",
@@ -64,5 +64,6 @@
   },
   "dependencies": {
     "monaco-editor": "^0.52.0"
-  }
+  },
+  "repository": "github:itsnexoria/nexo-ahks"
 }
