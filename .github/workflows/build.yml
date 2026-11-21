@@ -15,6 +15,17 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm test
+      # real Chromium: toolbar on one row, no cut-off text, light/dark, 1500px and 1100px, every view
+      - run: npx electron scripts/uitest.js
+      # starts the real app and drives it through the real preload/IPC bridge
+      - run: npx electron scripts/e2e.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-shots
+          path: ui-shots/*.png
+          if-no-files-found: ignore
       # --publish never: electron-builder otherwise tries to publish on tag builds and fails without GH_TOKEN
       - run: npx electron-builder --win --publish never
       - uses: actions/upload-artifact@v4

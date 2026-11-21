@@ -1,6 +1,29 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu, Tray, nativeImage, shell, globalShortcut, screen, desktopCapturer, net } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, Tray, nativeImage, shell, globalShortcut, screen, desktopCapturer, net, clipboard } = require('electron');
 const fs = require('fs'), os = require('os'), path = require('path');
 const { spawn, spawnSync } = require('child_process');
+const SU = require('./screen-util'), CU = require('./crash-util'), COMP = require('./compile-util');
+// ---------- friendly crash dialog: log it, tell the user, let them keep going ----------
+const crashGate = CU.makeThrottle(3000);
+const crashLog = () => { try { return path.join(app.getPath('userData'), 'crash.log'); } catch (e) { return path.join(os.tmpdir(), 'nexo-ahks-crash.log'); } };
+function crashInfo() { let v = '?'; try { v = pkg.version; } catch (e) {} return { version: v, platform: process.platform + ' ' + process.arch, electron: process.versions.electron || '?' }; }
+const curWin = () => { try { return win && !win.isDestroyed() ? win : undefined; } catch (e) { return undefined; } };
+function onFatal(kind, err) {
+  const text = CU.formatCrash(kind, err, crashInfo()); CU.appendLog(crashLog(), text);
+  const msg = String((err && err.message) || err);
+  if (!crashGate.begin(msg)) return;
+  try {
+    for (;;) {
+      const r = dialog.showMessageBoxSync(curWin(), { type: 'error', title: 'Nexo Ahks hit a problem', message: 'Something went wrong, but your work is safe.', detail: msg.slice(0, 300) + '\n\nYou can keep going. If it keeps happening, copy the details and send them to the developer.', buttons: ['Keep going', 'Copy details', 'Open log folder', 'Quit'], defaultId: 0, cancelId: 0, noLink: true });
+      if (r === 1) { try { clipboard.writeText(text); } catch (e) {} continue; }
+      if (r === 2) { try { shell.showItemInFolder(crashLog()); } catch (e) {} continue; }
+      if (r === 3) app.exit(1);
+      break;
+    }
+  } catch (e) {} finally { crashGate.end(); }
+}
+process.on('uncaughtException', e => onFatal('Unexpected error', e));
+process.on('unhandledRejection', e => onFatal('Unhandled promise rejection', e));
+ipcMain.on('renderer-error', (_, t) => { CU.appendLog(crashLog(), CU.formatCrash('Editor error', String(t).slice(0, 4000), crashInfo())); });
 let win, rec = null, tray = null, libList = [], quitting = false;
 const procs = new Map(); // script id -> running AutoHotkey process
 const TRAY_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABIElEQVR42sXXW08CMRAF4POHFQQRBBEEEUQIxmgkRGP8g9zkJhePgQRSlnRpu8vOSb6XdjLTxw6gSaxJhgmmiT/98ZS0gxP1FaN08IDk44pR2hueqi0pYfeAdHVJCZvhmYcFJSFbWVAScvdzSkK+PKerbYL0QKH0SxfeuPZB8W5GW7q49EKpOKMNNX5nplAuTGlKjc2dH1RupzShJkiNF6r5CY9RE2btGmo3Ex6jJszaNdRzY5pQE6TGC43smKbU2Nz5QfN6RBtq/M5MoZUZ0ZYuLr3wnP6hC29c++DlakhX2wTpgdfUkJLwdjmgJLwnB5S0+Re2E31K2P2KOxd9StjbDT7iPUbpYDP6jPUYJe2O+HXe5SkZb8nfZ12GSTfnH7M8b3rr+yReAAAAAElFTkSuQmCC';
@@ -8,6 +31,7 @@ const TRAY_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAAB
 // keep existing projects/settings from the old "AHK Blocks" folder
 try { const ad = app.getPath('appData'), newD = path.join(ad, 'Nexo Ahks'), oldD = ['AHK Blocks', 'ahk-blocks'].map(n => path.join(ad, n)).find(d => fs.existsSync(d)); app.setPath('userData', oldD && !fs.existsSync(newD) ? oldD : newD); } catch (e) {}
 app.setName('Nexo Ahks');
+if (process.env.NEXO_USER_DATA) { try { app.setPath('userData', process.env.NEXO_USER_DATA); } catch (e) {} } // lets tests use a throwaway folder
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
 
@@ -25,7 +49,6 @@ async function checkUpdate() {
     if (j && j.tag_name && newer(j.tag_name, app.getVersion())) send('update-available', { version: String(j.tag_name).replace(/^v/i, ''), url: j.html_url });
   } catch (e) {}
 }
-handle('open-url', u => { if (/^https:\/\/github\.com\//i.test(String(u))) shell.openExternal(String(u)); return true; }, E);
 
 // ---------- config + AutoHotkey discovery ----------
 const cfgFile = () => path.join(app.getPath('userData'), 'config.json');
@@ -70,6 +93,7 @@ const readText = f => { const b = fs.readFileSync(f); if (b[0] === 0xFF && b[1] 
 const handle = (name, fn, onErr) => ipcMain.handle(name, async (_, ...a) => { try { return await fn(...a); } catch (e) { return onErr(e); } });
 const E = e => ({ err: String((e && e.message) || e) });
 const ES = e => 'Error: ' + String((e && e.message) || e);
+handle('open-url', u => { if (/^https:\/\/github\.com\//i.test(String(u))) shell.openExternal(String(u)); return true; }, ES);
 
 handle('save-project', async (s, def, as) => {
   let f = def;
@@ -119,8 +143,17 @@ handle('run-script', async o => {
   if (procs.has(o.id)) stopOne(o.id);
   const file = (o.file && fs.existsSync(o.file)) ? o.file : tmpFile(o.code || '', 's_' + String(o.id).replace(/\W/g, '') + '.ahk');
   const keep = prefs().keepRunning;
-  const child = spawn(exe, [file], { cwd: path.dirname(file), detached: keep, stdio: 'ignore' });
-  if (keep) child.unref();
+  const dbg = o.debug ? String(o.debug) : '';
+  const child = dbg
+    ? spawn(exe, [file], { cwd: path.dirname(file), detached: false, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NEXO_DEBUG: dbg } })
+    : spawn(exe, [file], { cwd: path.dirname(file), detached: keep, stdio: 'ignore' });
+  if (keep && !dbg) child.unref();
+  if (dbg) {
+    let buf = '';
+    const feed = d => { buf += d.toString('utf8'); const L = buf.split(/\r?\n/); buf = L.pop(); L.forEach(line => send('script-out', { id: o.id, line })); };
+    child.stdout.on('data', feed); child.stderr.on('data', feed);
+    child.on('exit', () => { if (buf) send('script-out', { id: o.id, line: buf }); buf = ''; });
+  }
   procs.set(o.id, child);
   const gone = code => { if (procs.get(o.id) === child) { procs.delete(o.id); send('script-state', { id: o.id, running: false, code: code || 0 }); updateTray(); } };
   child.on('exit', gone); child.on('error', () => gone(1));
@@ -166,18 +199,22 @@ handle('set-startup', async o => {
   return { ok: true, path: lnk };
 }, E);
 
-handle('compile', async (code, name) => {
+handle('compile', async (code, name, opts) => {
   if (process.platform !== 'win32') return 'Compiling needs Windows and AutoHotkey v2.';
   const exe = await ensureAhk(); if (!exe) return NOAHK;
   const comp = await ensureCompiler();
   if (!comp) return 'Ahk2Exe not found. Reinstall AutoHotkey v2 and tick the compiler option, or pick Ahk2Exe.exe when asked.';
-  const r = await dialog.showSaveDialog(win, { defaultPath: (name || 'script').replace(/[\\/:*?"<>|]/g, '_') + '.exe', filters: [{ name: 'Executable', extensions: ['exe'] }] });
+  const o = opts || {};
+  const r = await dialog.showSaveDialog(win, { defaultPath: COMP.safeExeName(o.name || name) + '.exe', filters: [{ name: 'Executable', extensions: ['exe'] }] });
   if (r.canceled) return null;
-  const src = tmpFile(code, 'compile.ahk');
+  const src = tmpFile(COMP.withDirectives(code, { ...o, name: o.name || name }), 'compile.ahk');
+  let icon = null;
+  if (o.useNexoIcon) { try { icon = path.join(os.tmpdir(), 'nexo-ahks-icon.ico'); fs.copyFileSync(path.join(__dirname, 'build', 'icon.ico'), icon); } catch (e) { icon = null; } }
+  else if (o.icon && fs.existsSync(o.icon)) icon = o.icon;
   return new Promise(res => {
     let out = '', done = false;
     const fin = m => { if (done) return; done = true; clearTimeout(tm); res(m); };
-    const ps = spawn(comp, ['/in', src, '/out', r.filePath, '/base', exe, '/silent', 'verbose'], { windowsHide: true });
+    const ps = spawn(comp, COMP.compileArgs({ src, out: r.filePath, base: exe, icon }), { windowsHide: true });
     const tm = setTimeout(() => { try { ps.kill(); } catch (e) {} fin('Compile took too long and was stopped'); }, 120000);
     ps.stdout && ps.stdout.on('data', d => { out += d.toString(); });
     ps.stderr && ps.stderr.on('data', d => { out += d.toString(); });
@@ -188,6 +225,39 @@ handle('compile', async (code, name) => {
     });
   });
 }, ES);
+
+ipcMain.handle('pick-file', async (_, o) => { const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: (o && o.filters) || [] }); return r.canceled || !r.filePaths.length ? null : r.filePaths[0]; });
+
+// ---------- Help > Self-check: is everything this app needs available? ----------
+ipcMain.handle('diagnostics', async () => {
+  const out = [], add = (id, label, status, detail, fix) => out.push({ id, label, status, detail: String(detail || ''), fix: fix || '' });
+  const safe = async (id, label, f) => { try { await f(); } catch (e) { add(id, label, 'bad', 'The check itself failed: ' + ((e && e.message) || e)); } };
+  await safe('app', 'Nexo Ahks', async () => add('app', 'Nexo Ahks', 'ok', 'Version ' + crashInfo().version + ', Electron ' + (process.versions.electron || '?') + ', ' + process.platform + ' ' + process.arch));
+  const win32 = process.platform === 'win32';
+  await safe('ahk', 'AutoHotkey v2', async () => {
+    if (!win32) return add('ahk', 'AutoHotkey v2', 'warn', 'AutoHotkey only runs on Windows, so Run and Compile are unavailable here.', 'Use Try it to test your script instead.');
+    const exe = await ensureAhk();
+    if (!exe) return add('ahk', 'AutoHotkey v2', 'bad', 'Not found.', 'Install AutoHotkey v2 from autohotkey.com, then press Self-check again.');
+    let ver = ''; try { const f = tmpFile('FileAppend(A_AhkVersion, "*")', 'selfcheck.ahk'); const r = spawnSync(exe, [f], { timeout: 6000, encoding: 'utf8', windowsHide: true }); ver = String(r.stdout || '').trim(); } catch (e) {}
+    add('ahk', 'AutoHotkey v2', ver && !/^2\./.test(ver) ? 'bad' : 'ok', exe + (ver ? '  (version ' + ver + ')' : ''), ver && !/^2\./.test(ver) ? 'This is not version 2. Install AutoHotkey v2.' : '');
+  });
+  await safe('comp', 'Compiler (Ahk2Exe)', async () => {
+    if (!win32) return add('comp', 'Compiler (Ahk2Exe)', 'warn', 'Compiling needs Windows.');
+    const c = await ensureCompiler();
+    add('comp', 'Compiler (Ahk2Exe)', c ? 'ok' : 'warn', c || 'Not found.', c ? '' : 'Reinstall AutoHotkey v2 with the compiler option ticked, or pick Ahk2Exe.exe the first time you compile.');
+  });
+  await safe('data', 'Your projects folder', async () => { const d = app.getPath('userData'); fs.mkdirSync(d, { recursive: true }); const f = path.join(d, '.selfcheck'); fs.writeFileSync(f, 'ok'); fs.unlinkSync(f); add('data', 'Your projects folder', 'ok', d + ' is writable'); });
+  await safe('tmp', 'Temporary folder', async () => { const f = path.join(os.tmpdir(), 'nexo-selfcheck-' + process.pid); fs.writeFileSync(f, 'ok'); fs.unlinkSync(f); add('tmp', 'Temporary folder', 'ok', os.tmpdir() + ' is writable'); });
+  await safe('screen', 'Screen capture (📷 🎨 🎯)', async () => {
+    const d = screen.getAllDisplays(), s = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 16, height: 16 } });
+    const n = (s && s.length) || 0;
+    add('screen', 'Screen capture (📷 🎨 🎯)', n > 0 ? 'ok' : 'warn', (d.length || 1) + ' screen(s), ' + n + ' capturable', n > 0 ? '' : 'Allow screen recording for Nexo Ahks in your system privacy settings.');
+  });
+  await safe('monaco', 'Code editor files', async () => { const f = path.join(__dirname, 'node_modules', 'monaco-editor', 'min', 'vs', 'loader.js'); add('monaco', 'Code editor files', fs.existsSync(f) ? 'ok' : 'warn', fs.existsSync(f) ? 'Found' : 'Not found, the Code view falls back to a plain text box.'); });
+  await safe('upd', 'Update check', async () => { let repo = ''; try { repo = (pkg.repository && (pkg.repository.url || pkg.repository)) || ''; } catch (e) {} add('upd', 'Update check', repo ? 'ok' : 'warn', repo ? String(repo) : 'No repository is set in package.json, so the app cannot check for updates.'); });
+  await safe('log', 'Problem log', async () => { const f = crashLog(); const has = fs.existsSync(f); add('log', 'Problem log', 'ok', has ? f + '  (' + Math.round(fs.statSync(f).size / 1024) + ' KB)' : 'No problems have been recorded'); });
+  return out;
+});
 
 // ---------- screen picker (position + pixel color), any monitor ----------
 let pickCancel = null;
@@ -214,6 +284,53 @@ ipcMain.handle('pick', () => new Promise(res => {
   });
   if (!ok) fin(null);
 }));
+
+// ---------- screen tools: freeze the screen, then drag a box / pick a color / pick a point ----------
+let capBusy = false;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function screenTool(mode) {
+  if (capBusy) return null;
+  if (!['region', 'color', 'point'].includes(mode)) return { err: 'Unknown screen tool' };
+  capBusy = true;
+  const wasMin = !!(win && win.isMinimized());
+  try {
+    if (win && !wasMin) { win.minimize(); await sleep(350); } // so the app itself is not in the picture
+    const d = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()), sf = d.scaleFactor || 1;
+    const src = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: Math.round(d.size.width * sf), height: Math.round(d.size.height * sf) } });
+    const s = src.find(z => z.display_id === String(d.id)) || src[0];
+    if (!s) return { err: 'Could not capture the screen' };
+    const img = s.thumbnail, size = img.getSize();
+    const res = await new Promise(resolve => {
+      const ow = new BrowserWindow({ x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height, frame: false, resizable: false, movable: false, skipTaskbar: true, alwaysOnTop: true, fullscreenable: false, enableLargerThanScreen: true, show: false, backgroundColor: '#000000',
+        webPreferences: { preload: path.join(__dirname, 'capture-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+      let done = false;
+      const fin = v => { if (done) return; done = true; clearTimeout(tm); ipcMain.removeListener('cap-done', onDone); try { ow.destroy(); } catch (e) {} resolve(v); };
+      const onDone = (e, v) => { if (e.sender === ow.webContents) fin(v); };
+      const tm = setTimeout(() => fin(null), 120000);
+      ipcMain.on('cap-done', onDone);
+      ow.on('closed', () => fin(null));
+      ow.webContents.once('did-finish-load', () => { ow.webContents.send('cap-init', { mode, img: img.toDataURL(), w: size.width, h: size.height }); ow.show(); ow.focus(); });
+      ow.loadFile(path.join(__dirname, 'renderer', 'capture.html'));
+    });
+    if (!res) return null;
+    const origin = SU.originOf(d, process.platform === 'win32', q => screen.dipToScreenPoint(q));
+    if (mode === 'region') {
+      const r = SU.clampRect(res, size.width, size.height), crop = img.crop({ x: r.x, y: r.y, width: r.w, height: r.h });
+      const dir = path.join(app.getPath('userData'), 'captures'); fs.mkdirSync(dir, { recursive: true });
+      const file = path.join(dir, 'cap_' + Date.now() + '.png'); fs.writeFileSync(file, crop.toPNG());
+      const pv = r.w > 160 ? crop.resize({ width: 160 }) : crop;
+      return { path: file, x: origin.x + r.x, y: origin.y + r.y, w: r.w, h: r.h, preview: pv.toDataURL() };
+    }
+    const bm = img.toBitmap(), x = Math.min(Math.max(0, Math.round(res.x)), size.width - 1), y = Math.min(Math.max(0, Math.round(res.y)), size.height - 1);
+    return { x: origin.x + x, y: origin.y + y, c: SU.colorAt(bm, size.width, size.height, x, y) };
+  } catch (e) {
+    return { err: 'Screen tool failed: ' + String((e && e.message) || e) };
+  } finally {
+    capBusy = false;
+    if (win && !wasMin && !win.isDestroyed()) { win.restore(); win.focus(); }
+  }
+}
+ipcMain.handle('screen-tool', (_, mode) => screenTool(mode));
 
 // ---------- recorder (runs a tiny AutoHotkey script and reads what it logs) ----------
 const REC = [

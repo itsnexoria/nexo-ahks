@@ -10,7 +10,7 @@ Block-based AutoHotkey v2 script builder (Electron).
 - No Windows? Push to GitHub and run the "Build Windows EXE" action (Actions tab, or push a `v*` tag), then download the artifact.
 
 ## Notes
-- `npm test` runs a quick self-test (all 226 blocks, importer, templates, key shortcuts).
+- `npm test` runs a quick self-test (all blocks, importer, templates, key shortcuts).
 - Run / Compile need AutoHotkey v2 installed on Windows (autohotkey.com). The app finds it automatically or asks once.
 - Project files are `.ahkb`. The current project autosaves.
 - 🎯 next to x/y fields: move the mouse over a spot and press F8 to fill in the position (and pixel color for pixel blocks). Esc cancels.
@@ -130,3 +130,74 @@ Block-based AutoHotkey v2 script builder (Electron).
 ## v8.5
 - **Find a block**: Ctrl+Shift+F opens a search over every block in the script (by its text or its code). Click a result or press Enter to jump to it.
 - **Copy / paste controls** in the UI Designer: Ctrl+C / Ctrl+V works on one or many controls (tabs bring their children), also between scripts. Names stay unique automatically.
+
+## v9.0
+**More blocks (31 new, 286 total)**: format text, to number, if is a number, capitalize, for each list item / map entry, join list, remove/set/empty list items, remove from map, map size, when the clipboard changes, when an error happens, idle time, system values (user name, desktop folder…), file size, make a shortcut, window state, snap window left/right/top/bottom/center, window position and size, monitor count, web view go/back/forward/refresh, tree add/empty/selected item, control font and text color, flash window, make window see-through.
+
+**More UI elements**: **Tree view** and **Web view** (embeds a page using the old IE engine; fine for simple pages and tools, not for modern sites).
+
+**More UI customization**
+- Window: opens at (center / exact spot / bottom-right), smallest and largest size, see-through window, and Windows 11 extras: rounded or square corners, Mica / Acrylic / Mica Alt backdrop, title bar color, title text color and border color.
+- Every control: hover tip, skip when pressing Tab, see-through background.
+- Edit: force UPPER/lower case, no line wrapping. Checkbox: three states, box on the right. Slider: vertical, no ticks, tick interval, value bubble, arrow step. Progress: vertical, classic blocky bar. ListView: grid lines, no header, checkbox per row, single row select. ListBox/Dropdown: sorted. Tab: button style, tabs at bottom. Picture: keep shape. Web view: address.
+- Vertical sliders/progress bars, tree views and web views now show properly in the designer.
+
+**Fixes**: the generic importer now reads the new loop blocks; Windows 11 settings survive theme changes.
+
+## v9.0.1
+- **Fixed a start-up crash** (`Cannot access 'handle' before initialization`) introduced in v8.4 by the update checker. `npm test` now also loads `main.js` and `preload.js` against a fake Electron, so this kind of start-up mistake is caught before shipping (and in the GitHub Action before it builds).
+- Note: newer npm versions print an `install-scripts` warning for Electron's postinstall. If Electron's binary is missing after `npm install`, run `npm install-scripts approve electron` (or `node node_modules/electron/install.js`).
+
+## v10.0 — value blocks (Scratch / Sketchware style)
+- **Input slots you can see**: every input on a block is now a white rounded slot with a hint ("value", "text"). Slots that accept value blocks glow when you drag one.
+- **VALUE BLOCKS** in the block list (everything is a block now): **Math** (+ − × ÷ % whole-divide, power, round, abs, round down/up, square root, smaller/bigger of, random), **Compare** (= != > < >= <= and "contains"), **Logic** (and / or, not, true/false, if-then-else), **Text** (join, length, UPPER/lower, trim, letters of, replace, position), **Sensing** (key held, mouse x/y, color at, clipboard, time, screen size, idle time, window/program/file exists, value of a control), **Lists/maps** (item of list, length, map has/get) and **Your variables** (always lists the variables you created, plus the loop counter).
+- **Drag a value block into any white slot, even into another value block** (e.g. `set total to (score + 5) × 2`, `if (total > 10)`, `message join "Total: " and total`). Drag a placed value block to another slot to move it, drag it away or press its × to remove it. Prefer clicking? Click inside a slot first, then click a value block.
+- Blocks read like sentences now: `if [ ] then`, `otherwise`, `try this`, `if it fails`.
+- Renaming a variable also renames it inside value blocks, and the problem checker tells you when a value block uses a variable that nothing sets.
+- Your old scripts open unchanged; imported code keeps its expressions as typed text in the slots.
+
+## v11.0 — a new look
+- **New design system**: richer dark and light themes, brand gradient, glow and depth, smoother motion, thin scrollbars, softer shadows, glass dialogs with a blurred backdrop.
+- **Header**: gradient wordmark with your logo, pill tabs with an accent top line, a segmented Blocks / UI Designer / Code switch, one-click theme icon.
+- **One-row toolbar**: grouped buttons, icon-only Undo / Redo / Fold / Explain, a big glowing Run button.
+- **Block list split in two tabs**: **⚡ Actions** and **🧮 Values** (it jumps to Values when you click an input slot). Search looks in both. Tips live in a collapsible box.
+- **Blocks**: deeper category colors (amber events, blue control, green keys, purple mouse, teal data blocks, pink UI), glossy highlight, dotted canvas, calmer action buttons that light up on hover, a friendlier empty-canvas message.
+- **Home**: bigger gradient title, search with icon, cards with an accent edge that lift on hover and glow green when running.
+- **UI Designer**: controls grouped into Basics / Type in / Choose / Show data / Layout / Styled buttons with icons, a tidier toolbar, dotted stage.
+- **Templates**: two-column gallery with search. **Help**: new shortcuts.
+
+## v11.2 (audit pass)
+- **Debug** (🐞 button or Ctrl+F5): runs your script with a bottom panel that highlights the running block, shows variables and logs. Modes: Fast, Slow, Step (press F8 per block). New Debug blocks: Log, Log with time, Pause here. Helper functions are added to the script only when a block needs them.
+- **Importer / lint fixes**: `static`/`local` variables are no longer also declared `global` (that was a load error in AutoHotkey); the Problems panel knows every AutoHotkey v2 built-in and ignores letter case, and stays quiet about unknown functions when the script uses `#Include`; AutoHotkey v1 `IfWinActive`, `IfWinExist`, `IfExist`, `IfInString`, `IfEqual` (and their `Not` forms) are converted.
+- **Faster canvas**: unchanged blocks are reused instead of rebuilt on every click (about 4x less work on a 300-block script in tests).
+- Test fixes: window-corner drag and value-block remove tests no longer depend on jsdom quirks.
+- `npm test` now also checks debug builds, the new importer rules and that the cached canvas equals a fresh one.
+
+## v11.5
+- **My blocks**: "＋ Make a block" in the palette creates your own block from a name and optional inputs (and can give a value back). Use it anywhere, drag it into slots when it returns a value. Imported scripts turn calls to their own functions into My blocks automatically.
+- **More value blocks**: random item, split, join list, current date/time, date plus/minus/format, key just pressed, mouse inside area. Variables now have types (worked out automatically, or set in the Variables panel) and the Problems panel warns when a number is used as a list or map.
+- **Sticky notes, colour tags, comments**: right-click any block to colour-tag it or attach a comment that is saved in the script as `; ...`.
+
+## v11.6
+- **Screen tools**: blocks that need a picture get a 📷 button (drag a box on the frozen screen, the picture is saved and shown as a thumbnail), colour fields get a 🎨 button (magnifier, click to pick) and x/y fields get 🎯 (click a spot). Esc or right-click cancels. Opens on the screen where your mouse is.
+
+## v11.7
+- **🧪 Try it** (toolbar): runs your script inside Nexo Ahks, with no AutoHotkey needed. Your window appears with real clickable widgets, buttons run their code, resize it with the sliders to test anchors, press hotkeys from the Hotkeys tab, and watch the Log (messages, sends, clicks, problems) and Variables. Keyboard, mouse and files are pretend, so nothing is really sent or changed. If something would make real AutoHotkey show an error (like adding to an empty variable) Try it shows that same error. Things it cannot do are listed in the Log instead of being silently skipped.
+
+## v11.8
+- **Importing your own scripts now brings in the window and its controls**, including scripts written by hand: `AddText()`/`AddEdit()`/`AddButton()` style, controls without x/y positions (AutoHotkey's automatic layout is reproduced), windows built inside a function, tabs, chained `.OnEvent(...)`, `MyGui.Title := ...`, code mixed in between the controls, and old AutoHotkey v1 `Gui, Add, ...` scripts with their labels. Only the first window of a script becomes editable in the UI Designer; any others keep working as code.
+- **Color picker button**: tick it on a Button in the UI Designer, click it in your script, then click any color on screen. Use the “picked color of …” value block to read it.
+- **ListView columns**: set each column to text, number or decimal (sorts correctly) and optionally fit the column widths to the text.
+- **Saved looks**: save a window's colors, fonts and theme under a name and apply it to any other window (Window properties, Look section).
+
+## v11.9
+- **Much better import of real scripts.** Whole classes and other code the blocks cannot express stay together as one raw block instead of one block per line; `if`/`for`/`try` without braces, `x++`, `x .= ...`, `obj.Method(...)`, `obj.Prop := ...`, `catch as e` and `Global X := ...` all become real blocks; variables keep the scope the original had (no more extra `global` or `x := 0` lines); windows with variables in their options, a `global` declaration, or a custom size import correctly; stacked "page" controls are hidden in the Designer behind a toggle.
+- **Compile dialog** (name, version, company, description, copyright, icon, run as administrator), **Help → Self-check**, and a **friendly crash dialog** with a problem log.
+- **Toolbar fixed** so it always sits on one row, with new automated layout and end-to-end tests that run the real app.
+
+## v12
+- **Games** blocks: move the mouse by an amount, turn the camera smoothly, and click in a way games accept. These send *relative* mouse input, so they work in Minecraft and in Roblox with shift lock, where the normal "move mouse to x, y" does nothing because the game keeps the cursor locked. Use "Hold key for N ms" for keys games ignore when tapped too fast (Roblox shift lock is `LShift`).
+- **Background** blocks: click or press keys in a window without moving your mouse or focusing it (including window-message versions for games), scroll or type into a background window, and wait for a window with a timeout.
+- **Options**: hide the tray icon so the script runs completely in the background, set the priority (Low is best next to a game), and one button for game-friendly input.
+- **Templates** for camera turning, shift lock, a game auto clicker and a background clicker.
+- **Help → Program locations** shows which AutoHotkey and compiler the app uses, lets you choose them, and **resets** a wrong choice. A wrong file can no longer get stuck: picks are checked and clearly wrong saved paths are ignored.

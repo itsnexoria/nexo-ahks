@@ -1,14 +1,16 @@
 {
   "name": "nexo-ahks",
-  "version": "8.5.0",
-  "description": "Nexo Ahks \u2014 block-based AutoHotkey v2 script builder",
+  "version": "12.0.0",
+  "description": "Nexo Ahks — block-based AutoHotkey v2 script builder",
   "main": "main.js",
   "author": "Nexoria",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win --publish never",
     "dist:linux": "electron-builder --linux --publish never",
-    "test": "node scripts/selftest.js"
+    "test": "node scripts/maintest.js && node scripts/utiltest.js && node scripts/simtest.js && node scripts/screentest.js && node scripts/selftest.js",
+    "uitest": "electron scripts/uitest.js",
+    "e2e": "electron scripts/e2e.js"
   },
   "devDependencies": {
     "electron": "^33.2.0",
@@ -21,6 +23,11 @@
     "files": [
       "main.js",
       "preload.js",
+      "build/icon.ico",
+      "crash-util.js",
+      "compile-util.js",
+      "capture-preload.js",
+      "screen-util.js",
       "renderer/**",
       "build/icon.png",
       "node_modules/monaco-editor/min/**",
