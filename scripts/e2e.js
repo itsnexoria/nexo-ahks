@@ -18,7 +18,7 @@ app.whenReady().then(async () => {
     await run("try{localStorage.setItem('nexoTutSeen','1')}catch(e){}");
     ok(await run("typeof window.api === 'object'"), 'the preload bridge (window.api) exists');
     const names = await run("Object.keys(window.api)");
-    for (const n of ['runScript', 'compile', 'screenTool', 'pickFile', 'diagnostics', 'reportError', 'libLoad', 'libSave']) ok(names.includes(n), 'window.api.' + n + ' is exposed');
+    for (const n of ['runScript', 'compile', 'screenTool', 'pickFile', 'diagnostics', 'reportError', 'libLoad', 'libSave', 'toolPaths', 'toolSet', 'toolReset', 'toolDownload', 'updateDownload', 'updateInstall']) ok(names.includes(n), 'window.api.' + n + ' is exposed');
     // self-check through the real IPC
     const diag = await run("window.api.diagnostics()");
     ok(Array.isArray(diag) && diag.length >= 7 && diag.every(x => x.id && x.label && ['ok', 'warn', 'bad'].includes(x.status)), 'diagnostics returns a proper report over IPC: ' + JSON.stringify(diag).slice(0, 160));
@@ -26,6 +26,12 @@ app.whenReady().then(async () => {
     const byId = Object.fromEntries(diag.map(x => [x.id, x]));
     ok(byId.data && byId.data.status === 'ok' && byId.tmp && byId.tmp.status === 'ok', 'data and temp folders are writable');
     ok(byId.screen && byId.screen.status === 'ok', 'screen capture works in the real app: ' + (byId.screen && byId.screen.detail));
+    // Program locations over the real IPC, file lockdown, and the page really runs without inline scripts
+    const tp = await run("window.api.toolPaths()");
+    ok(tp && 'ahk' in tp && 'compiler' in tp && 'ahkSaved' in tp, 'toolPaths answers over IPC: ' + JSON.stringify(tp));
+    const rf = await run("window.api.readFile('C:\\\\Windows\\\\win.ini')");
+    ok(rf && rf.err, 'the page cannot read a file that is not a script: ' + JSON.stringify(rf));
+    ok(await run("typeof parseAhk === 'function' && typeof findBlock === 'function'"), 'the editor script (app.js) loaded under the strict CSP');
     // editor errors reach the crash log
     await run("window.api.reportError('e2e editor error ' + 42)"); await wait(400);
     const log = path.join(tmp, 'userData', 'crash.log');

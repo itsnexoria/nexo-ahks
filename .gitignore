@@ -2,3 +2,5 @@ node_modules
 dist
 *.log
 ui-shots/
+ahkcheck-out/
+*.tmp

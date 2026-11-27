@@ -46,8 +46,8 @@ const mouse = (w, type, x, y, button = 0) => w.dispatchEvent(new w.MouseEvent(ty
   const diag = async () => [{ id: 'ahk', label: 'AutoHotkey v2', status: 'ok', detail: 'found' }, { id: 'comp', label: 'Compiler', status: 'warn', detail: 'missing', fix: 'Reinstall with the compiler' }, { id: 'screen', label: 'Screen capture', status: 'bad', detail: 'blocked', fix: 'Allow screen recording' }];
   const named = { screenTool, compile: async (c, n, o) => { compileCalls.push([c, n, o]); return 'Saved x.exe'; }, pickFile: async () => 'C:\\icons\\my.ico', diagnostics: diag, reportError: t => reported.push(t) };
   const api = new Proxy({}, { get: (_, k) => named[k] || noop });
-  const dom = new JSDOM(fs.readFileSync(path.join(__dirname, '..', 'renderer', 'index.html'), 'utf8'), { runScripts: 'dangerously', url: 'http://localhost/index.html', pretendToBeVisual: true,
-    beforeParse(w) { w.eval(require('fs').readFileSync(require('path').join(__dirname, '..', 'renderer', 'sim.js'), 'utf8')); w.api = api; w.matchMedia = () => ({ matches: false, addListener() {}, addEventListener() {} }); w.HTMLDialogElement.prototype.showModal = function () { this.open = true; }; w.HTMLDialogElement.prototype.close = function () { this.open = false; }; w.HTMLElement.prototype.scrollIntoView = function () {}; } });
+  const dom = new JSDOM(require('./page-util').pageHtml(), { runScripts: 'dangerously', url: 'http://localhost/index.html', pretendToBeVisual: true,
+    beforeParse(w) { w.api = api; w.matchMedia = () => ({ matches: false, addListener() {}, addEventListener() {} }); w.HTMLDialogElement.prototype.showModal = function () { this.open = true; }; w.HTMLDialogElement.prototype.close = function () { this.open = false; }; w.HTMLElement.prototype.scrollIntoView = function () {}; } });
   const w = dom.window, ev = s => w.eval(s), wait = ms => new Promise(r => setTimeout(r, ms));
   await wait(900);
   ev(`tutEnd();newTab('S');root.kids=[S('hotkey',{key:'F1'},[S('ifimg',{}),S('ifcolor',{}),S('ifpix',{}),S('move',{})])];render()`);

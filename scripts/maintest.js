@@ -13,7 +13,7 @@ let fail = [];
 try { require(path.join(__dirname, '..', 'main.js')); } catch (e) { fail.push('main.js crashed while loading: ' + e.message); }
 try { for (const f of calls.ready) f(); } catch (e) { fail.push('main.js crashed in app.whenReady: ' + e.message); }
 try { require(path.join(__dirname, '..', 'preload.js')); } catch (e) { fail.push('preload.js crashed: ' + e.message); }
-const need = ['open-url', 'compile', 'run-script', 'rec-start', 'pick', 'screen-tool', 'pick-file', 'diagnostics', 'renderer-error', 'save-project', 'lib-save'];
+const need = ['open-url', 'compile', 'run-script', 'rec-start', 'pick', 'screen-tool', 'pick-file', 'diagnostics', 'renderer-error', 'save-project', 'lib-save', 'tool-paths', 'tool-set', 'tool-reset', 'tool-download', 'update-download', 'update-install', 'read-file', 'set-prefs'];
 const missing = need.filter(n => !calls.handlers.has(n));
 if (missing.length) fail.push('IPC handlers missing: ' + missing.join(', '));
 // the friendly crash dialog: shows once, writes a log, and the app keeps running
@@ -25,4 +25,31 @@ if (!fs.existsSync(crashFile) || !/test boom/.test(fs.readFileSync(crashFile, 'u
 try { calls.fns['renderer-error']({}, 'editor said oops'); if (!/editor said oops/.test(fs.readFileSync(crashFile, 'utf8'))) fail.push('renderer errors are not logged'); } catch (e) { fail.push('renderer-error handler threw: ' + e.message); }
 // the self-check returns a readable report even when pieces are missing
 Promise.resolve().then(() => calls.fns['diagnostics']({})).then(r => { if (!Array.isArray(r) || r.length < 5 || !r.every(x => x.id && x.label && ['ok', 'warn', 'bad'].includes(x.status))) fail.push('self-check did not return a proper report: ' + JSON.stringify(r).slice(0, 200)); else { const bad = r.filter(x => /The check itself failed/.test(x.detail)); if (bad.length) fail.push('self-check items crashed: ' + bad.map(x => x.id + ' ' + x.detail).join('; ')); } }).catch(e => fail.push('self-check threw: ' + e.message)).then(() => {
+// ---- program locations, file lockdown, config recovery (all without Windows) ----
+const userData = path.join(tmp, 'userData');
+Promise.resolve().then(async () => {
+  const tp = await calls.fns['tool-paths']({});
+  if (!tp || !('ahk' in tp) || !('compiler' in tp) || !('ahkSaved' in tp) || !('compilerSaved' in tp)) fail.push('tool-paths returns the wrong shape: ' + JSON.stringify(tp));
+  const bad = await calls.fns['tool-reset']({}, 'nonsense'); if (!bad || !bad.err) fail.push('tool-reset accepts an unknown program');
+  const ok1 = await calls.fns['tool-reset']({}, 'ahk'); if (!ok1 || !ok1.ok) fail.push('tool-reset ahk failed');
+  const badSet = await calls.fns['tool-set']({}, 'nonsense'); if (!badSet || !badSet.err) fail.push('tool-set accepts an unknown program');
+  // only script files can be read, and only with absolute paths
+  const secret = path.join(tmp, 'secret.txt'); fs.writeFileSync(secret, 'top secret');
+  const r1 = await calls.fns['read-file']({}, secret); if (!r1 || !r1.err) fail.push('read-file will read a .txt file');
+  const r2 = await calls.fns['read-file']({}, 'relative.ahk'); if (!r2 || !r2.err) fail.push('read-file accepts a relative path');
+  const good = path.join(tmp, 'ok.ahk'); fs.writeFileSync(good, 'F1::ExitApp');
+  const r3 = await calls.fns['read-file']({}, good); if (r3 !== 'F1::ExitApp') fail.push('read-file cannot read a normal .ahk file: ' + JSON.stringify(r3));
+  // a page that is not the app (not file://) is turned away
+  const r4 = await calls.fns['read-file']({ senderFrame: { url: 'https://evil.example/' } }, good); if (!r4 || !r4.err) fail.push('IPC accepts a call from a web page');
+  // config: written atomically, and a damaged file is kept as config.json.bad instead of being wiped
+  fs.mkdirSync(userData, { recursive: true });
+  await calls.fns['set-prefs']({}, { closeToTray: true, keepRunning: false });
+  const cf = path.join(userData, 'config.json');
+  if (!fs.existsSync(cf) || JSON.parse(fs.readFileSync(cf, 'utf8')).closeToTray !== true) fail.push('config.json was not written');
+  if (fs.existsSync(cf + '.tmp')) fail.push('config.json.tmp left behind');
+  fs.writeFileSync(cf, '{ this is not json');
+  await calls.fns['set-prefs']({}, { closeToTray: false, keepRunning: true });
+  if (!fs.existsSync(cf + '.bad') || !/not json/.test(fs.readFileSync(cf + '.bad', 'utf8'))) fail.push('a damaged config.json was not kept as config.json.bad');
+  try { JSON.parse(fs.readFileSync(cf, 'utf8')); } catch (e) { fail.push('config.json is not valid after recovery'); }
+}).catch(e => fail.push('program-location checks crashed: ' + e.message));
 setTimeout(() => { console.log(fail.length ? 'FAILED\n - ' + fail.join('\n - ') : 'main.js loads fine (' + calls.handlers.size + ' IPC handlers, ' + calls.windows + ' window)'); process.exit(fail.length ? 1 : 0); }, 50); });

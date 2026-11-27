@@ -1,20 +1,24 @@
 {
   "name": "nexo-ahks",
-  "version": "12.0.0",
+  "version": "13.0.0",
   "description": "Nexo Ahks — block-based AutoHotkey v2 script builder",
   "main": "main.js",
   "author": "Nexoria",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder --win --publish never",
-    "dist:linux": "electron-builder --linux --publish never",
-    "test": "node scripts/maintest.js && node scripts/utiltest.js && node scripts/simtest.js && node scripts/screentest.js && node scripts/selftest.js",
+    "start": "node scripts/build-renderer.js && electron .",
+    "build:renderer": "node scripts/build-renderer.js",
+    "lint": "node scripts/lint.js",
+    "dist": "node scripts/build-renderer.js && electron-builder --win --publish never",
+    "dist:linux": "node scripts/build-renderer.js && electron-builder --linux --publish never",
+    "test": "node scripts/build-renderer.js --check && node scripts/lint.js && node scripts/maintest.js && node scripts/utiltest.js && node scripts/simtest.js && node scripts/screentest.js && node scripts/selftest.js && node scripts/ahkcheck.js --dry",
+    "ahkcheck": "node scripts/ahkcheck.js",
     "uitest": "electron scripts/uitest.js",
     "e2e": "electron scripts/e2e.js"
   },
   "devDependencies": {
-    "electron": "^33.2.0",
-    "electron-builder": "^25.1.8",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
+    "eslint": "^8.57.1",
     "jsdom": "^25.0.1"
   },
   "build": {
@@ -26,9 +30,12 @@
       "build/icon.ico",
       "crash-util.js",
       "compile-util.js",
+      "ahk-runtime-util.js",
+      "update-util.js",
       "capture-preload.js",
       "screen-util.js",
       "renderer/**",
+      "!renderer/src/**",
       "build/icon.png",
       "node_modules/monaco-editor/min/**",
       "!**/node_modules/monaco-editor/{dev,esm,min-maps}/**"
@@ -67,10 +74,22 @@
     ],
     "directories": {
       "buildResources": "build"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "itsnexoria",
+        "repo": "nexo-ahks",
+        "releaseType": "release"
+      }
+    ]
   },
   "dependencies": {
+    "electron-updater": "^6.8.11",
     "monaco-editor": "^0.52.0"
   },
-  "repository": "github:itsnexoria/nexo-ahks"
+  "repository": "github:itsnexoria/nexo-ahks",
+  "engines": {
+    "node": ">=20"
+  }
 }

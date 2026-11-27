@@ -22,4 +22,12 @@ function compileArgs(a) {
   if (a.icon) r.push('/icon', a.icon);
   return r;
 }
-module.exports = { clean, normVersion, safeExeName, directives, withDirectives, compileArgs };
+
+// ---- is this file really the program we expect? (so a wrong pick can never get stuck) ----
+const baseName = p => String(p == null ? '' : p).split(/[\\/]/).pop().toLowerCase();
+// AutoHotkey v2 programs: AutoHotkey64.exe, AutoHotkey32.exe, AutoHotkey.exe, AutoHotkey64_UIA.exe ...
+// (AutoHotkeyU64.exe / AutoHotkeyA32.exe are v1 names, Ahk2Exe.exe is the compiler, so none of those count)
+const looksLikeAhk = p => /^autohotkey(32|64)?(_uia)?\.exe$/.test(baseName(p));
+const looksLikeCompiler = p => baseName(p) === 'ahk2exe.exe';
+const isAhkV2 = v => /^2\./.test(String(v || '').trim());
+module.exports = { looksLikeAhk, looksLikeCompiler, isAhkV2, clean, normVersion, safeExeName, directives, withDirectives, compileArgs };

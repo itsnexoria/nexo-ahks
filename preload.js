@@ -32,5 +32,15 @@ contextBridge.exposeInMainWorld('api', {
   onTray: f => i.on('tray-cmd', (_, d) => f(d)),
   openUrl: u => i.invoke('open-url', u),
   onUpdate: f => i.on('update-available', (_, d) => f(d)),
+  toolPaths: () => i.invoke('tool-paths'),
+  toolSet: k => i.invoke('tool-set', k),
+  toolReset: k => i.invoke('tool-reset', k),
+  toolDownload: () => i.invoke('tool-download'),
+  onToolDownload: f => i.on('tool-download-progress', (_, t) => f(t)),
+  updateDownload: () => i.invoke('update-download'),
+  updateInstall: () => i.invoke('update-install'),
+  onUpdateProgress: f => i.on('update-progress', (_, d) => f(d)),
+  onUpdateReady: f => i.on('update-ready', (_, d) => f(d)),
+  onUpdateError: f => i.on('update-error', (_, d) => f(d)),
   onOpen: f => i.on('open-file', (_, d) => f(d))
 });

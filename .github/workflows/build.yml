@@ -12,10 +12,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
+      - name: The tag must match package.json (the updater compares them)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json | ConvertFrom-Json).version
+          if ("v$v" -ne "${{ github.ref_name }}") { Write-Error "Tag ${{ github.ref_name }} does not match package.json version $v"; exit 1 }
       - run: npm test
+      - name: Get AutoHotkey v2 (official zip from GitHub)
+        shell: pwsh
+        run: |
+          $rel = Invoke-RestMethod https://api.github.com/repos/AutoHotkey/AutoHotkey/releases/latest -Headers @{ 'User-Agent' = 'nexo-ahks-ci' }
+          $a = $rel.assets | Where-Object { $_.name -match '^AutoHotkey_2\.[\d.]+\.zip$' } | Select-Object -First 1
+          Invoke-WebRequest $a.browser_download_url -OutFile "$env:RUNNER_TEMP\ahk.zip"
+          Expand-Archive "$env:RUNNER_TEMP\ahk.zip" -DestinationPath "$env:RUNNER_TEMP\ahk" -Force
+          $exe = Get-ChildItem "$env:RUNNER_TEMP\ahk" -Recurse -Filter AutoHotkey64.exe | Select-Object -First 1
+          "AHK_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - run: node scripts/ahkcheck.js --exe "$env:AHK_EXE"
       # real Chromium: toolbar on one row, no cut-off text, light/dark, 1500px and 1100px, every view
       - run: npx electron scripts/uitest.js
       # starts the real app and drives it through the real preload/IPC bridge
@@ -26,15 +42,28 @@ jobs:
           name: ui-shots
           path: ui-shots/*.png
           if-no-files-found: ignore
-      # --publish never: electron-builder otherwise tries to publish on tag builds and fails without GH_TOKEN
-      - run: npx electron-builder --win --publish never
+      # --publish never: the release step below uploads the files (builder would need GH_TOKEN to publish itself)
+      - run: npm run dist
+      - name: Checksums
+        shell: pwsh
+        run: Get-ChildItem dist\*.exe | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Out-File dist\SHA256SUMS.txt -Encoding ascii
       - uses: actions/upload-artifact@v4
         with:
           name: Nexo-Ahks-win
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+            dist/SHA256SUMS.txt
           if-no-files-found: error
+      # latest.yml + .blockmap are what the in-app updater reads: without them installed copies cannot update themselves
       - name: Attach to the GitHub release (tag builds only)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.exe
+          generate_release_notes: true
+          files: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+            dist/SHA256SUMS.txt

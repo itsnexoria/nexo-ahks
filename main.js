@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, Tray, nativeImage, shell, globalShortcut, screen, desktopCapturer, net, clipboard } = require('electron');
 const fs = require('fs'), os = require('os'), path = require('path');
 const { spawn, spawnSync } = require('child_process');
-const SU = require('./screen-util'), CU = require('./crash-util'), COMP = require('./compile-util');
+const SU = require('./screen-util'), CU = require('./crash-util'), COMP = require('./compile-util'), UP = require('./update-util'), RT = require('./ahk-runtime-util');
 // ---------- friendly crash dialog: log it, tell the user, let them keep going ----------
 const crashGate = CU.makeThrottle(3000);
 const crashLog = () => { try { return path.join(app.getPath('userData'), 'crash.log'); } catch (e) { return path.join(os.tmpdir(), 'nexo-ahks-crash.log'); } };
@@ -37,13 +37,30 @@ if (!gotLock) app.quit();
 
 // ---------- update check (needs "repository" in package.json to point at your GitHub repo) ----------
 const pkg = (() => { try { return require('./package.json'); } catch (e) { return {}; } })();
-const newer = (a, b) => { const x = String(a).replace(/^v/i, '').split('.').map(n => parseInt(n) || 0), y = String(b).replace(/^v/i, '').split('.').map(n => parseInt(n) || 0); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+const newer = UP.newer;
+// installed (NSIS) builds can update themselves with electron-updater; portable/dev builds just get the "is out" toast
+let updater = null;
+const canSelfUpdate = () => app.isPackaged && !process.env.PORTABLE_EXECUTABLE_DIR && process.platform === 'win32';
+function getUpdater() {
+  if (updater !== null) return updater || null;
+  try {
+    const u = require('electron-updater').autoUpdater;
+    u.autoDownload = false; u.autoInstallOnAppQuit = true; u.allowPrerelease = false;
+    u.on('update-available', i => send('update-available', { version: String(i.version), auto: true, url: 'https://github.com/' + (UP.repoSlug(pkg.repository) || '') + '/releases/latest' }));
+    u.on('download-progress', p => send('update-progress', { percent: Math.round(p.percent || 0) }));
+    u.on('update-downloaded', i => send('update-ready', { version: String(i.version) }));
+    u.on('error', e => send('update-error', String((e && e.message) || e).slice(0, 200)));
+    updater = u;
+  } catch (e) { updater = false; }
+  return updater || null;
+}
 async function checkUpdate() {
   try {
     if (cfg().updateCheck === false) return;
-    const m = String((pkg.repository && (pkg.repository.url || pkg.repository)) || '').match(/github(?:\.com)?[/:]([^/\s]+\/[^/\s.]+)/i);
-    if (!m) return;
-    const r = await net.fetch('https://api.github.com/repos/' + m[1] + '/releases/latest', { headers: { 'User-Agent': 'Nexo-Ahks', Accept: 'application/vnd.github+json' } });
+    if (canSelfUpdate()) { const u = getUpdater(); if (u) { await u.checkForUpdates(); return; } }
+    const slug = UP.repoSlug(pkg.repository);
+    if (!slug) return;
+    const r = await net.fetch('https://api.github.com/repos/' + slug + '/releases/latest', { headers: { 'User-Agent': 'Nexo-Ahks', Accept: 'application/vnd.github+json' } });
     if (!r.ok) return;
     const j = await r.json();
     if (j && j.tag_name && newer(j.tag_name, app.getVersion())) send('update-available', { version: String(j.tag_name).replace(/^v/i, ''), url: j.html_url });
@@ -52,45 +69,79 @@ async function checkUpdate() {
 
 // ---------- config + AutoHotkey discovery ----------
 const cfgFile = () => path.join(app.getPath('userData'), 'config.json');
-const cfg = () => { try { return JSON.parse(fs.readFileSync(cfgFile(), 'utf8')); } catch (e) { return {}; } };
-const setCfg = o => { try { fs.writeFileSync(cfgFile(), JSON.stringify({ ...cfg(), ...o })); } catch (e) {} };
+let cfgBroken = false;
+const cfg = () => {
+  let t; try { t = fs.readFileSync(cfgFile(), 'utf8'); } catch (e) { return {}; }
+  try { const j = JSON.parse(t); cfgBroken = false; return j && typeof j === 'object' && !Array.isArray(j) ? j : {}; } catch (e) { cfgBroken = true; return {}; }
+};
+const setCfg = o => {
+  try {
+    const cur = cfg();
+    if (cfgBroken) { try { fs.copyFileSync(cfgFile(), cfgFile() + '.bad'); } catch (e) {} cfgBroken = false; } // keep the unreadable file for the user
+    const f = cfgFile(), t = f + '.tmp'; fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.writeFileSync(t, JSON.stringify({ ...cur, ...o })); fs.renameSync(t, f);
+  } catch (e) {}
+};
 const bases = [process.env['ProgramFiles'], process.env['ProgramFiles(x86)'], path.join(os.homedir(), 'AppData', 'Local', 'Programs')].filter(Boolean);
 const first = l => l.find(p => fs.existsSync(p));
 const onPath = name => {
   if (process.platform !== 'win32') return null;
   try { const r = spawnSync('where', [name], { encoding: 'utf8', windowsHide: true }); const p = (r.stdout || '').split(/\r?\n/).find(Boolean); return p && fs.existsSync(p) ? p : null; } catch (e) { return null; }
 };
+// the copy of AutoHotkey the app downloaded itself (Help > Program locations > Download)
+const runtimeDir = () => path.join(app.getPath('userData'), 'ahk-runtime');
+const ownRuntime = () => { try { const r = RT.locate(runtimeDir()); return { ahk: r.ahk && fs.existsSync(r.ahk) ? r.ahk : null, compiler: r.compiler && fs.existsSync(r.compiler) ? r.compiler : null }; } catch (e) { return {}; } };
+const ahkVersionOf = exe => { try { const f = tmpFile('FileAppend(A_AhkVersion, "*")', 'ver.ahk'); const r = spawnSync(exe, [f], { timeout: 8000, encoding: 'utf8', windowsHide: true }); return String(r.stdout || '').trim(); } catch (e) { return ''; } };
 const findAhk = () => {
-  const c = cfg().ahk; if (c && fs.existsSync(c)) return c;
+  const c = cfg().ahk; if (c && COMP.looksLikeAhk(c) && fs.existsSync(c)) return c;
+  const rt = ownRuntime().ahk; if (rt) return rt;
   return first(bases.flatMap(b => ['AutoHotkey64.exe', 'AutoHotkey32.exe', 'AutoHotkey.exe'].map(n => path.join(b, 'AutoHotkey', 'v2', n)))) || onPath('AutoHotkey64.exe');
 };
 const findCompiler = () => {
-  const c = cfg().compiler; if (c && fs.existsSync(c)) return c;
+  const c = cfg().compiler; if (c && COMP.looksLikeCompiler(c) && fs.existsSync(c)) return c;
+  const rt = ownRuntime().compiler; if (rt) return rt;
   const near = []; const a = findAhk();
   if (a) { near.push(path.join(path.dirname(a), 'Compiler', 'Ahk2Exe.exe'), path.join(path.dirname(path.dirname(a)), 'Compiler', 'Ahk2Exe.exe')); }
   return first([...near, ...bases.flatMap(b => [path.join(b, 'AutoHotkey', 'Compiler', 'Ahk2Exe.exe'), path.join(b, 'AutoHotkey', 'v2', 'Compiler', 'Ahk2Exe.exe')])]) || onPath('Ahk2Exe.exe');
 };
 async function ensureCompiler() {
   const p = findCompiler(); if (p) return p;
-  const r = await dialog.showOpenDialog(win, { title: 'Find Ahk2Exe.exe (the AutoHotkey compiler)', filters: [{ name: 'Ahk2Exe', extensions: ['exe'] }], properties: ['openFile'] });
-  if (r.canceled) return null;
-  setCfg({ compiler: r.filePaths[0] }); return r.filePaths[0];
+  for (;;) {
+    const r = await dialog.showOpenDialog(win, { title: 'Find Ahk2Exe.exe (the AutoHotkey compiler)', filters: [{ name: 'Ahk2Exe', extensions: ['exe'] }], properties: ['openFile'] });
+    if (r.canceled) return null;
+    if (COMP.looksLikeCompiler(r.filePaths[0])) { setCfg({ compiler: r.filePaths[0] }); return r.filePaths[0]; }
+    await dialog.showMessageBox(win, { type: 'warning', message: 'That is not Ahk2Exe.exe', detail: 'Pick the file called Ahk2Exe.exe (usually inside AutoHotkey\\Compiler).' });
+  }
 }
 async function ensureAhk() {
   const p = findAhk(); if (p) return p;
-  const r = await dialog.showOpenDialog(win, { title: 'Find AutoHotkey v2 (AutoHotkey64.exe)', filters: [{ name: 'Program', extensions: ['exe'] }], properties: ['openFile'] });
-  if (r.canceled) return null;
-  setCfg({ ahk: r.filePaths[0] }); return r.filePaths[0];
+  for (;;) {
+    const r = await dialog.showOpenDialog(win, { title: 'Find AutoHotkey v2 (AutoHotkey64.exe)', filters: [{ name: 'Program', extensions: ['exe'] }], properties: ['openFile'] });
+    if (r.canceled) return null;
+    const f = r.filePaths[0];
+    if (!COMP.looksLikeAhk(f)) { await dialog.showMessageBox(win, { type: 'warning', message: 'That is not an AutoHotkey v2 program', detail: 'Pick AutoHotkey64.exe (usually in Program Files\\AutoHotkey\\v2). Names like AutoHotkeyU64.exe are version 1.' }); continue; }
+    const v = process.platform === 'win32' ? ahkVersionOf(f) : '';
+    if (v && !COMP.isAhkV2(v)) { await dialog.showMessageBox(win, { type: 'warning', message: 'That is AutoHotkey version ' + v, detail: 'Nexo Ahks needs version 2.' }); continue; }
+    setCfg({ ahk: f }); return f;
+  }
 }
-const tmpFile = (code, name = 'run.ahk') => {
-  const d = path.join(os.tmpdir(), 'nexo-ahks'); fs.mkdirSync(d, { recursive: true });
-  const f = path.join(d, name); fs.writeFileSync(f, code); return f;
+let tmpRoot = null;
+const tmpDir = () => { if (!tmpRoot || !fs.existsSync(tmpRoot)) tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nexo-ahks-')); return tmpRoot; }; // one private folder per app run
+const tmpFile = (code, name = 'run.ahk', unique) => {
+  const f = path.join(tmpDir(), unique ? Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + '_' + name : name);
+  fs.writeFileSync(f, code); return f;
 };
-const NOAHK = 'AutoHotkey v2 not found. Install it from autohotkey.com (Windows only).';
+const cleanTmp = () => { try { if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true }); } catch (e) {} };
+const NOAHK = 'AutoHotkey v2 not found. Install it from autohotkey.com, or use Help > Program locations > Download (Windows only).';
 const readText = f => { const b = fs.readFileSync(f); if (b[0] === 0xFF && b[1] === 0xFE) return b.slice(2).toString('utf16le'); return b.toString('utf8').replace(/^\ufeff/, ''); };
 
 // errors become values the UI can show instead of silent failures
-const handle = (name, fn, onErr) => ipcMain.handle(name, async (_, ...a) => { try { return await fn(...a); } catch (e) { return onErr(e); } });
+// Only the app's own page (file://) may call these; every handler returns errors as values
+const trusted = ev => { const u = ev && ev.senderFrame && ev.senderFrame.url; return !u || /^file:\/\//i.test(u); };
+const handle = (name, fn, onErr) => ipcMain.handle(name, async (ev, ...a) => { if (!trusted(ev)) return onErr(new Error('Blocked')); try { return await fn(...a); } catch (e) { return onErr(e); } });
+// script files the page may read / run / start with Windows: .ahk or .ahkb only, absolute path
+const isScriptPath = p => typeof p === 'string' && p.length < 1000 && /\.(ahk|ahkb)$/i.test(p) && path.isAbsolute(p);
+const isAhkFile = p => isScriptPath(p) && /\.ahk$/i.test(p) && fs.existsSync(p);
 const E = e => ({ err: String((e && e.message) || e) });
 const ES = e => 'Error: ' + String((e && e.message) || e);
 handle('open-url', u => { if (/^https:\/\/github\.com\//i.test(String(u))) shell.openExternal(String(u)); return true; }, ES);
@@ -141,7 +192,7 @@ function stopAll() { [...procs.keys()].forEach(stopOne); }
 handle('run-script', async o => {
   const exe = await ensureAhk(); if (!exe) return NOAHK;
   if (procs.has(o.id)) stopOne(o.id);
-  const file = (o.file && fs.existsSync(o.file)) ? o.file : tmpFile(o.code || '', 's_' + String(o.id).replace(/\W/g, '') + '.ahk');
+  const file = isAhkFile(o.file) ? o.file : tmpFile(o.code || '', 's_' + String(o.id).replace(/\W/g, '') + '.ahk');
   const keep = prefs().keepRunning;
   const dbg = o.debug ? String(o.debug) : '';
   const child = dbg
@@ -167,8 +218,58 @@ const libFile = () => path.join(app.getPath('userData'), 'library.json');
 handle('lib-load', () => { try { return JSON.parse(fs.readFileSync(libFile(), 'utf8')); } catch (e) { return null; } }, () => null);
 handle('lib-save', d => { const f = libFile(), t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(d)); fs.renameSync(t, f); return true; }, E);
 handle('lib-sync', l => { libList = Array.isArray(l) ? l : []; updateTray(); return true; }, E);
-handle('read-file', p => { if (fs.statSync(p).size > 5e6) throw new Error('That file is too big'); return readText(p); }, E);
-handle('reveal', p => { shell.showItemInFolder(p); return true; }, E);
+handle('read-file', p => { if (!isScriptPath(p)) throw new Error('Only .ahk and .ahkb files can be opened'); if (fs.statSync(p).size > 5e6) throw new Error('That file is too big'); return readText(p); }, E);
+handle('reveal', p => { if (isScriptPath(p) || (typeof p === 'string' && /\.(exe|lnk)$/i.test(p) && path.isAbsolute(p))) shell.showItemInFolder(p); return true; }, E);
+// ---------- Help > Program locations ----------
+handle('tool-paths', () => ({ ahk: findAhk() || null, compiler: findCompiler() || null, ahkSaved: !!(cfg().ahk && COMP.looksLikeAhk(cfg().ahk)), compilerSaved: !!(cfg().compiler && COMP.looksLikeCompiler(cfg().compiler)), downloaded: !!ownRuntime().ahk }), E);
+handle('tool-set', async kind => {
+  if (kind !== 'ahk' && kind !== 'compiler') return { err: 'Unknown program' };
+  const isA = kind === 'ahk';
+  const r = await dialog.showOpenDialog(win, { title: isA ? 'Find AutoHotkey v2 (AutoHotkey64.exe)' : 'Find Ahk2Exe.exe (the AutoHotkey compiler)', filters: [{ name: 'Program', extensions: ['exe'] }], properties: ['openFile'] });
+  if (r.canceled || !r.filePaths.length) return { cancelled: true };
+  const f = r.filePaths[0];
+  if (isA) {
+    if (!COMP.looksLikeAhk(f)) return { err: 'That is not an AutoHotkey v2 program. Pick AutoHotkey64.exe (names like AutoHotkeyU64.exe are version 1).' };
+    const v = process.platform === 'win32' ? ahkVersionOf(f) : '';
+    if (v && !COMP.isAhkV2(v)) return { err: 'That is AutoHotkey version ' + v + ', but version 2 is needed.' };
+  } else if (!COMP.looksLikeCompiler(f)) return { err: 'That is not Ahk2Exe.exe. Pick the file called Ahk2Exe.exe.' };
+  setCfg(isA ? { ahk: f } : { compiler: f }); return { ok: true, path: f };
+}, E);
+handle('tool-reset', kind => { if (kind === 'ahk') setCfg({ ahk: null }); else if (kind === 'compiler') setCfg({ compiler: null }); else return { err: 'Unknown program' }; return { ok: true }; }, E);
+// Downloads the official AutoHotkey v2 zip from GitHub (only when the user clicks), checks its hash and keeps it in the app's own folder
+let dlBusy = false;
+handle('tool-download', async () => {
+  if (process.platform !== 'win32') return { err: 'AutoHotkey only runs on Windows.' };
+  if (dlBusy) return { err: 'Already downloading.' };
+  dlBusy = true;
+  try {
+    const step = t => send('tool-download-progress', t);
+    step('Looking up the latest AutoHotkey v2…');
+    const rr = await net.fetch(RT.RELEASES, { headers: { 'User-Agent': 'Nexo-Ahks', Accept: 'application/vnd.github+json' } });
+    if (!rr.ok) return { err: 'Could not reach GitHub (' + rr.status + ').' };
+    const asset = RT.pickAsset(await rr.json());
+    if (!asset) return { err: 'Could not find the AutoHotkey v2 download. Install it from autohotkey.com instead.' };
+    step('Downloading ' + asset.name + '…');
+    const zr = await net.fetch(asset.url, { headers: { 'User-Agent': 'Nexo-Ahks' } });
+    if (!zr.ok) return { err: 'Download failed (' + zr.status + ').' };
+    const buf = Buffer.from(await zr.arrayBuffer());
+    if (buf.length > RT.MAX_BYTES || buf.length < 1e5) return { err: 'The downloaded file looks wrong, so it was not used.' };
+    const v = RT.verifyDigest(buf, asset.digest);
+    if (!v.ok) return { err: 'The download did not match its checksum, so it was not used.' };
+    step('Unpacking…');
+    const dir = runtimeDir(), zip = path.join(tmpDir(), asset.name), stage = path.join(tmpDir(), 'ahk-stage');
+    fs.writeFileSync(zip, buf); fs.rmSync(stage, { recursive: true, force: true }); fs.mkdirSync(stage, { recursive: true });
+    const ps = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:NX_ZIP -DestinationPath $env:NX_OUT -Force'], { env: { ...process.env, NX_ZIP: zip, NX_OUT: stage }, timeout: 120000, windowsHide: true, encoding: 'utf8' });
+    if (ps.status !== 0) return { err: 'Could not unpack the download: ' + String(ps.stderr || ps.error || '').slice(0, 200) };
+    if (!RT.locate(stage).ahk) return { err: 'The download did not contain AutoHotkey64.exe.' };
+    fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(path.dirname(dir), { recursive: true }); fs.cpSync(stage, dir, { recursive: true });
+    const now = ownRuntime();
+    return { ok: true, ahk: now.ahk || null, compiler: now.compiler || null, checked: v.checked, note: now.compiler ? '' : 'This download has no compiler, so Compile to EXE still needs Ahk2Exe.exe from the full installer.' };
+  } finally { dlBusy = false; }
+}, E);
+// self-update (installed builds)
+handle('update-download', async () => { const u = getUpdater(); if (!u) return { err: 'Updates are managed by the installer in this build.' }; await u.downloadUpdate(); return { ok: true }; }, E);
+handle('update-install', () => { const u = getUpdater(); if (!u) return { err: 'Not available.' }; quitting = true; u.quitAndInstall(false, true); return { ok: true }; }, E);
 handle('get-prefs', () => prefs(), () => ({}));
 handle('set-prefs', p => { setCfg({ closeToTray: !!p.closeToTray, keepRunning: !!p.keepRunning }); return prefs(); }, E);
 handle('scan-folder', async () => {
@@ -193,7 +294,7 @@ handle('set-startup', async o => {
   const lnk = path.join(dir, 'Nexo Ahks - ' + safe + '.lnk');
   const mine = path.join(app.getPath('userData'), 'startup', String(o.id).replace(/\W/g, '') + '.ahk');
   if (!o.on) { try { fs.unlinkSync(lnk); } catch (e) {} try { fs.unlinkSync(mine); } catch (e) {} return { ok: true }; }
-  let script = o.file;
+  let script = isAhkFile(o.file) ? o.file : null;
   if (!script) { fs.mkdirSync(path.dirname(mine), { recursive: true }); fs.writeFileSync(mine, o.code || ''); script = mine; }
   shell.writeShortcutLink(lnk, 'create', { target: exe, args: '"' + script + '"', cwd: path.dirname(script), description: 'Nexo Ahks: ' + safe });
   return { ok: true, path: lnk };
@@ -207,10 +308,10 @@ handle('compile', async (code, name, opts) => {
   const o = opts || {};
   const r = await dialog.showSaveDialog(win, { defaultPath: COMP.safeExeName(o.name || name) + '.exe', filters: [{ name: 'Executable', extensions: ['exe'] }] });
   if (r.canceled) return null;
-  const src = tmpFile(COMP.withDirectives(code, { ...o, name: o.name || name }), 'compile.ahk');
+  const src = tmpFile(COMP.withDirectives(code, { ...o, name: o.name || name }), 'compile.ahk', true);
   let icon = null;
-  if (o.useNexoIcon) { try { icon = path.join(os.tmpdir(), 'nexo-ahks-icon.ico'); fs.copyFileSync(path.join(__dirname, 'build', 'icon.ico'), icon); } catch (e) { icon = null; } }
-  else if (o.icon && fs.existsSync(o.icon)) icon = o.icon;
+  if (o.useNexoIcon) { try { icon = path.join(tmpDir(), 'icon.ico'); fs.copyFileSync(path.join(__dirname, 'build', 'icon.ico'), icon); } catch (e) { icon = null; } }
+  else if (o.icon && /\.(ico|exe)$/i.test(String(o.icon)) && fs.existsSync(o.icon)) icon = o.icon;
   return new Promise(res => {
     let out = '', done = false;
     const fin = m => { if (done) return; done = true; clearTimeout(tm); res(m); };
@@ -226,7 +327,7 @@ handle('compile', async (code, name, opts) => {
   });
 }, ES);
 
-ipcMain.handle('pick-file', async (_, o) => { const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: (o && o.filters) || [] }); return r.canceled || !r.filePaths.length ? null : r.filePaths[0]; });
+ipcMain.handle('pick-file', async (ev, o) => { if (!trusted(ev)) return null; const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: (o && o.filters) || [] }); return r.canceled || !r.filePaths.length ? null : r.filePaths[0]; });
 
 // ---------- Help > Self-check: is everything this app needs available? ----------
 ipcMain.handle('diagnostics', async () => {
@@ -238,7 +339,7 @@ ipcMain.handle('diagnostics', async () => {
     if (!win32) return add('ahk', 'AutoHotkey v2', 'warn', 'AutoHotkey only runs on Windows, so Run and Compile are unavailable here.', 'Use Try it to test your script instead.');
     const exe = await ensureAhk();
     if (!exe) return add('ahk', 'AutoHotkey v2', 'bad', 'Not found.', 'Install AutoHotkey v2 from autohotkey.com, then press Self-check again.');
-    let ver = ''; try { const f = tmpFile('FileAppend(A_AhkVersion, "*")', 'selfcheck.ahk'); const r = spawnSync(exe, [f], { timeout: 6000, encoding: 'utf8', windowsHide: true }); ver = String(r.stdout || '').trim(); } catch (e) {}
+    let ver = ''; try { ver = ahkVersionOf(exe); } catch (e) {}
     add('ahk', 'AutoHotkey v2', ver && !/^2\./.test(ver) ? 'bad' : 'ok', exe + (ver ? '  (version ' + ver + ')' : ''), ver && !/^2\./.test(ver) ? 'This is not version 2. Install AutoHotkey v2.' : '');
   });
   await safe('comp', 'Compiler (Ahk2Exe)', async () => {
@@ -348,7 +449,7 @@ const REC = [
 handle('rec-start', async () => {
   if (rec) return { err: 'Already recording. Press F10 to stop.' };
   const exe = await ensureAhk(); if (!exe) return { err: NOAHK };
-  const f = tmpFile(REC, 'rec.ahk');
+  const f = tmpFile(REC, 'rec.ahk', true);
   return new Promise(res => {
     let out = ''; win.minimize();
     rec = spawn(exe, [f]);
@@ -376,6 +477,7 @@ app.whenReady().then(() => {
     minWidth: 900, minHeight: 560, backgroundColor: '#0d0f15', autoHideMenuBar: true, title: 'Nexo Ahks', icon: path.join(__dirname, 'renderer', 'logo.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
+  try { win.webContents.session.setPermissionRequestHandler((wc, perm, cb) => cb(false)); } catch (e) {}
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', e => e.preventDefault());
   win.on('close', e => {
@@ -387,5 +489,5 @@ app.whenReady().then(() => {
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 });
 app.on('before-quit', () => { quitting = true; if (!prefs().keepRunning) procs.forEach(c => { try { c.kill(); } catch (e) {} }); });
-app.on('will-quit', () => globalShortcut.unregisterAll());
+app.on('will-quit', () => { globalShortcut.unregisterAll(); cleanTmp(); });
 app.on('window-all-closed', () => { if (rec) rec.kill(); app.quit(); });

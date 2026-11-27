@@ -1,0 +1,57 @@
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: Tests + lint (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      # renderer bundle up to date + lint + main/utils/sim/screen/self tests + dry generation of every block
+      - run: npm test
+  windows:
+    name: Real AutoHotkey + real app (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Get AutoHotkey v2 (official zip from GitHub)
+        shell: pwsh
+        run: |
+          $rel = Invoke-RestMethod https://api.github.com/repos/AutoHotkey/AutoHotkey/releases/latest -Headers @{ 'User-Agent' = 'nexo-ahks-ci' }
+          $a = $rel.assets | Where-Object { $_.name -match '^AutoHotkey_2\.[\d.]+\.zip$' } | Select-Object -First 1
+          Invoke-WebRequest $a.browser_download_url -OutFile "$env:RUNNER_TEMP\ahk.zip"
+          Expand-Archive "$env:RUNNER_TEMP\ahk.zip" -DestinationPath "$env:RUNNER_TEMP\ahk" -Force
+          $exe = Get-ChildItem "$env:RUNNER_TEMP\ahk" -Recurse -Filter AutoHotkey64.exe | Select-Object -First 1
+          "AHK_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+      # every block and template is turned into a script and AutoHotkey itself must accept it
+      - run: node scripts/ahkcheck.js --exe "$env:AHK_EXE"
+      - run: npx electron scripts/uitest.js
+      - run: npx electron scripts/e2e.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-shots-and-scripts
+          path: |
+            ui-shots/*.png
+            ahkcheck-out/*.ahk
+          if-no-files-found: ignore

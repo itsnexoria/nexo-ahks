@@ -3,10 +3,9 @@
 const path = require('path');
 const { JSDOM } = require('jsdom');
 const fs = require('fs');
-const html = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'index.html'), 'utf8');
+const html = require('./page-util').pageHtml();
 const errs = [];
-const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/index.html', pretendToBeVisual: true, beforeParse(w) { w.eval(require('fs').readFileSync(require('path').join(__dirname, '..', 'renderer', 'sim.js'), 'utf8'));
-  w.matchMedia = () => ({ matches: false, addListener() {}, addEventListener() {} });
+const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/index.html', pretendToBeVisual: true, beforeParse(w) { w.matchMedia = () => ({ matches: false, addListener() {}, addEventListener() {} });
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true };
   w.HTMLDialogElement.prototype.close = function () { this.open = false };
   w.addEventListener('error', e => errs.push('page error: ' + e.message));
@@ -35,6 +34,13 @@ setTimeout(() => {
   // 4. importer special cases
   const imp = ev(`(()=>{const r=parseAhk('CapsLock::Ctrl\\nF1::ExitApp\\nClick "Left"\\nClick "Left 2"\\nMyFunc(a, b) {\\n  return a\\n}');return r.kids.map(k=>k.t).join(',')+'|raw:'+r.rawN})()`);
   ok(imp === 'remap,hotkey,click,mclick,funcp|raw:0', 'importer special cases: ' + imp);
+  // 4b. v1 Gosub / SetTimer labels become v2 functions (v2 has no Gosub)
+  const gs = ev(`(()=>{const r=parseAhk('count = 0\\nSetTimer, Tick, 1000\\nF1::\\nGosub, DoIt\\nreturn\\nF2::\\nSetTimer, Tick, Off\\nreturn\\nDoIt:\\ncount += 1\\nMsgBox, hi %count%\\nreturn\\nTick:\\ncount++\\nreturn');root.kids=r.kids;GUI=r.gui||newGui();SET=setFromParse(r.set);return build()})()`);
+  ok(/DoIt\(\) \{\s*\n\s*global count/.test(gs) && /Tick\(\) \{\s*\n\s*global count/.test(gs) && /SetTimer\(Tick, 1000\)/.test(gs) && /SetTimer\(Tick, 0\)/.test(gs) && /F1::\{\s*\n\s*DoIt\(\)/.test(gs) && !/Gosub/.test(gs), 'v1 Gosub/SetTimer labels become functions: ' + gs);
+  const gn = ev(`(()=>{const r=parseAhk('F1::\\nGosub, Nowhere\\nreturn');root.kids=r.kids;GUI=r.gui||newGui();SET=setFromParse(r.set);return build()})()`);
+  ok(/Gosub/.test(gn), 'a Gosub to a missing label is left alone for the user to look at');
+  // 4c. text with user-controlled characters never becomes markup in the page
+  ok(ev(`esc('<img src=x onerror=1>"\\'')`).indexOf('<') < 0 && ev(`esc(null)`) === '' && ev(`esc(42)`) === '42', 'esc() escapes markup and accepts non-strings');
   // 5. editor interactions
   ev(`newTab('T')`);
   const pb = n => [...w.document.querySelectorAll('#pal .pb')].find(b => b.textContent === n);
